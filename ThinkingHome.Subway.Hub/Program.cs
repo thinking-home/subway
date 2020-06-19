@@ -17,7 +17,7 @@ namespace ThinkingHome.Subway.Hub
             var host = Host.CreateDefaultBuilder(args)
                 .ConfigureWebHostDefaults(webBuilder => webBuilder
                     .ConfigureKestrel(cfg =>
-                        cfg.Listen(IPAddress.Loopback, 443, opt => opt.UseHttps(certPath, certPassword)))
+                        cfg.Listen(IPAddress.Any, 443, opt => opt.UseHttps(certPath, certPassword)))
                     .UseStartup<Startup>())
                 .Build();
 
