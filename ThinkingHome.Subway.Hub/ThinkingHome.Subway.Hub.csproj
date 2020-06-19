@@ -9,4 +9,8 @@
       <PackageReference Include="Serilog.Extensions.Logging.File" Version="2.0.0" />
     </ItemGroup>
 
+    <ItemGroup>
+      <ProjectReference Include="..\ThinkingHome.Alice.Service\ThinkingHome.Alice.Service.csproj" />
+    </ItemGroup>
+
 </Project>

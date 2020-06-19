@@ -10,7 +10,8 @@ namespace ThinkingHome.Subway.TestConsole
         static async Task Main(string[] args)
         {
             var connection = new HubConnectionBuilder()
-                .WithUrl("http://localhost:5000/hub")
+                .WithUrl("http://84.201.154.11/hub")
+                // .WithUrl("http://localhost:5000/hub")
                 .Build();
 
             var x = false;

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Net;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.DependencyInjection;
@@ -10,8 +11,14 @@ namespace ThinkingHome.Subway.Hub
     {
         static void Main(string[] args)
         {
+            string certPath = "/home/dima117a/merged.pfx";
+            string certPassword = "changeit";
+
             var host = Host.CreateDefaultBuilder(args)
-                .ConfigureWebHostDefaults(webBuilder => webBuilder.UseStartup<Startup>())
+                .ConfigureWebHostDefaults(webBuilder => webBuilder
+                    .ConfigureKestrel(cfg =>
+                        cfg.Listen(IPAddress.Loopback, 443, opt => opt.UseHttps(certPath, certPassword)))
+                    .UseStartup<Startup>())
                 .Build();
 
             var hubContext = host.Services.GetService<IHubContext<TestHub>>();

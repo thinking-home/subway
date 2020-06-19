@@ -18,6 +18,7 @@ namespace ThinkingHome.Subway.Hub
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddSignalR();
+            services.AddControllers();
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILoggerFactory loggerFactory)
@@ -27,6 +28,7 @@ namespace ThinkingHome.Subway.Hub
             app.UseRouting().UseEndpoints(endpoints =>
             {
                 endpoints.MapHub<TestHub>("/hub");
+                endpoints.MapControllers();
             });
         }
     }

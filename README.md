@@ -4,7 +4,7 @@
 
 ```bash
 # hub
-dotnet run --project=ThinkingHome.Subway.Server
+dotnet run --project=ThinkingHome.Subway.Hub
 
 # client
 dotnet run --project=ThinkingHome.Subway.TestConsole
@@ -30,5 +30,14 @@ dotnet run --project=ThinkingHome.Subway.TestConsole
 - [авторизация локального сервера]
 - предоставлять схему локального сервера
 
+## notes
+
 - [про клиент на .NET Core](https://docs.microsoft.com/ru-ru/aspnet/core/signalr/dotnet-client?view=aspnetcore-3.1)
 - [навыки Алисы для умного дома](https://yandex.ru/dev/dialogs/alice/doc/smart-home/reference/post-action-docpage/)
+
+### hosting
+
+- https://certbot.eff.org/lets-encrypt/ubuntubionic-other
+
+получить сертификат: `sudo certbot certonly --standalone`
+сконвертировать сертификат: `sudo openssl pkcs12 -in /etc/letsencrypt/live/alice.thinking-home.ru/cert.pem -inkey /etc/letsencrypt/live/alice.thinkin.ru/privkey.pem -export -out merged.pfx`
