@@ -9,34 +9,29 @@ namespace ThinkingHome.Subway.Hub
 {
     class Program
     {
-        static void Main(string[] args)
+        static IHost CreateHost(string[] args)
         {
             string certPath = "/home/dima117a/merged.pfx";
             string certPassword = "changeit";
 
-            var host = Host.CreateDefaultBuilder(args)
+            var hostBuilder = Host.CreateDefaultBuilder(args)
                 .ConfigureWebHostDefaults(webBuilder => webBuilder
                     .ConfigureKestrel(cfg =>
                         cfg.Listen(IPAddress.Any, 443, opt => opt.UseHttps(certPath, certPassword)))
-                    .UseStartup<Startup>())
-                .Build();
+                    .UseStartup<Startup>());
 
-            var hubContext = host.Services.GetService<IHubContext<TestHub>>();
+            return hostBuilder.Build();
+        }
 
-            host.Start();
-
-            Console.WriteLine($"SEND1231231241241241");
-
-            var x = Console.ReadLine();
-
-            while (x != "exit")
+        static void Main(string[] args)
+        {
+            using (var host = CreateHost(args))
             {
-                Console.WriteLine($"SEND: {x}");
-                hubContext.Clients.All.SendAsync(TestHub.CLIENT_METHOD_NAME, x);
-                x = Console.ReadLine();
+                // host.Start();
+                host.Run();
             }
 
-            host.Dispose();
+            // var hubContext = host.Services.GetService<IHubContext<TestHub>>();
         }
     }
 }
