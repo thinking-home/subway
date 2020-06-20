@@ -157,7 +157,7 @@ namespace ThinkingHome.Alice.Service
         }
 
         [HttpPost("/service/v1.0/user/devices/query")]
-        public DevicesQueryResponse DevicesQuery(DevicesQueryRequest request)
+        public DevicesQueryResponse DevicesQuery([FromBody]DevicesQueryRequest request)
         {
             Console.WriteLine(request);
             var devices = new List<DeviceState>();
