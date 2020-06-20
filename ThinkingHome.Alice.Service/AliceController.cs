@@ -5,19 +5,19 @@ namespace ThinkingHome.Alice.Service
 {
     public class AliceController : Controller
     {
-        [HttpGet("/service")]
+        [HttpGet("/service/v1.0")]
         public ActionResult Index()
         {
             return Ok("moo");
         }
 
-        [HttpGet("/service/user/unlink")]
+        [HttpGet("/service/v1.0/user/unlink")]
         public UnlinkResponse Unlink()
         {
             return new UnlinkResponse {request_id = "123"};
         }
 
-        [HttpGet("/service/user/devices")]
+        [HttpGet("/service/v1.0/user/devices")]
         public DevicesResponse Devices()
         {
             return new DevicesResponse
