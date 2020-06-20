@@ -41,3 +41,5 @@ dotnet run --project=ThinkingHome.Subway.TestConsole
 
 получить сертификат: `sudo certbot certonly --standalone`
 сконвертировать сертификат: `sudo openssl pkcs12 -in /etc/letsencrypt/live/alice.thinking-home.ru/cert.pem -inkey /etc/letsencrypt/live/alice.thinkin.ru/privkey.pem -export -out merged.pfx`
+
+запустить на сервере: `sudo dotnet run --project=ThinkingHome.Subway.Hub --urls=https://+:443`

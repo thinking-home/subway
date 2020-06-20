@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using ThinkingHome.Alice.Service;
 
 namespace ThinkingHome.Subway.Hub
 {
@@ -18,7 +19,10 @@ namespace ThinkingHome.Subway.Hub
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddSignalR();
-            services.AddControllers();
+            services.AddControllers()
+                .AddJsonOptions(opt => opt.JsonSerializerOptions.IgnoreNullValues = true)
+                .AddApplicationPart(typeof(AliceController).Assembly)
+                .AddControllersAsServices();
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILoggerFactory loggerFactory)
