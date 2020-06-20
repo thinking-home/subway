@@ -20,7 +20,7 @@ namespace ThinkingHome.Alice.Service
             return Redirect(url.ToString());
         }
 
-        [HttpGet("/oauth/token")]
+        [HttpPost("/oauth/token")]
         public IActionResult Token(string code)
         {
             Console.WriteLine("Code: {0}", code);

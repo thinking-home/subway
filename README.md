@@ -34,6 +34,7 @@ dotnet run --project=ThinkingHome.Subway.TestConsole
 
 - [про клиент на .NET Core](https://docs.microsoft.com/ru-ru/aspnet/core/signalr/dotnet-client?view=aspnetcore-3.1)
 - [навыки Алисы для умного дома](https://yandex.ru/dev/dialogs/alice/doc/smart-home/reference/post-action-docpage/)
+- [описание протокола OAuth2](https://www.oauth.com/oauth2-servers/authorization/the-authorization-request/)
 
 ### hosting
 
