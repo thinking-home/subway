@@ -7,11 +7,14 @@ namespace ThinkingHome.Alice.Service
     public class OAuthController : Controller
     {
         [HttpGet("/oauth/authorize")]
-        public IActionResult Index(string redirect_uri)
+        public IActionResult Index(string redirect_uri, string state)
         {
             var url = new UriBuilder(redirect_uri);
             var qs = HttpUtility.ParseQueryString(url.Query);
             qs["code"] = Guid.NewGuid().ToString("N");
+
+            if (!string.IsNullOrEmpty(state)) qs["state"] = state;
+
             url.Query = qs.ToString();
 
             return Redirect(url.ToString());
