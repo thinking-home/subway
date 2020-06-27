@@ -25,6 +25,7 @@ namespace ThinkingHome.Subway.Hub
                 {
                     opts.SerializerSettings.NullValueHandling = NullValueHandling.Ignore;
                     opts.SerializerSettings.Converters.Add(new StringEnumConverter());
+                    opts.SerializerSettings.Converters.Add(new CapabilityStateJsonConverter());
                 })
                 .AddApplicationPart(typeof(AliceController).Assembly)
                 .AddControllersAsServices();
