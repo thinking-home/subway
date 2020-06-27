@@ -1,10 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.Linq;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Formatters;
 using ThinkingHome.Alice.Service.Model;
 using ThinkingHome.Alice.Service.Model.Devices;
-using ThinkingHome.Alice.Service.Model.Devices.Capability;
 using ThinkingHome.Alice.Service.Model.Devices.Capability.OnOff;
 
 namespace ThinkingHome.Alice.Service
@@ -53,6 +51,30 @@ namespace ThinkingHome.Alice.Service
             {
                 id = _id,
                 capabilities = new[] {_xxx.GetStateResponse()}
+            };
+        }
+
+        public CapabilityActionResult SetCapabilityState(CapabilityState capabilityState)
+        {
+            return new CapabilityActionResult
+            {
+                type = capabilityState.type,
+                state = new CapabilityStateActionResult
+                {
+                    instance = capabilityState.state.instance,
+                    action_result = new ActionResultModel {status = ActionResultStatus.DONE}
+                }
+            };
+        }
+
+        public DeviceActionResult MakeAction(DeviceAction action)
+        {
+            var capabilities = action.capabilities.Select(SetCapabilityState).ToArray();
+
+            return new DeviceActionResult
+            {
+                id = _id,
+                capabilities = capabilities
             };
         }
 
@@ -111,30 +133,32 @@ namespace ThinkingHome.Alice.Service
             };
         }
 
-        [HttpPost("/service/v1.0/user/devices/query")]
-        public DevicesQueryResponse DevicesQuery([FromBody]DevicesQueryRequest request)
+        private TestBulb GetBulbById(string id)
         {
-            Console.WriteLine(request);
-            var devices = new List<DeviceState>();
-
-            foreach (var device in request.devices)
+            if (id == _bulb1.Id)
             {
-                if (device.id == _bulb1.Id)
-                {
-                    devices.Add(_bulb1.GetStateResponse());
-                }
-                else if (device.id == _bulb12.Id)
-                {
-                    devices.Add(_bulb12.GetStateResponse());
-                }
+                return _bulb1;
             }
+
+            if (id == _bulb12.Id)
+            {
+                return _bulb12;
+            }
+
+            return null;
+        }
+
+        [HttpPost("/service/v1.0/user/devices/query")]
+        public DevicesQueryResponse DevicesQuery([FromBody] DevicesQueryRequest request)
+        {
+            var devices = request.devices.Select(d => GetBulbById(d.id).GetStateResponse()).ToArray();
 
             return new DevicesQueryResponse
             {
                 request_id = "123",
                 payload = new DevicesQueryPayload
                 {
-                    devices = devices.ToArray()
+                    devices = devices
                 }
             };
         }
@@ -142,45 +166,64 @@ namespace ThinkingHome.Alice.Service
         [HttpPost("/service/v1.0/user/devices/action")]
         public DevicesActionResponse DevicesAction([FromBody] DevicesActionRequest request)
         {
-            foreach (var device in request.payload.devices)
+            DeviceActionResult MakeAction(DeviceAction action)
             {
-                Console.WriteLine();
-                Console.WriteLine("id: {0}", device.id);
-                Console.WriteLine("data: {0}", device.custom_data);
-                Console.WriteLine("capabilities:");
-
-                foreach (var capability in device.capabilities)
+                var bulb = GetBulbById(action.id);
+                if (bulb == null)
                 {
-                    Console.WriteLine();
-                    Console.WriteLine("type: {0}", capability.type);
-                    Console.WriteLine("state instance: {0}", capability.state.instance);
-                    Console.WriteLine("state value type: {0}", capability.state.value.GetType());
-                    Console.WriteLine("state value: {0}", capability.state.value);
+                    return new DeviceActionResult
+                    {
+                        id = action.id,
+                        action_result = new ActionResultModel
+                        {
+                            status = ActionResultStatus.ERROR,
+                            error_code = ActionResultErrorCode.DEVICE_NOT_FOUND
+                        }
+                    };
                 }
+
+                return bulb.MakeAction(action);
             }
 
-            return new DevicesActionResponse();
-        }
+            var devices = request.payload.devices.Select(MakeAction).ToArray();
 
-        public class DevicesActionResponse
-        {
+            return new DevicesActionResponse
+            {
+                request_id = "1234",
+                payload = new DevicesActionResponsePayload
+                {
+                    devices = devices
+                }
+            };
         }
+    }
 
-        public class DevicesActionRequest
-        {
-            public DevicesActionRequestPayload payload { get; set; }
-        }
+    public class DevicesActionResponse
+    {
+        public string request_id { get; set; }
 
-        public class DevicesActionRequestPayload
-        {
-            public DeviceAction[] devices { get; set; }
-        }
+        public DevicesActionResponsePayload payload { get; set; }
+    }
 
-        public class DeviceAction
-        {
-            public string id { get; set; }
-            public object custom_data { get; set; }
-            public CapabilityState[] capabilities { get; set; }
-        }
+    public class DevicesActionRequest
+    {
+        public DevicesActionRequestPayload payload { get; set; }
+    }
+
+    public class DevicesActionRequestPayload
+    {
+        public DeviceAction[] devices { get; set; }
+    }
+
+    public class DevicesActionResponsePayload
+    {
+        public DeviceActionResult[] devices { get; set; }
+    }
+
+    public class DeviceAction
+    {
+        public string id { get; set; }
+        public object custom_data { get; set; }
+        public CapabilityState[] capabilities { get; set; }
     }
 }
