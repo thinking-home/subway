@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -20,6 +21,13 @@ namespace ThinkingHome.Subway.Hub
 
         public void ConfigureServices(IServiceCollection services)
         {
+            var bulbs = new Dictionary<string, TestBulb>
+            {
+                { "1", new TestBulb("1") },
+                { "12", new TestBulb("12") }
+            };
+            services.AddSingleton(bulbs);
+
             services.AddSignalR();
             services.AddControllers().AddNewtonsoftJson(opts =>
                 {

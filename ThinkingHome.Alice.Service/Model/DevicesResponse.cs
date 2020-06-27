@@ -24,6 +24,6 @@ namespace ThinkingHome.Alice.Service.Model
     public class CapabilityState
     {
         public CapabilityType type { get; set; }
-        public CapabilityStateModel state { get; set; }
+        public CapabilityStateModelBase state { get; set; }
     }
 }

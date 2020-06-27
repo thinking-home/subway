@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNetCore.Mvc;
 using ThinkingHome.Alice.Service.Model;
@@ -56,13 +57,28 @@ namespace ThinkingHome.Alice.Service
 
         public CapabilityActionResult SetCapabilityState(CapabilityState capabilityState)
         {
+            var result = new ActionResultModel {status = ActionResultStatus.DONE};
+            var onoff = capabilityState.state as OnCapabilityState;
+            if (onoff == null)
+            {
+                result = new ActionResultModel
+                {
+                    status = ActionResultStatus.ERROR,
+                    error_code = ActionResultErrorCode.INVALID_VALUE
+                };
+            }
+            else
+            {
+                _xxx.Value = onoff.value;
+            }
+
             return new CapabilityActionResult
             {
                 type = capabilityState.type,
                 state = new CapabilityStateActionResult
                 {
                     instance = capabilityState.state.instance,
-                    action_result = new ActionResultModel {status = ActionResultStatus.DONE}
+                    action_result = result
                 }
             };
         }
@@ -97,11 +113,14 @@ namespace ThinkingHome.Alice.Service
         }
     }
 
-
     public class AliceController : Controller
     {
-        private TestBulb _bulb1 = new TestBulb("1");
-        private TestBulb _bulb12 = new TestBulb("12");
+        private readonly Dictionary<string, TestBulb> _bulbs;
+
+        public AliceController(Dictionary<string, TestBulb> bulbs)
+        {
+            _bulbs = bulbs;
+        }
 
         [HttpGet("/service/v1.0")]
         public ActionResult Index()
@@ -124,28 +143,14 @@ namespace ThinkingHome.Alice.Service
                 payload = new DevicesPayload
                 {
                     user_id = "dima117a",
-                    devices = new[]
-                    {
-                        _bulb1.GetDescription(),
-                        _bulb12.GetDescription(),
-                    }
+                    devices = _bulbs.Values.Select(b => b.GetDescription()).ToArray()
                 }
             };
         }
 
         private TestBulb GetBulbById(string id)
         {
-            if (id == _bulb1.Id)
-            {
-                return _bulb1;
-            }
-
-            if (id == _bulb12.Id)
-            {
-                return _bulb12;
-            }
-
-            return null;
+            return _bulbs.GetValueOrDefault(id);
         }
 
         [HttpPost("/service/v1.0/user/devices/query")]

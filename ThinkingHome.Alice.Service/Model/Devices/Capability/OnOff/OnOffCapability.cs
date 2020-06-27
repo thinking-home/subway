@@ -9,6 +9,6 @@ namespace ThinkingHome.Alice.Service.Model.Devices.Capability.OnOff
 
         protected override OnOffCapabilityParams Params => new OnOffCapabilityParams {split = SplitCommands};
 
-        protected override OnCapabilityState GetState() => new OnCapabilityState(GetValue());
+        protected override OnCapabilityState GetState() => new OnCapabilityState {value = GetValue()};
     }
 }

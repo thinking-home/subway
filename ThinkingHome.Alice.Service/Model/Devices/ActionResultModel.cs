@@ -4,7 +4,7 @@ namespace ThinkingHome.Alice.Service.Model.Devices
     {
         public ActionResultStatus status { get; set; }
 
-        public ActionResultErrorCode error_code { get; set; }
+        public ActionResultErrorCode? error_code { get; set; }
 
         public string error_message { get; set; }
     }

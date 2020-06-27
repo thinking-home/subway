@@ -8,9 +8,9 @@ namespace ThinkingHome.Alice.Service.Model.Devices.Capability
 
     }
 
-    public abstract class CapabilityStateModel : CapabilityStateModelBase
+    public abstract class CapabilityStateModel<TValue> : CapabilityStateModelBase
     {
-        public abstract object value { get; }
+        public abstract TValue value { get; set; }
 
         public override object SerializeValue() => value;
     }

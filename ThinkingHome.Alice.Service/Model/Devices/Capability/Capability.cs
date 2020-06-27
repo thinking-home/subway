@@ -5,7 +5,7 @@ namespace ThinkingHome.Alice.Service.Model.Devices.Capability
     /// </summary>
     /// <typeparam name="TParams">Тип поля params</typeparam>
     /// <typeparam name="TState">Тип поля state</typeparam>
-    public abstract class Capability<TParams, TState> where TState : CapabilityStateModel
+    public abstract class Capability<TParams, TState> where TState : CapabilityStateModelBase
     {
         protected abstract CapabilityType Type { get; }
         protected abstract bool Retrievable { get; }

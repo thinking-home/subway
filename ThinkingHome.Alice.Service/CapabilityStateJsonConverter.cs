@@ -2,6 +2,7 @@ using System;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using ThinkingHome.Alice.Service.Model.Devices.Capability;
+using ThinkingHome.Alice.Service.Model.Devices.Capability.OnOff;
 
 namespace ThinkingHome.Alice.Service
 {
@@ -14,7 +15,21 @@ namespace ThinkingHome.Alice.Service
 
         public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
         {
-            throw new NotImplementedException();
+            JObject json = JObject.Load(reader);
+            string instance = json["instance"]?.ToString();
+
+            CapabilityStateModelBase obj = null;
+
+            switch (instance)
+            {
+                case "on":
+                    obj = new OnCapabilityState();
+                    break;
+            }
+
+            serializer.Populate(json.CreateReader(), obj);
+
+            return obj;
         }
 
         public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
