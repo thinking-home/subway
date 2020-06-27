@@ -5,57 +5,10 @@ using Microsoft.AspNetCore.Mvc.Formatters;
 using ThinkingHome.Alice.Service.Model;
 using ThinkingHome.Alice.Service.Model.Devices;
 using ThinkingHome.Alice.Service.Model.Devices.Capability;
+using ThinkingHome.Alice.Service.Model.Devices.Capability.OnOff;
 
 namespace ThinkingHome.Alice.Service
 {
-    /// <summary>
-    /// Общий интерфейс умения
-    /// </summary>
-    /// <typeparam name="T">Тип поля params</typeparam>
-    public abstract class Capability<T, S> where S : CapabilityStateModel
-    {
-        public abstract CapabilityType Type { get; }
-        public abstract bool Retrievable { get; }
-        public abstract T Params { get; }
-        public abstract S GetState();
-
-        public CapabilityInfoModel GetDescription()
-        {
-            return new CapabilityInfoModel
-            {
-                type = Type,
-                retrievable = Retrievable,
-                parameters = Params
-            };
-        }
-
-        public CapabilityState GetStateResponse()
-        {
-            return new CapabilityState
-            {
-                type = Type,
-                state = GetState()
-            };
-        }
-    }
-
-    public class OnOffCapabilityParams
-    {
-        public bool split { get; set; }
-    }
-
-    public class OnCapabilityState : CapabilityStateModel
-    {
-        public OnCapabilityState(bool value)
-        {
-            this.value = value;
-        }
-
-        public override string instance => "on";
-
-        public override object value { get; }
-    }
-
     // public class HsvCapabilityState : CapabilityStateModel<HsvCapabilityStateValue>
     // {
     //     public override string instance => "hsv";
@@ -70,27 +23,15 @@ namespace ThinkingHome.Alice.Service
     //     public int v { get; set; }
     // }
 
-    public abstract class OnOffCapability : Capability<OnOffCapabilityParams, OnCapabilityState>
-    {
-        public override CapabilityType Type => CapabilityType.OnOff;
-        public abstract bool SplitCommands { get; }
-
-        public abstract bool GetValue();
-
-        public override OnOffCapabilityParams Params => new OnOffCapabilityParams {split = SplitCommands};
-
-        public override OnCapabilityState GetState() => new OnCapabilityState(GetValue());
-    }
-
     public class TestBulbDefaultCapability : OnOffCapability
     {
         public bool Value { get; set; }
 
-        public override bool Retrievable => true;
+        protected override bool Retrievable => true;
 
-        public override bool SplitCommands => true;
+        protected override bool SplitCommands => true;
 
-        public override bool GetValue() => Value;
+        protected override bool GetValue() => Value;
     }
 
     public class TestBulb
