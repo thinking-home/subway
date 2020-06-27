@@ -1,9 +1,7 @@
 using System.Runtime.Serialization;
-using System.Text.Json.Serialization;
 
 namespace ThinkingHome.Alice.Service.Model.Devices
 {
-    [JsonConverter(typeof(JsonStringEnumMemberConverter))]
     public enum CapabilityType
     {
         [EnumMember(Value = "devices.capabilities.on_off")]

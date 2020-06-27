@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 using ThinkingHome.Alice.Service;
 
 namespace ThinkingHome.Subway.Hub
@@ -19,8 +21,11 @@ namespace ThinkingHome.Subway.Hub
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddSignalR();
-            services.AddControllers()
-                .AddJsonOptions(opt => opt.JsonSerializerOptions.IgnoreNullValues = true)
+            services.AddControllers().AddNewtonsoftJson(opts =>
+                {
+                    opts.SerializerSettings.NullValueHandling = NullValueHandling.Ignore;
+                    opts.SerializerSettings.Converters.Add(new StringEnumConverter());
+                })
                 .AddApplicationPart(typeof(AliceController).Assembly)
                 .AddControllersAsServices();
         }

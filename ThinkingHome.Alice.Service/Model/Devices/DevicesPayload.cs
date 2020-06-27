@@ -1,5 +1,4 @@
 using System.Runtime.Serialization;
-using System.Text.Json.Serialization;
 using ThinkingHome.Alice.Service.Model.Devices.Capability;
 
 namespace ThinkingHome.Alice.Service.Model.Devices
@@ -32,7 +31,6 @@ namespace ThinkingHome.Alice.Service.Model.Devices
     {
     }
 
-    [JsonConverter(typeof(JsonStringEnumMemberConverter))]
     public enum DeviceType
     {
         [EnumMember(Value = "devices.types.light")]
