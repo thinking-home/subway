@@ -56,6 +56,20 @@ namespace ThinkingHome.Alice.Service
         public override object value { get; }
     }
 
+    // public class HsvCapabilityState : CapabilityStateModel<HsvCapabilityStateValue>
+    // {
+    //     public override string instance => "hsv";
+    //
+    //     public override HsvCapabilityStateValue value { get; set; }
+    // }
+    //
+    // public class HsvCapabilityStateValue
+    // {
+    //     public int h { get; set; }
+    //     public int s { get; set; }
+    //     public int v { get; set; }
+    // }
+
     public abstract class OnOffCapability : Capability<OnOffCapabilityParams, OnCapabilityState>
     {
         public override CapabilityType Type => CapabilityType.OnOff;
@@ -182,6 +196,50 @@ namespace ThinkingHome.Alice.Service
                     devices = devices.ToArray()
                 }
             };
+        }
+
+        [HttpPost("/service/v1.0/user/devices/action")]
+        public DevicesActionResponse DevicesAction([FromBody] DevicesActionRequest request)
+        {
+            foreach (var device in request.payload.devices)
+            {
+                Console.WriteLine();
+                Console.WriteLine("id: {0}", device.id);
+                Console.WriteLine("data: {0}", device.custom_data);
+                Console.WriteLine("capabilities:");
+
+                foreach (var capability in device.capabilities)
+                {
+                    Console.WriteLine();
+                    Console.WriteLine("type: {0}", capability.type);
+                    Console.WriteLine("state instance: {0}", capability.state.instance);
+                    Console.WriteLine("state value type: {0}", capability.state.value.GetType());
+                    Console.WriteLine("state value: {0}", capability.state.value);
+                }
+            }
+
+            return new DevicesActionResponse();
+        }
+
+        public class DevicesActionResponse
+        {
+        }
+
+        public class DevicesActionRequest
+        {
+            public DevicesActionRequestPayload payload { get; set; }
+        }
+
+        public class DevicesActionRequestPayload
+        {
+            public DeviceAction[] devices { get; set; }
+        }
+
+        public class DeviceAction
+        {
+            public string id { get; set; }
+            public object custom_data { get; set; }
+            public CapabilityState[] capabilities { get; set; }
         }
     }
 }
