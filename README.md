@@ -30,6 +30,9 @@ dotnet run --project=ThinkingHome.Subway.TestConsole
 - [авторизация локального сервера]
 - предоставлять схему локального сервера
 
+- причесать нейминг и файловую структуру
+- расставить `sealed` в классах-наследниках 
+
 ## notes
 
 - [про клиент на .NET Core](https://docs.microsoft.com/ru-ru/aspnet/core/signalr/dotnet-client?view=aspnetcore-3.1)

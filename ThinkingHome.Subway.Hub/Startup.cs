@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -7,6 +8,7 @@ using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using ThinkingHome.Alice.Service;
+using ThinkingHome.Alice.Service.Stub;
 
 namespace ThinkingHome.Subway.Hub
 {
@@ -21,11 +23,13 @@ namespace ThinkingHome.Subway.Hub
 
         public void ConfigureServices(IServiceCollection services)
         {
-            var bulbs = new Dictionary<string, TestBulb>
+            var bulbs = new IDevice[]
             {
-                { "1", new TestBulb("1") },
-                { "12", new TestBulb("12") }
-            };
+                new TestBulb("1"),
+                new TestBulb("12"),
+                new TestColorBulb("33"),
+            }.ToDictionary(b => b.Id);
+
             services.AddSingleton(bulbs);
 
             services.AddSignalR();

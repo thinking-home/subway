@@ -25,5 +25,18 @@ namespace ThinkingHome.Alice.Service.Model
     {
         public CapabilityType type { get; set; }
         public CapabilityStateModelBase state { get; set; }
+
+        public CapabilityActionResult GetActionResult(ActionResultModel result)
+        {
+            return new CapabilityActionResult
+            {
+                type = type,
+                state = new CapabilityStateActionResult
+                {
+                    instance = state.instance,
+                    action_result = result
+                }
+            };
+        }
     }
 }

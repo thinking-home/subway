@@ -7,6 +7,18 @@ namespace ThinkingHome.Alice.Service.Model.Devices
         public ActionResultErrorCode? error_code { get; set; }
 
         public string error_message { get; set; }
+
+        public static ActionResultModel Ok => new ActionResultModel {status = ActionResultStatus.DONE};
+
+        public static ActionResultModel InvalidValue(string message = null)
+        {
+            return new ActionResultModel
+            {
+                status = ActionResultStatus.ERROR,
+                error_code = ActionResultErrorCode.INVALID_VALUE,
+                error_message = message
+            };
+        }
     }
 
     public class DeviceActionResult

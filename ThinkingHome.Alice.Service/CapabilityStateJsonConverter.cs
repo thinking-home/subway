@@ -2,6 +2,7 @@ using System;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using ThinkingHome.Alice.Service.Model.Devices.Capability;
+using ThinkingHome.Alice.Service.Model.Devices.Capability.ColorSetting;
 using ThinkingHome.Alice.Service.Model.Devices.Capability.OnOff;
 
 namespace ThinkingHome.Alice.Service
@@ -24,6 +25,9 @@ namespace ThinkingHome.Alice.Service
             {
                 case "on":
                     obj = new OnCapabilityState();
+                    break;
+                case "hsv":
+                    obj = new HsvCapabilityState();
                     break;
             }
 
