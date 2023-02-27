@@ -1,5 +1,8 @@
 # subway
 
+Документация:
+- [Протокол работы платформы умного дома](https://yandex.ru/dev/dialogs/smart-home/doc/reference/resources.html)
+
 ## Как запустить
 
 ```bash
@@ -38,6 +41,17 @@ dotnet run --project=ThinkingHome.Subway.TestConsole
 - [про клиент на .NET Core](https://docs.microsoft.com/ru-ru/aspnet/core/signalr/dotnet-client?view=aspnetcore-3.1)
 - [навыки Алисы для умного дома](https://yandex.ru/dev/dialogs/alice/doc/smart-home/reference/post-action-docpage/)
 - [описание протокола OAuth2](https://www.oauth.com/oauth2-servers/authorization/the-authorization-request/)
+
+### Как завести проект
+
+Нужно создать навык с типом "Умный дом" на платформе [Яндекс Диалоги](https://dialogs.yandex.ru/developer) ([документация](https://yandex.ru/dev/dialogs/smart-home/doc/concepts/quick-start.html)).
+
+В настройках нужно указать адреса:
+- Endpoint URL: `https://<domain>/service`
+- URL авторизации: `https://<domain>/oauth/authorize`
+- URL для получения токена: `https://<domain>/oauth/token`
+
+Сервер должен быть доступен снаружи и работать по https. Работает отладка через https://ngrok.com
 
 ### hosting
 
