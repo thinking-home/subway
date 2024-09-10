@@ -11,13 +11,13 @@ namespace ThinkingHome.Subway.Hub
     {
         static IHost CreateHost(string[] args)
         {
-            string certPath = "/home/dima117a/merged.pfx";
-            string certPassword = "changeit";
+            // string certPath = "/home/dima117a/merged.pfx";
+            // string certPassword = "changeit";
 
             var hostBuilder = Host.CreateDefaultBuilder(args)
                 .ConfigureWebHostDefaults(webBuilder => webBuilder
-                    .ConfigureKestrel(cfg =>
-                        cfg.Listen(IPAddress.Any, 443, opt => opt.UseHttps(certPath, certPassword)))
+                    // .ConfigureKestrel(cfg =>
+                    //     cfg.Listen(IPAddress.Any, 443, opt => opt.UseHttps(certPath, certPassword)))
                     .UseStartup<Startup>());
 
             return hostBuilder.Build();
