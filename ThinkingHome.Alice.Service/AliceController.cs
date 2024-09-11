@@ -1,60 +1,61 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNetCore.Mvc;
+using ThinkingHome.Alice.Handlers.Devices;
 using ThinkingHome.Alice.Service.Model;
 using ThinkingHome.Alice.Service.Model.Devices;
 using ThinkingHome.Alice.Service.Stub;
 
 namespace ThinkingHome.Alice.Service
 {
-    public class AliceController : Controller
+    [Route("/service/v1.0")]
+    public class AliceController(Dictionary<string, IDevice> bulbs) : Controller
     {
-        private readonly Dictionary<string, IDevice> _bulbs;
-
-        public AliceController(Dictionary<string, IDevice> bulbs)
-        {
-            _bulbs = bulbs;
-        }
-
-        [HttpGet("/service/v1.0")]
+        [HttpGet, HttpHead]
         public ActionResult Index()
         {
             return Ok("moo");
         }
 
-        [HttpGet("/service/v1.0/user/unlink")]
-        public UnlinkResponse Unlink()
+        [HttpGet("user/unlink")]
+        public UnlinkResponse Unlink([FromHeader(Name = "X-Request-Id")] string request_id)
         {
-            return new UnlinkResponse {request_id = "123"};
+            return new UnlinkResponse
+            {
+                request_id = request_id ?? Guid.NewGuid().ToString("N"),
+            };
         }
 
-        [HttpGet("/service/v1.0/user/devices")]
-        public DevicesResponse Devices()
+        [HttpGet("user/devices")]
+        public DevicesResponse Devices([FromHeader(Name = "X-Request-Id")] string request_id)
         {
             return new DevicesResponse
             {
-                request_id = "123",
+                request_id = request_id ?? Guid.NewGuid().ToString("N"),
                 payload = new DevicesPayload
                 {
                     user_id = "dima117a",
-                    devices = _bulbs.Values.Select(b => b.GetDescription()).ToArray()
+                    devices = bulbs.Values.Select(b => b.GetDescription()).ToArray()
                 }
             };
         }
 
         private IDevice GetBulbById(string id)
         {
-            return _bulbs.GetValueOrDefault(id);
+            return bulbs.GetValueOrDefault(id);
         }
 
-        [HttpPost("/service/v1.0/user/devices/query")]
-        public DevicesQueryResponse DevicesQuery([FromBody] DevicesQueryRequest request)
+        [HttpPost("user/devices/query")]
+        public DevicesQueryResponse DevicesQuery(
+            [FromHeader(Name = "X-Request-Id")] string request_id,
+            [FromBody] DevicesQueryRequest request)
         {
             var devices = request.devices.Select(d => GetBulbById(d.id).GetStateResponse()).ToArray();
 
             return new DevicesQueryResponse
             {
-                request_id = "123",
+                request_id = request_id ?? Guid.NewGuid().ToString("N"),
                 payload = new DevicesQueryPayload
                 {
                     devices = devices
@@ -62,8 +63,10 @@ namespace ThinkingHome.Alice.Service
             };
         }
 
-        [HttpPost("/service/v1.0/user/devices/action")]
-        public DevicesActionResponse DevicesAction([FromBody] DevicesActionRequest request)
+        [HttpPost("user/devices/action")]
+        public DevicesActionResponse DevicesAction(
+            [FromHeader(Name = "X-Request-Id")] string request_id,
+            [FromBody] DevicesActionRequest request)
         {
             DeviceActionResult MakeAction(DeviceAction action)
             {
@@ -88,7 +91,7 @@ namespace ThinkingHome.Alice.Service
 
             return new DevicesActionResponse
             {
-                request_id = "1234",
+                request_id = request_id ?? Guid.NewGuid().ToString("N"),
                 payload = new DevicesActionResponsePayload
                 {
                     devices = devices
@@ -122,7 +125,8 @@ namespace ThinkingHome.Alice.Service
     public class DeviceAction
     {
         public string id { get; set; }
+
         public object custom_data { get; set; }
-        public CapabilityState[] capabilities { get; set; }
+        // public CapabilityState[] capabilities { get; set; }
     }
 }
