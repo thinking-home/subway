@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNetCore.Mvc;
 using ThinkingHome.Alice.Handlers.Devices;
+using ThinkingHome.Alice.Handlers.DevicesQuery;
 using ThinkingHome.Alice.Service.Model;
 using ThinkingHome.Alice.Service.Model.Devices;
 using ThinkingHome.Alice.Service.Stub;
@@ -51,14 +52,14 @@ namespace ThinkingHome.Alice.Service
             [FromHeader(Name = "X-Request-Id")] string request_id,
             [FromBody] DevicesQueryRequest request)
         {
-            var devices = request.devices.Select(d => GetBulbById(d.id).GetStateResponse()).ToArray();
+            var devices = request.Devices.Select(d => GetBulbById(d.Id).GetStateResponse()).ToArray();
 
             return new DevicesQueryResponse
             {
-                request_id = request_id ?? Guid.NewGuid().ToString("N"),
-                payload = new DevicesQueryPayload
+                RequestId = request_id ?? Guid.NewGuid().ToString("N"),
+                Payload = new DevicesQueryPayload
                 {
-                    devices = devices
+                    Devices = devices
                 }
             };
         }

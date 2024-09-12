@@ -22,14 +22,28 @@ namespace ThinkingHome.Alice.Service.Stub
         {
             return new DeviceState
             {
-                id = id,
-                // capabilities = new[] {_xxx.GetStateResponse()}
+                Id = id,
+                Capabilities =
+                [
+                    new CapabilityStateOnOff
+                    {
+                        State = new()
+                        {
+                            Instance = CapabilityStateOnOffInstance.On,
+                            Value = false
+                        }
+                    }
+                ]
             };
         }
 
         public DeviceActionResult MakeAction(DeviceAction action)
         {
-            throw new System.NotImplementedException();
+            return new DeviceActionResult
+            {
+                id = Id,
+                capabilities = []
+            }; 
         }
 
         // public CapabilityActionResult SetCapabilityState(CapabilityState capabilityState)
@@ -73,16 +87,6 @@ namespace ThinkingHome.Alice.Service.Stub
 
         public Device GetDescription()
         {
-            var obj1 = new CapabilityInfoOnOff
-            {
-                Reportable = false,
-                Retrievable = true,
-                Parameters = new()
-                {
-                    Split = true,
-                }
-            };
-
             return new Device
             {
                 Id = Id,

@@ -4,7 +4,6 @@ namespace ThinkingHome.Alice.Model.Capabilities;
 
 [JsonPolymorphic(TypeDiscriminatorPropertyName = "type")]
 [JsonDerivedType(typeof(CapabilityInfoOnOff), CapabilityType.ON_OFF)]
-[JsonDerivedType(typeof(CapabilityInfoColorSetting), CapabilityType.COLOR_SETTING)]
 public class CapabilityInfoBase
 {
     [JsonPropertyName("retrievable")] public bool Retrievable { get; set; }

@@ -44,29 +44,8 @@ var obj1 = new CapabilityInfoOnOff
     }
 };
 
-var obj2 = new CapabilityInfoColorSetting
-{
-    Parameters = new()
-    {
-        ColorModel = ColorModel.RGB,
-        TemperatureK = new() { Min = 1500, Max = 6500 },
-        ColorScene = new()
-        {
-            Scenes = new ColorScene[]
-            {
-                new() { Id = ColorSceneId.Alarm },
-                new() { Id = ColorSceneId.Alice },
-                new() { Id = ColorSceneId.Dinner },
-                new() { Id = ColorSceneId.Movie },
-                new() { Id = ColorSceneId.Night },
-                new() { Id = ColorSceneId.Party },
-                new() { Id = ColorSceneId.Rest },
-            }
-        },
-    }
-};
 
-var capabilities = new CapabilityInfoBase[] { obj1, obj2 };
+var capabilities = new CapabilityInfoBase[] { obj1 };
 
 string jsonString = JsonSerializer.Serialize(capabilities);
 
@@ -78,6 +57,3 @@ if (testResult == null)
 {
     throw new Exception();
 }
-
-Console.WriteLine(testResult[0] is CapabilityInfoColorSetting);
-Console.WriteLine(testResult[0].GetType());

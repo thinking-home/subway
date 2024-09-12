@@ -8,7 +8,7 @@ namespace ThinkingHome.Alice.Service.Model.Devices
 
         public string error_message { get; set; }
 
-        public static ActionResultModel Ok => new ActionResultModel {status = ActionResultStatus.DONE};
+        public static ActionResultModel Ok => new ActionResultModel { status = ActionResultStatus.DONE };
 
         public static ActionResultModel InvalidValue(string message = null)
         {
@@ -32,7 +32,7 @@ namespace ThinkingHome.Alice.Service.Model.Devices
     {
         // ответ с результатом операции над конкретным умением
 
-        public CapabilityType type { get; set; }
+        public string type { get; set; }
         public CapabilityStateActionResult state { get; set; }
     }
 
