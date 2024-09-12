@@ -1,7 +1,9 @@
+using System.Text.Json.Serialization;
+
 namespace ThinkingHome.Alice.Handlers.Devices
 {
     public class DevicesResponse : BaseResponse
     {
-        public DevicesPayload payload { get; set; }
+        [JsonPropertyName("payload")] public DevicesPayload Payload { get; set; }
     }
 }

@@ -1,9 +1,18 @@
+using System.Text.Json.Serialization;
+
 namespace ThinkingHome.Alice.Model;
 
 public class DeviceInfo
 {
-    public string manufacturer { get; set; }
-    public string model { get; set; }
-    public string hw_version { get; set; }
-    public string sw_version { get; set; }
+    [JsonPropertyName("manufacturer")]
+    public string Manufacturer { get; set; }
+    
+    [JsonPropertyName("model")]
+    public string Model { get; set; }
+    
+    [JsonPropertyName("hw_version")]
+    public string HardwareVersion { get; set; }
+    
+    [JsonPropertyName("sw_version")]
+    public string SoftwareVersion { get; set; }
 }

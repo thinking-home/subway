@@ -1,17 +1,34 @@
+using System.Text.Json.Serialization;
 using ThinkingHome.Alice.Model.Capabilities;
 
 namespace ThinkingHome.Alice.Model;
 
 public class Device
 {
-    public string id { get; set; }
-    public string name { get; set; }
-    public string description { get; set; }
-    public string room { get; set; }
-    public DeviceType type { get; set; }
-    public object custom_data { get; set; }
-    public CapabilityInfoBase[] capabilities { get; set; }
-    public object[] properties { get; set; }
+    [JsonPropertyName("id")]
+    public string Id { get; set; }
+    
+    [JsonPropertyName("name")]
+    public string Name { get; set; }
+    
+    [JsonPropertyName("description")]
+    public string Description { get; set; }
+    
+    [JsonPropertyName("room")]
+    public string Room { get; set; }
+    
+    [JsonPropertyName("type")]
+    public DeviceType Type { get; set; }
+    
+    [JsonPropertyName("custom_data")]
+    public object CustomData { get; set; }
+    
+    [JsonPropertyName("capabilities")]
+    public CapabilityInfoBase[] Capabilities { get; set; }
+    
+    [JsonPropertyName("properties")]
+    public object[] Properties { get; set; }
 
-    public DeviceInfo device_info { get; set; }
+    [JsonPropertyName("device_info")]
+    public DeviceInfo DeviceInfo { get; set; }
 }

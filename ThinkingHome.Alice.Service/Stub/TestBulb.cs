@@ -75,34 +75,34 @@ namespace ThinkingHome.Alice.Service.Stub
         {
             var obj1 = new CapabilityInfoOnOff
             {
-                reportable = false,
-                retrievable = true,
-                parameters = new()
+                Reportable = false,
+                Retrievable = true,
+                Parameters = new()
                 {
-                    split = true,
+                    Split = true,
                 }
             };
 
             return new Device
             {
-                id = Id,
-                name = "Лампочка",
-                type = DeviceType.Light,
-                capabilities =
+                Id = Id,
+                Name = "Лампочка",
+                Type = DeviceType.Light,
+                Capabilities =
                 [
                     new CapabilityInfoOnOff
                     {
-                        reportable = true,
-                        retrievable = true,
-                        parameters = new() { split = true }
+                        Reportable = true,
+                        Retrievable = true,
+                        Parameters = new() { Split = true }
                     }
                 ],
-                device_info = new DeviceInfo
+                DeviceInfo = new DeviceInfo
                 {
-                    manufacturer = "little cow",
-                    model = "bulb1",
-                    hw_version = "1",
-                    sw_version = "377549"
+                    Manufacturer = "little cow",
+                    Model = "bulb1",
+                    HardwareVersion = "1",
+                    SoftwareVersion = "377549"
                 }
             };
         }

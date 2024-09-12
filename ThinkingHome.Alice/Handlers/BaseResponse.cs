@@ -1,6 +1,8 @@
+using System.Text.Json.Serialization;
+
 namespace ThinkingHome.Alice.Handlers;
 
 public abstract class BaseResponse
 {
-    public string request_id { get; set; }
+    [JsonPropertyName("request_id")] public string RequestId { get; set; }
 }

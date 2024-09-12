@@ -7,12 +7,13 @@ namespace ThinkingHome.Alice.Model.Capabilities;
 [JsonDerivedType(typeof(CapabilityInfoColorSetting), CapabilityType.COLOR_SETTING)]
 public class CapabilityInfoBase
 {
-    public bool retrievable { get; set; }
-    public bool reportable { get; set; }
+    [JsonPropertyName("retrievable")] public bool Retrievable { get; set; }
+
+
+    [JsonPropertyName("reportable")] public bool Reportable { get; set; }
 }
 
-
-public abstract class CapabilityInfo<TParams>: CapabilityInfoBase
+public abstract class CapabilityInfo<TParams> : CapabilityInfoBase
 {
-    public TParams parameters { get; set; }
+    [JsonPropertyName("parameters")] public TParams Parameters { get; set; }
 }

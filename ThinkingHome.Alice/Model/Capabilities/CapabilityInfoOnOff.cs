@@ -1,10 +1,12 @@
+using System.Text.Json.Serialization;
+
 namespace ThinkingHome.Alice.Model.Capabilities;
 
 public class CapabilityInfoOnOffParams
 {
-    public bool split { get; set; }
+    [JsonPropertyName("split")] public bool Split { get; set; }
 }
 
-public class CapabilityInfoOnOff: CapabilityInfo<CapabilityInfoOnOffParams>
+public class CapabilityInfoOnOff : CapabilityInfo<CapabilityInfoOnOffParams>
 {
 }

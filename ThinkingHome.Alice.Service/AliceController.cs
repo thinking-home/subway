@@ -32,11 +32,11 @@ namespace ThinkingHome.Alice.Service
         {
             return new DevicesResponse
             {
-                request_id = request_id ?? Guid.NewGuid().ToString("N"),
-                payload = new DevicesPayload
+                RequestId = request_id ?? Guid.NewGuid().ToString("N"),
+                Payload = new DevicesPayload
                 {
-                    user_id = "dima117a",
-                    devices = bulbs.Values.Select(b => b.GetDescription()).ToArray()
+                    UserId = "dima117a",
+                    Devices = bulbs.Values.Select(b => b.GetDescription()).ToArray()
                 }
             };
         }

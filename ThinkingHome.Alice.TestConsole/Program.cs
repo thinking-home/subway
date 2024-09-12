@@ -36,31 +36,31 @@ var testJson1 = @"
 
 var obj1 = new CapabilityInfoOnOff
 {
-    reportable = false,
-    retrievable = true,
-    parameters = new()
+    Reportable = false,
+    Retrievable = true,
+    Parameters = new()
     {
-        split = true,
+        Split = true,
     }
 };
 
 var obj2 = new CapabilityInfoColorSetting
 {
-    parameters = new()
+    Parameters = new()
     {
-        color_model = ColorModel.rgb,
-        temperature_k = new() { min = 1500, max = 6500 },
-        color_scene = new()
+        ColorModel = ColorModel.RGB,
+        TemperatureK = new() { Min = 1500, Max = 6500 },
+        ColorScene = new()
         {
-            scenes = new ColorScene[]
+            Scenes = new ColorScene[]
             {
-                new() { id = ColorSceneId.alarm },
-                new() { id = ColorSceneId.alice },
-                new() { id = ColorSceneId.dinner },
-                new() { id = ColorSceneId.movie },
-                new() { id = ColorSceneId.night },
-                new() { id = ColorSceneId.party },
-                new() { id = ColorSceneId.rest },
+                new() { Id = ColorSceneId.Alarm },
+                new() { Id = ColorSceneId.Alice },
+                new() { Id = ColorSceneId.Dinner },
+                new() { Id = ColorSceneId.Movie },
+                new() { Id = ColorSceneId.Night },
+                new() { Id = ColorSceneId.Party },
+                new() { Id = ColorSceneId.Rest },
             }
         },
     }
