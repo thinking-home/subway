@@ -1,93 +1,94 @@
 using System.Linq;
-using ThinkingHome.Alice.Service.Model;
-using ThinkingHome.Alice.Service.Model.Devices;
-using ThinkingHome.Alice.Service.Model.Devices.Capability.OnOff;
+using ThinkingHome.Alice.Handlers.DevicesAction;
+using ThinkingHome.Alice.Model;
+using ThinkingHome.Alice.Model.ActionResult;
+using ThinkingHome.Alice.Model.Capabilities;
+using ThinkingHome.Alice.Model.Capabilities.OnOff;
 
 namespace ThinkingHome.Alice.Service.Stub
 {
-    public interface IDevice
+    public class TestBulb(string id) : IDevice
     {
-        string Id { get; }
-        DeviceState GetStateResponse();
-        DeviceActionResult MakeAction(DeviceAction action);
-        DeviceModel GetDescription();
-    }
+        public string Id => id;
 
-    public class TestBulb: IDevice
-    {
-        private readonly string _id;
-        private readonly TestBulbDefaultCapability _xxx;
-
-        public TestBulb(string id)
-        {
-            _id = id;
-            _xxx = new TestBulbDefaultCapability();
-        }
-
-        public string Id => _id;
+        public bool Value = false;
 
         public DeviceState GetStateResponse()
         {
             return new DeviceState
             {
-                id = _id,
-                capabilities = new[] {_xxx.GetStateResponse()}
+                Id = id,
+                Capabilities =
+                [
+                    new CapabilityStateOnOff
+                    {
+                        State = new()
+                        {
+                            Instance = CapabilityStateOnOffInstance.On,
+                            Value = false
+                        }
+                    }
+                ]
             };
         }
 
-        public CapabilityActionResult SetCapabilityState(CapabilityState capabilityState)
+        public Device GetDescription()
         {
-            var result = new ActionResultModel {status = ActionResultStatus.DONE};
-            var onoff = capabilityState.state as OnCapabilityState;
-            if (onoff == null)
+            return new Device
             {
-                result = new ActionResultModel
+                Id = Id,
+                Name = "Лампочка",
+                Type = DeviceType.Light,
+                Capabilities =
+                [
+                    new CapabilityInfoOnOff
+                    {
+                        Reportable = true,
+                        Retrievable = true,
+                        Parameters = new() { Split = true }
+                    }
+                ],
+                DeviceInfo = new DeviceInfo
                 {
-                    status = ActionResultStatus.ERROR,
-                    error_code = ActionResultErrorCode.INVALID_VALUE
-                };
-            }
-            else
-            {
-                _xxx.Value = onoff.value;
-            }
-
-            return new CapabilityActionResult
-            {
-                type = capabilityState.type,
-                state = new CapabilityStateActionResult
-                {
-                    instance = capabilityState.state.instance,
-                    action_result = result
+                    Manufacturer = "little cow",
+                    Model = "bulb1",
+                    HardwareVersion = "1",
+                    SoftwareVersion = "377549"
                 }
             };
         }
 
-        public DeviceActionResult MakeAction(DeviceAction action)
+        public DeviceActionResult MakeAction(DeviceActionParams action)
         {
-            var capabilities = action.capabilities.Select(SetCapabilityState).ToArray();
+            var capabilities = action.Capabilities.Select(SetCapabilityState).ToArray();
 
             return new DeviceActionResult
             {
-                id = _id,
-                capabilities = capabilities
+                Id = Id,
+                Capabilities = capabilities
             };
         }
 
-        public DeviceModel GetDescription()
+        private CapabilityActionResultBase SetCapabilityState(CapabilityActionParamsBase obj)
         {
-            return new DeviceModel
+            var result = ActionResult.Ok;
+
+            if (obj is CapabilityActionParamsOnOff actionParams)
             {
-                id = _id,
-                name = "Лампочка",
-                type = DeviceType.Light,
-                capabilities = new[] {_xxx.GetDescription()},
-                device_info = new DeviceInfoModel
+                // здесь не хватает выбора типа возможности
+                Value = actionParams.State.Value;
+            }
+            else
+            {
+                result = ActionResult.InvalidValue();
+            }
+
+            return new CapabilityActionResultOnOff
+            {
+                State = new()
                 {
-                    manufacturer = "little cow",
-                    model = "bulb1",
-                    hw_version = "1",
-                    sw_version = "377549"
+                    Instance = CapabilityStateOnOffInstance.On,
+                    ActionResult = result
                 }
             };
         }

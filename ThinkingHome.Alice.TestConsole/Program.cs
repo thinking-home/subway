@@ -1,5 +1,6 @@
 ﻿using System.Text.Json;
 using ThinkingHome.Alice.Model.Capabilities;
+using ThinkingHome.Alice.Model.Capabilities.OnOff;
 
 var testJson1 = @"
 [
@@ -36,37 +37,16 @@ var testJson1 = @"
 
 var obj1 = new CapabilityInfoOnOff
 {
-    reportable = false,
-    retrievable = true,
-    parameters = new()
+    Reportable = false,
+    Retrievable = true,
+    Parameters = new()
     {
-        split = true,
+        Split = true,
     }
 };
 
-var obj2 = new CapabilityInfoColorSetting
-{
-    parameters = new()
-    {
-        color_model = ColorModel.rgb,
-        temperature_k = new() { min = 1500, max = 6500 },
-        color_scene = new()
-        {
-            scenes = new ColorScene[]
-            {
-                new() { id = ColorSceneId.alarm },
-                new() { id = ColorSceneId.alice },
-                new() { id = ColorSceneId.dinner },
-                new() { id = ColorSceneId.movie },
-                new() { id = ColorSceneId.night },
-                new() { id = ColorSceneId.party },
-                new() { id = ColorSceneId.rest },
-            }
-        },
-    }
-};
 
-var capabilities = new CapabilityInfoBase[] { obj1, obj2 };
+var capabilities = new CapabilityInfoBase[] { obj1 };
 
 string jsonString = JsonSerializer.Serialize(capabilities);
 
@@ -78,6 +58,3 @@ if (testResult == null)
 {
     throw new Exception();
 }
-
-Console.WriteLine(testResult[0] is CapabilityInfoColorSetting);
-Console.WriteLine(testResult[0].GetType());

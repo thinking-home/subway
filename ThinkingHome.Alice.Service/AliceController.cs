@@ -1,82 +1,89 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNetCore.Mvc;
-using ThinkingHome.Alice.Service.Model;
-using ThinkingHome.Alice.Service.Model.Devices;
+using ThinkingHome.Alice.Handlers;
+using ThinkingHome.Alice.Handlers.Devices;
+using ThinkingHome.Alice.Handlers.DevicesAction;
+using ThinkingHome.Alice.Handlers.DevicesQuery;
+using ThinkingHome.Alice.Model;
+using ThinkingHome.Alice.Model.ActionResult;
 using ThinkingHome.Alice.Service.Stub;
+using ActionResult = ThinkingHome.Alice.Model.ActionResult.ActionResult;
 
 namespace ThinkingHome.Alice.Service
 {
-    public class AliceController : Controller
+    [Route("/service/v1.0")]
+    public class AliceController(Dictionary<string, IDevice> bulbs) : Controller
     {
-        private readonly Dictionary<string, IDevice> _bulbs;
-
-        public AliceController(Dictionary<string, IDevice> bulbs)
-        {
-            _bulbs = bulbs;
-        }
-
-        [HttpGet("/service/v1.0")]
-        public ActionResult Index()
+        [HttpGet, HttpHead]
+        public Microsoft.AspNetCore.Mvc.ActionResult Index()
         {
             return Ok("moo");
         }
 
-        [HttpGet("/service/v1.0/user/unlink")]
-        public UnlinkResponse Unlink()
+        [HttpGet("user/unlink")]
+        public UnlinkResponse Unlink([FromHeader(Name = "X-Request-Id")] string requestId)
         {
-            return new UnlinkResponse {request_id = "123"};
+            return new UnlinkResponse
+            {
+                RequestId = requestId ?? Guid.NewGuid().ToString("N"),
+            };
         }
 
-        [HttpGet("/service/v1.0/user/devices")]
-        public DevicesResponse Devices()
+        [HttpGet("user/devices")]
+        public DevicesResponse Devices([FromHeader(Name = "X-Request-Id")] string requestId)
         {
             return new DevicesResponse
             {
-                request_id = "123",
-                payload = new DevicesPayload
+                RequestId = requestId ?? Guid.NewGuid().ToString("N"),
+                Payload = new DevicesPayload
                 {
-                    user_id = "dima117a",
-                    devices = _bulbs.Values.Select(b => b.GetDescription()).ToArray()
+                    UserId = "dima117a",
+                    Devices = bulbs.Values.Select(b => b.GetDescription()).ToArray()
                 }
             };
         }
 
         private IDevice GetBulbById(string id)
         {
-            return _bulbs.GetValueOrDefault(id);
+            return bulbs.GetValueOrDefault(id);
         }
 
-        [HttpPost("/service/v1.0/user/devices/query")]
-        public DevicesQueryResponse DevicesQuery([FromBody] DevicesQueryRequest request)
+        [HttpPost("user/devices/query")]
+        public DevicesQueryResponse DevicesQuery(
+            [FromHeader(Name = "X-Request-Id")] string requestId,
+            [FromBody] DevicesQueryRequest request)
         {
-            var devices = request.devices.Select(d => GetBulbById(d.id).GetStateResponse()).ToArray();
+            var devices = request.Devices.Select(d => GetBulbById(d.Id).GetStateResponse()).ToArray();
 
             return new DevicesQueryResponse
             {
-                request_id = "123",
-                payload = new DevicesQueryPayload
+                RequestId = requestId ?? Guid.NewGuid().ToString("N"),
+                Payload = new DevicesQueryPayload
                 {
-                    devices = devices
+                    Devices = devices
                 }
             };
         }
 
-        [HttpPost("/service/v1.0/user/devices/action")]
-        public DevicesActionResponse DevicesAction([FromBody] DevicesActionRequest request)
+        [HttpPost("user/devices/action")]
+        public DevicesActionResponse DevicesAction(
+            [FromHeader(Name = "X-Request-Id")] string requestId,
+            [FromBody] DevicesActionRequest request)
         {
-            DeviceActionResult MakeAction(DeviceAction action)
+            DeviceActionResult MakeAction(DeviceActionParams action)
             {
-                var bulb = GetBulbById(action.id);
+                var bulb = GetBulbById(action.Id);
                 if (bulb == null)
                 {
                     return new DeviceActionResult
                     {
-                        id = action.id,
-                        action_result = new ActionResultModel
+                        Id = action.Id,
+                        ActionResult = new ActionResult
                         {
-                            status = ActionResultStatus.ERROR,
-                            error_code = ActionResultErrorCode.DEVICE_NOT_FOUND
+                            Status = ActionResultStatus.ERROR,
+                            ErrorCode = ActionResultErrorCode.DEVICE_NOT_FOUND
                         }
                     };
                 }
@@ -84,45 +91,16 @@ namespace ThinkingHome.Alice.Service
                 return bulb.MakeAction(action);
             }
 
-            var devices = request.payload.devices.Select(MakeAction).ToArray();
+            var devices = request.Payload.Devices.Select(MakeAction).ToArray();
 
             return new DevicesActionResponse
             {
-                request_id = "1234",
-                payload = new DevicesActionResponsePayload
+                RequestId = requestId ?? Guid.NewGuid().ToString("N"),
+                Payload = new DevicesActionPayload
                 {
-                    devices = devices
+                    Devices = devices
                 }
             };
         }
-    }
-
-    public class DevicesActionResponse
-    {
-        public string request_id { get; set; }
-
-        public DevicesActionResponsePayload payload { get; set; }
-    }
-
-    public class DevicesActionRequest
-    {
-        public DevicesActionRequestPayload payload { get; set; }
-    }
-
-    public class DevicesActionRequestPayload
-    {
-        public DeviceAction[] devices { get; set; }
-    }
-
-    public class DevicesActionResponsePayload
-    {
-        public DeviceActionResult[] devices { get; set; }
-    }
-
-    public class DeviceAction
-    {
-        public string id { get; set; }
-        public object custom_data { get; set; }
-        public CapabilityState[] capabilities { get; set; }
     }
 }
