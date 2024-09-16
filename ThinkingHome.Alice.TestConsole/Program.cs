@@ -1,5 +1,6 @@
 ﻿using System.Text.Json;
 using ThinkingHome.Alice.Model.Capabilities;
+using ThinkingHome.Alice.Model.Capabilities.OnOff;
 
 var testJson1 = @"
 [

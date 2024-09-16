@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using ThinkingHome.Alice.Model.Capabilities.OnOff;
 
 namespace ThinkingHome.Alice.Model.Capabilities;
 

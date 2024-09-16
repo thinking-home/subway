@@ -1,22 +1,17 @@
 using System.Linq;
+using ThinkingHome.Alice.Handlers.DevicesAction;
 using ThinkingHome.Alice.Model;
+using ThinkingHome.Alice.Model.ActionResult;
 using ThinkingHome.Alice.Model.Capabilities;
-using ThinkingHome.Alice.Service.Model;
-using ThinkingHome.Alice.Service.Model.Devices;
+using ThinkingHome.Alice.Model.Capabilities.OnOff;
 
 namespace ThinkingHome.Alice.Service.Stub
 {
-    public interface IDevice
-    {
-        string Id { get; }
-        DeviceState GetStateResponse();
-        DeviceActionResult MakeAction(DeviceAction action);
-        Device GetDescription();
-    }
-
     public class TestBulb(string id) : IDevice
     {
         public string Id => id;
+
+        public bool Value = false;
 
         public DeviceState GetStateResponse()
         {
@@ -36,54 +31,6 @@ namespace ThinkingHome.Alice.Service.Stub
                 ]
             };
         }
-
-        public DeviceActionResult MakeAction(DeviceAction action)
-        {
-            return new DeviceActionResult
-            {
-                id = Id,
-                capabilities = []
-            }; 
-        }
-
-        // public CapabilityActionResult SetCapabilityState(CapabilityState capabilityState)
-        // {
-        //     var result = new ActionResultModel {status = ActionResultStatus.DONE};
-        //     var onoff = capabilityState.state as OnCapabilityState;
-        //     if (onoff == null)
-        //     {
-        //         result = new ActionResultModel
-        //         {
-        //             status = ActionResultStatus.ERROR,
-        //             error_code = ActionResultErrorCode.INVALID_VALUE
-        //         };
-        //     }
-        //     else
-        //     {
-        //         _xxx.Value = onoff.value;
-        //     }
-        //
-        //     return new CapabilityActionResult
-        //     {
-        //         type = capabilityState.type,
-        //         state = new CapabilityStateActionResult
-        //         {
-        //             instance = capabilityState.state.instance,
-        //             action_result = result
-        //         }
-        //     };
-        // }
-
-        // public DeviceActionResult MakeAction(DeviceAction action)
-        // {
-        //     var capabilities = action.capabilities.Select(SetCapabilityState).ToArray();
-        //
-        //     return new DeviceActionResult
-        //     {
-        //         id = _id,
-        //         capabilities = capabilities
-        //     };
-        // }
 
         public Device GetDescription()
         {
@@ -107,6 +54,41 @@ namespace ThinkingHome.Alice.Service.Stub
                     Model = "bulb1",
                     HardwareVersion = "1",
                     SoftwareVersion = "377549"
+                }
+            };
+        }
+
+        public DeviceActionResult MakeAction(DeviceActionParams action)
+        {
+            var capabilities = action.Capabilities.Select(SetCapabilityState).ToArray();
+
+            return new DeviceActionResult
+            {
+                Id = Id,
+                Capabilities = capabilities
+            };
+        }
+
+        private CapabilityActionResultBase SetCapabilityState(CapabilityActionParamsBase obj)
+        {
+            var result = ActionResult.Ok;
+
+            if (obj is CapabilityActionParamsOnOff actionParams)
+            {
+                // здесь не хватает выбора типа возможности
+                Value = actionParams.State.Value;
+            }
+            else
+            {
+                result = ActionResult.InvalidValue();
+            }
+
+            return new CapabilityActionResultOnOff
+            {
+                State = new()
+                {
+                    Instance = CapabilityStateOnOffInstance.On,
+                    ActionResult = result
                 }
             };
         }

@@ -1,9 +1,6 @@
-using System.Collections.Generic;
 using System.Linq;
-using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using ThinkingHome.Alice.Service;
@@ -11,7 +8,7 @@ using ThinkingHome.Alice.Service.Stub;
 
 namespace ThinkingHome.Subway.Hub
 {
-    public class Startup(IConfiguration configuration)
+    public class Startup
     {
         public void ConfigureServices(IServiceCollection services)
         {
