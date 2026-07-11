@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace ThinkingHome.DeviceModel;
 
 /// <summary>
@@ -27,6 +29,7 @@ public sealed record CommandOutcome
     };
 }
 
+[JsonConverter(typeof(JsonStringEnumConverter))]
 public enum CommandStatus
 {
     Done,
@@ -34,6 +37,7 @@ public enum CommandStatus
 }
 
 /// <summary>Нейтральные коды ошибок; маппятся в коды экосистем (например, в error_code Алисы).</summary>
+[JsonConverter(typeof(JsonStringEnumConverter))]
 public enum CommandErrorCode
 {
     DeviceUnreachable,

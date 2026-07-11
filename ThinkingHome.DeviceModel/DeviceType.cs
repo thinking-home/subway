@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace ThinkingHome.DeviceModel;
 
 /// <summary>
@@ -7,6 +9,7 @@ namespace ThinkingHome.DeviceModel;
 ///
 /// Пока заведён только тип для первого сквозного примера; остальные добавляются со сверкой по Matter.
 /// </summary>
+[JsonConverter(typeof(JsonStringEnumConverter))]
 public enum DeviceType
 {
     /// <summary>Недиммируемый источник света (только On/Off). Matter 0x0100.</summary>
