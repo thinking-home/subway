@@ -1,4 +1,4 @@
-namespace ThinkingHome.DeviceModel;
+namespace ThinkingHome.DeviceModel.Properties;
 
 /// <summary>
 /// Свойство устройства (сенсор, только чтение). Закрытая иерархия, как и у способностей.

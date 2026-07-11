@@ -1,3 +1,6 @@
+using ThinkingHome.DeviceModel.Capabilities;
+using ThinkingHome.DeviceModel.Properties;
+
 namespace ThinkingHome.DeviceModel;
 
 /// <summary>Полное описание устройства — то, что драйвер отдаёт при discovery.</summary>

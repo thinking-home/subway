@@ -1,4 +1,6 @@
 using System.Collections.Concurrent;
+using ThinkingHome.DeviceModel.Commands;
+using ThinkingHome.DeviceModel.State;
 
 namespace ThinkingHome.DeviceModel;
 

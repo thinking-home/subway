@@ -1,4 +1,4 @@
-namespace ThinkingHome.DeviceModel;
+namespace ThinkingHome.DeviceModel.Capabilities;
 
 /// <summary>
 /// Способность устройства (актуатор). Закрытая иерархия: конкретный тип служит дискриминатором

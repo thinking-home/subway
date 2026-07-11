@@ -1,3 +1,6 @@
+using ThinkingHome.DeviceModel.Commands;
+using ThinkingHome.DeviceModel.State;
+
 namespace ThinkingHome.DeviceModel;
 
 /// <summary>

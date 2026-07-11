@@ -1,4 +1,4 @@
-namespace ThinkingHome.DeviceModel;
+namespace ThinkingHome.DeviceModel.Commands;
 
 /// <summary>
 /// Команда изменения состояния способности. Закрытая иерархия: тип-дискриминатор + родное значение.
