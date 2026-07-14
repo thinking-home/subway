@@ -217,14 +217,20 @@ light.OnChanged(change => Log(change));                     // подписка 
   `DeviceHub`), домашняя сторона `…Remoting.ProxyClient` (`Connector` — SignalR-клиент, оборачивает
   локальный `IDeviceHost`: `On(GetDevices/Query/Execute)` → хост, `Changed` → `Report`,
   `WithAutomaticReconnect`). Discovery в `IDeviceHost` стал async (`GetDevicesAsync`/`GetDeviceAsync`).
+- `AliceMapper` (в `ThinkingHome.Alice`): нейтральная модель ↔ DTO Алисы — discovery (`ToDevice`), query
+  (`ToDeviceState`), action (`ToCommand` / `ToCapabilityActionResult`), коды ошибок (`CommandErrorCode` →
+  Alice). Пока OnOff. Чистые функции (без I/O); оркестрация вызовов хоста — на стороне бриджа.
 - Тест-проект `…Tests` (xUnit): реестр (роутинг, last-wins, оффлайн), хост (single-flight, кэш+репорт,
-  неизвестное устройство), сериализация (полнота `[JsonDerivedType]`, полиморфный round-trip) — 12 зелёных.
+  неизвестное устройство), сериализация (полнота `[JsonDerivedType]`, round-trip), `AliceMapper` — 16 зелёных.
 
 Остальные способности/свойства пока не добавлены — заводим по одному **полному** набору за раз, со
 сверкой по машиночитаемому словарю Matter, чтобы не держать неполную иерархию.
 
 Дальше по плану:
-1. `AliceMapper` (в `ThinkingHome.Alice`): нейтральная модель → существующие DTO Алисы.
+1. Проводка Alice-контроллеров (`ThinkingHome.Alice.Service`) на `IDeviceHost` + `AliceMapper`:
+   `/user/devices` → `ToDevice`, `/query` → `ToDeviceState`, `/action` → `ToCommand` →
+   `host.ExecuteAsync` → `ToCapabilityActionResult`. Хост берётся из `IRemoteHostRegistry` по hostId
+   пользователя Алисы.
 2. Сквозная проверка hub ↔ дом на живом SignalR (интеграция в `ThinkingHome.Subway.Hub` + домашнее приложение).
 3. Эргономичный фасад; следующие полные наборы способностей (`Level`, `Color`, `Mode`, `Range`, `Toggle`).
 
