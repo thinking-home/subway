@@ -40,12 +40,13 @@ public sealed class DeviceHost : IDeviceRegistry, IDeviceHost
     #region IDeviceHost (потребитель-грань)
 
     /// <inheritdoc />
-    public IReadOnlyCollection<DeviceDescriptor> GetDevices()
-        => entries.Values.Select(entry => entry.Describe()).ToArray();
+    public Task<IReadOnlyCollection<DeviceDescriptor>> GetDevicesAsync(CancellationToken ct = default)
+        => Task.FromResult<IReadOnlyCollection<DeviceDescriptor>>(
+            entries.Values.Select(entry => entry.Describe()).ToArray());
 
     /// <inheritdoc />
-    public DeviceDescriptor? GetDevice(string deviceId)
-        => entries.TryGetValue(deviceId, out var entry) ? entry.Describe() : null;
+    public Task<DeviceDescriptor?> GetDeviceAsync(string deviceId, CancellationToken ct = default)
+        => Task.FromResult(entries.TryGetValue(deviceId, out var entry) ? entry.Describe() : null);
 
     /// <inheritdoc />
     public Task<DeviceSnapshot> QueryAsync(string deviceId, CancellationToken ct = default)

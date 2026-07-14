@@ -9,11 +9,11 @@ namespace ThinkingHome.DeviceModel;
 /// </summary>
 public interface IDeviceHost
 {
-    /// <summary>Все зарегистрированные устройства (discovery).</summary>
-    IReadOnlyCollection<DeviceDescriptor> GetDevices();
+    /// <summary>Все зарегистрированные устройства (discovery). Async — может уходить по сети (remote host).</summary>
+    Task<IReadOnlyCollection<DeviceDescriptor>> GetDevicesAsync(CancellationToken ct = default);
 
     /// <summary>Описание одного устройства или null, если его нет.</summary>
-    DeviceDescriptor? GetDevice(string deviceId);
+    Task<DeviceDescriptor?> GetDeviceAsync(string deviceId, CancellationToken ct = default);
 
     /// <summary>Опросить состояние устройства (query).</summary>
     Task<DeviceSnapshot> QueryAsync(string deviceId, CancellationToken ct = default);

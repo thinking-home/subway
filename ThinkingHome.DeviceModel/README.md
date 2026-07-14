@@ -212,15 +212,20 @@ light.OnChanged(change => Log(change));                     // подписка 
   `DeviceDescriptor` round-trip'ятся дефолтным STJ (как в SignalR). Это внутренний wire-формат для RPC,
   отдельный от Алисиного. Проверено прогоном; полнота регистрации наследников — рефлексией.
   (`Property` получит полиморфизм с первым наследником.)
+- Ремоутинг (SignalR): контракт `…Remoting` (`DeviceHubMethods`), прокси-сторона `…Remoting.ProxyServer`
+  (`RemoteHost : IDeviceHost`, `RemoteHostRegistry` — маршрутизация по hostId, last-wins на реконнекте,
+  `DeviceHub`), домашняя сторона `…Remoting.ProxyClient` (`Connector` — SignalR-клиент, оборачивает
+  локальный `IDeviceHost`: `On(GetDevices/Query/Execute)` → хост, `Changed` → `Report`,
+  `WithAutomaticReconnect`). Discovery в `IDeviceHost` стал async (`GetDevicesAsync`/`GetDeviceAsync`).
+- Тест-проект `…Tests` (xUnit): реестр (роутинг, last-wins, оффлайн), хост (single-flight, кэш+репорт,
+  неизвестное устройство), сериализация (полнота `[JsonDerivedType]`, полиморфный round-trip) — 12 зелёных.
 
 Остальные способности/свойства пока не добавлены — заводим по одному **полному** набору за раз, со
 сверкой по машиночитаемому словарю Matter, чтобы не держать неполную иерархию.
 
 Дальше по плану:
-1. **Remote `IDeviceHost` поверх SignalR** (hub ↔ локальный сервер) — нужно до адаптера Алисы, иначе
-   не проверить на реальной Алисе. `DeviceHost`/драйверы на локальном сервере, на hub'е — удалённый
-   `IDeviceHost`, гоняющий нейтральные команды/ответы/репорты по SignalR.
-2. `AliceMapper` (в `ThinkingHome.Alice`): нейтральная модель → существующие DTO Алисы.
+1. `AliceMapper` (в `ThinkingHome.Alice`): нейтральная модель → существующие DTO Алисы.
+2. Сквозная проверка hub ↔ дом на живом SignalR (интеграция в `ThinkingHome.Subway.Hub` + домашнее приложение).
 3. Эргономичный фасад; следующие полные наборы способностей (`Level`, `Color`, `Mode`, `Range`, `Toggle`).
 
 ---
