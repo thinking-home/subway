@@ -8,6 +8,7 @@
     </ItemGroup>
     <ItemGroup>
       <ProjectReference Include="..\ThinkingHome.Alice\ThinkingHome.Alice.csproj" />
+      <ProjectReference Include="..\ThinkingHome.DeviceModel.Remoting.ProxyServer\ThinkingHome.DeviceModel.Remoting.ProxyServer.csproj" />
     </ItemGroup>
 
 </Project>

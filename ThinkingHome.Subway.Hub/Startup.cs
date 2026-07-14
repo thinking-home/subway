@@ -1,10 +1,9 @@
-using System.Linq;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using ThinkingHome.Alice.Service;
-using ThinkingHome.Alice.Service.Stub;
+using ThinkingHome.DeviceModel.Remoting.ProxyServer;
 
 namespace ThinkingHome.Subway.Hub
 {
@@ -12,13 +11,11 @@ namespace ThinkingHome.Subway.Hub
     {
         public void ConfigureServices(IServiceCollection services)
         {
-            var bulbs = new IDevice[]
-            {
-                new TestBulb("1"),
-                new TestBulb("12"),
-            }.ToDictionary(b => b.Id);
+            services.AddSignalR();
+            services.AddDeviceRemotingProxy();
 
-            services.AddSingleton(bulbs);
+            // TODO: реальный маппинг пользователя OAuth → hostId; пока одно домохозяйство
+            services.AddSingleton<IHostIdResolver>(new StaticHostIdResolver("home"));
 
             services
                 .AddControllers()
@@ -30,7 +27,11 @@ namespace ThinkingHome.Subway.Hub
         {
             loggerFactory.AddFile("Logs/api-{Date}.txt");
 
-            app.UseRouting().UseEndpoints(endpoints => endpoints.MapControllers());
+            app.UseRouting().UseEndpoints(endpoints =>
+            {
+                endpoints.MapHub<DeviceHub>("/hub");
+                endpoints.MapControllers();
+            });
         }
     }
 }

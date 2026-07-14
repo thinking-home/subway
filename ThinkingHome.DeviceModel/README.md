@@ -220,19 +220,25 @@ light.OnChanged(change => Log(change));                     // подписка 
 - `AliceMapper` (в `ThinkingHome.Alice`): нейтральная модель ↔ DTO Алисы — discovery (`ToDevice`), query
   (`ToDeviceState`), action (`ToCommand` / `ToCapabilityActionResult`), коды ошибок (`CommandErrorCode` →
   Alice). Пока OnOff. Чистые функции (без I/O); оркестрация вызовов хоста — на стороне бриджа.
+- Alice-бридж: контроллеры `ThinkingHome.Alice.Service` проведены на `IDeviceHost` + `AliceMapper` +
+  `IRemoteHostRegistry` (async, hostId через `IHostIdResolver`, оффлайн → пустой список /
+  `DEVICE_UNREACHABLE`). `ThinkingHome.Subway.Hub` собирает SignalR + `DeviceHub` + реестр + контроллеры;
+  stub-устройства убраны.
 - Тест-проект `…Tests` (xUnit): реестр (роутинг, last-wins, оффлайн), хост (single-flight, кэш+репорт,
-  неизвестное устройство), сериализация (полнота `[JsonDerivedType]`, round-trip), `AliceMapper` — 16 зелёных.
+  неизвестное устройство), сериализация (полнота `[JsonDerivedType]`, round-trip), `AliceMapper`,
+  контроллеры Алисы (online/offline/action) — 19 зелёных.
+- Домашнее приложение `ThinkingHome.Home`: `DeviceHost` + `Connector` + временная заглушка `StubLamp`
+  (3 лампы). Стартует, регистрирует устройства, подключается к прокси с ретраем начального коннекта.
+  Проверено smoke-прогоном. (`ThinkingHome.Alice.Service/Stub` удалён.)
 
 Остальные способности/свойства пока не добавлены — заводим по одному **полному** набору за раз, со
 сверкой по машиночитаемому словарю Matter, чтобы не держать неполную иерархию.
 
 Дальше по плану:
-1. Проводка Alice-контроллеров (`ThinkingHome.Alice.Service`) на `IDeviceHost` + `AliceMapper`:
-   `/user/devices` → `ToDevice`, `/query` → `ToDeviceState`, `/action` → `ToCommand` →
-   `host.ExecuteAsync` → `ToCapabilityActionResult`. Хост берётся из `IRemoteHostRegistry` по hostId
-   пользователя Алисы.
-2. Сквозная проверка hub ↔ дом на живом SignalR (интеграция в `ThinkingHome.Subway.Hub` + домашнее приложение).
-3. Эргономичный фасад; следующие полные наборы способностей (`Level`, `Color`, `Mode`, `Range`, `Toggle`).
+1. Живой end-to-end (домашнее приложение готово): JWT-авторизация SignalR на hub'е (hostId в claims из
+   токена коннектора — сейчас auth не настроен, поэтому коннектор аборт) + реальный OAuth-пользователь
+   Алисы → hostId. Затем прогон: домашнее приложение ↔ hub ↔ Алиса.
+2. Эргономичный фасад; следующие полные наборы способностей (`Level`, `Color`, `Mode`, `Range`, `Toggle`).
 
 ---
 

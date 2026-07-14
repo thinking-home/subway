@@ -22,6 +22,7 @@
     <ProjectReference Include="..\ThinkingHome.DeviceModel\ThinkingHome.DeviceModel.csproj" />
     <ProjectReference Include="..\ThinkingHome.DeviceModel.Remoting.ProxyServer\ThinkingHome.DeviceModel.Remoting.ProxyServer.csproj" />
     <ProjectReference Include="..\ThinkingHome.Alice\ThinkingHome.Alice.csproj" />
+    <ProjectReference Include="..\ThinkingHome.Alice.Service\ThinkingHome.Alice.Service.csproj" />
   </ItemGroup>
 
 </Project>
