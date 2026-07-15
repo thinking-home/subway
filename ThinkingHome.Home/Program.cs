@@ -3,6 +3,7 @@ using ThinkingHome.DeviceModel.Remoting.ProxyClient;
 using ThinkingHome.Home;
 
 var proxyUrl = args.Length > 0 ? args[0] : "http://localhost:5000/hub";
+var token = args.Length > 1 ? args[1] : Environment.GetEnvironmentVariable("HOST_TOKEN");
 
 // хост устройств + временные заглушки-лампы
 var host = new DeviceHost();
@@ -10,8 +11,8 @@ host.Register(new StubLamp("lamp-1", "Лампа в коридоре", "Кори
 host.Register(new StubLamp("lamp-2", "Лампа на кухне", "Кухня"));
 host.Register(new StubLamp("lamp-3", "Торшер в гостиной", "Гостиная"));
 
-// коннектор к прокси (hub)
-await using var connector = new Connector(host, proxyUrl);
+// коннектор к прокси (hub); JWT хоста — из аргумента или переменной окружения HOST_TOKEN
+await using var connector = new Connector(host, proxyUrl, () => Task.FromResult(token));
 
 Console.WriteLine($"Домашний хост: 3 лампы зарегистрированы, подключаюсь к {proxyUrl} …");
 

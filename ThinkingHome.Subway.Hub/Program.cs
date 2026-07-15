@@ -1,5 +1,8 @@
-﻿using Microsoft.AspNetCore.Hosting;
+using System;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
+using ThinkingHome.DeviceModel.Remoting.ProxyServer;
 
 namespace ThinkingHome.Subway.Hub
 {
@@ -7,18 +10,40 @@ namespace ThinkingHome.Subway.Hub
     {
         static void Main(string[] args)
         {
-            // string certPath = "/home/dima117a/merged.pfx";
-            // string certPassword = "changeit";
+            if (args.Length >= 1 && args[0] == "issue-host-token")
+            {
+                IssueHostToken(args);
+                return;
+            }
 
-            var hostBuilder = Host.CreateDefaultBuilder(args)
-                .ConfigureWebHostDefaults(webBuilder => webBuilder
-                    // .ConfigureKestrel(cfg =>
-                    //     cfg.Listen(IPAddress.Any, 443, opt => opt.UseHttps(certPath, certPassword)))
-                    .UseStartup<Startup>());
+            Host.CreateDefaultBuilder(args)
+                .ConfigureWebHostDefaults(webBuilder => webBuilder.UseStartup<Startup>())
+                .Build()
+                .Run();
+        }
 
-            using var host = hostBuilder.Build();
-            // host.Start();
-            host.Run();
+        // CLI: dotnet run --project ThinkingHome.Subway.Hub -- issue-host-token --hostId <id>
+        static void IssueHostToken(string[] args)
+        {
+            var config = new ConfigurationBuilder()
+                .SetBasePath(AppContext.BaseDirectory)
+                .AddJsonFile("appsettings.json", optional: true)
+                .AddEnvironmentVariables()
+                .Build();
+
+            var signingKey = config["Jwt:SigningKey"]
+                ?? throw new InvalidOperationException("Jwt:SigningKey не задан (appsettings/env).");
+
+            var hostId = GetOption(args, "--hostId")
+                ?? throw new ArgumentException("Укажите --hostId <id>.");
+
+            Console.WriteLine(HostToken.IssueConnectorToken(signingKey, hostId));
+        }
+
+        static string GetOption(string[] args, string name)
+        {
+            var i = Array.IndexOf(args, name);
+            return i >= 0 && i + 1 < args.Length ? args[i + 1] : null;
         }
     }
 }

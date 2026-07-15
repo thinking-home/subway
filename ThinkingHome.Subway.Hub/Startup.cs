@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using ThinkingHome.Alice.Service;
@@ -7,12 +8,13 @@ using ThinkingHome.DeviceModel.Remoting.ProxyServer;
 
 namespace ThinkingHome.Subway.Hub
 {
-    public class Startup
+    public class Startup(IConfiguration configuration)
     {
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddSignalR();
             services.AddDeviceRemotingProxy();
+            services.AddDeviceRemotingProxyAuth(SigningKey());
 
             // TODO: реальный маппинг пользователя OAuth → hostId; пока одно домохозяйство
             services.AddSingleton<IHostIdResolver>(new StaticHostIdResolver("home"));
@@ -27,11 +29,18 @@ namespace ThinkingHome.Subway.Hub
         {
             loggerFactory.AddFile("Logs/api-{Date}.txt");
 
-            app.UseRouting().UseEndpoints(endpoints =>
-            {
-                endpoints.MapHub<DeviceHub>("/hub");
-                endpoints.MapControllers();
-            });
+            app.UseRouting()
+                .UseAuthentication()
+                .UseAuthorization()
+                .UseEndpoints(endpoints =>
+                {
+                    endpoints.MapDeviceHub();
+                    endpoints.MapControllers();
+                });
         }
+
+        private string SigningKey() =>
+            configuration["Jwt:SigningKey"]
+            ?? throw new System.InvalidOperationException("Jwt:SigningKey не задан (appsettings/env).");
     }
 }

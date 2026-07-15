@@ -1,20 +1,24 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 using ThinkingHome.DeviceModel.State;
 
 namespace ThinkingHome.DeviceModel.Remoting.ProxyServer;
 
 /// <summary>
-/// SignalR-хаб на прокси. Домашние коннекторы подключаются сюда (JWT с hostId в claims).
-/// На connect/disconnect обновляет реестр; принимает Report'ы (дом → прокси).
-/// Команды идут в обратную сторону (server → client) из <see cref="RemoteHost"/>.
+/// SignalR-хаб на прокси. Домашние коннекторы подключаются сюда с JWT (aud=connector, hostId в claim).
+/// На connect/disconnect обновляет реестр; принимает Report'ы (дом → прокси). Команды идут в обратную
+/// сторону (server → client) из <see cref="RemoteHost"/>.
 /// </summary>
+[Authorize]
 public sealed class DeviceHub(RemoteHostRegistry registry) : Hub
 {
-    public const string HostIdClaim = "hostId";
+    /// <summary>Канонический путь хаба — единый источник и для маппинга, и для извлечения токена из query.</summary>
+    public const string Path = "/hub";
 
     public override Task OnConnectedAsync()
     {
-        var hostId = Context.User?.FindFirst(HostIdClaim)?.Value;
+        // hostId — из валидированного JWT; соединение без него отклоняем
+        var hostId = Context.User?.FindFirst(HostToken.HostIdClaim)?.Value;
         if (string.IsNullOrEmpty(hostId))
         {
             Context.Abort();

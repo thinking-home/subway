@@ -217,7 +217,7 @@ light.OnChanged(change => Log(change));                     // подписка 
   `DeviceHub`), домашняя сторона `…Remoting.ProxyClient` (`Connector` — SignalR-клиент, оборачивает
   локальный `IDeviceHost`: `On(GetDevices/Query/Execute)` → хост, `Changed` → `Report`,
   `WithAutomaticReconnect`). Discovery в `IDeviceHost` стал async (`GetDevicesAsync`/`GetDeviceAsync`).
-- `AliceMapper` (в `ThinkingHome.Alice`): нейтральная модель ↔ DTO Алисы — discovery (`ToDevice`), query
+- `AliceMapper` (в `ThinkingHome.Alice`): нейтральная модель ↔ DTO Алисы — discovery (`ToDevices`, одно устройство на endpoint), query
   (`ToDeviceState`), action (`ToCommand` / `ToCapabilityActionResult`), коды ошибок (`CommandErrorCode` →
   Alice). Пока OnOff. Чистые функции (без I/O); оркестрация вызовов хоста — на стороне бриджа.
 - Alice-бридж: контроллеры `ThinkingHome.Alice.Service` проведены на `IDeviceHost` + `AliceMapper` +
@@ -226,18 +226,31 @@ light.OnChanged(change => Log(change));                     // подписка 
   stub-устройства убраны.
 - Тест-проект `…Tests` (xUnit): реестр (роутинг, last-wins, оффлайн), хост (single-flight, кэш+репорт,
   неизвестное устройство), сериализация (полнота `[JsonDerivedType]`, round-trip), `AliceMapper`,
-  контроллеры Алисы (online/offline/action) — 19 зелёных.
+  контроллеры Алисы, endpoint-маппинг (составной id, мультиэндпоинт), JWT `HostToken` — 23 зелёных.
 - Домашнее приложение `ThinkingHome.Home`: `DeviceHost` + `Connector` + временная заглушка `StubLamp`
   (3 лампы). Стартует, регистрирует устройства, подключается к прокси с ретраем начального коннекта.
   Проверено smoke-прогоном. (`ThinkingHome.Alice.Service/Stub` удалён.)
+- Локальный сквозной прогон на живом SignalR (Hub + домашнее приложение): `GET /user/devices` вернул
+  3 лампы, `POST /user/devices/action` включил лампу (команда дошла до `StubLamp`, ответ `DONE`).
+  hostId коннектора — временно из query string (`?hostId=…`, dev; прод — JWT). Полиморфизм модели
+  проходит по SignalR корректно.
+- Endpoint'ы для Алисы: каждый нейтральный endpoint → отдельное устройство с составным id
+  (`deviceId#endpointId`, тип `AliceDeviceId`). `ToDevices` разбивает по endpoint'ам, `ToDeviceState`
+  фильтрует снимок по endpoint'у, `ToCommand` проставляет `EndpointId`; контроллер парсит id обратно.
+  Проверено юнит-тестами (включая мультиэндпоинт) и живым прогоном (`lamp-1#0`).
+- Аутентификация коннектора (момент 2): прокси — JWT-эмитент (`HostToken`, HS256, один ключ подписи в
+  конфиге; отзыв — сменой ключа). CLI `issue-host-token --hostId` минтит токен коннектора
+  `{hostId, aud:connector}` без срока; JWT bearer на `/hub`, `DeviceHub` читает hostId из claim,
+  `Connector` шлёт токен через `AccessTokenProvider`. Query-string hostId убран. Проверено живым
+  прогоном (минт → connect → discovery/action) + юнит-тесты `HostToken`.
 
 Остальные способности/свойства пока не добавлены — заводим по одному **полному** набору за раз, со
 сверкой по машиночитаемому словарю Matter, чтобы не держать неполную иерархию.
 
 Дальше по плану:
-1. Живой end-to-end (домашнее приложение готово): JWT-авторизация SignalR на hub'е (hostId в claims из
-   токена коннектора — сейчас auth не настроен, поэтому коннектор аборт) + реальный OAuth-пользователь
-   Алисы → hostId. Затем прогон: домашнее приложение ↔ hub ↔ Алиса.
+1. OAuth (момент 1): `/oauth/authorize` с OTP-через-лог (абстракция `IOtpDelivery`) → `/oauth/token`
+   выдаёт access token `{hostId, aud:alice}` → `IHostIdResolver` читает hostId из Bearer. Токен хоста
+   всегда минтится вручную (CLI). Затем прогон против настоящей Алисы.
 2. Эргономичный фасад; следующие полные наборы способностей (`Level`, `Color`, `Mode`, `Range`, `Toggle`).
 
 ---
