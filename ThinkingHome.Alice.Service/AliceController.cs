@@ -32,8 +32,9 @@ namespace ThinkingHome.Alice.Service
         {
             var hostId = hostIds.Resolve(HttpContext);
 
+            // каждый нейтральный endpoint → отдельное устройство Алисы (составной id)
             var devices = registry.TryGet(hostId, out var host)
-                ? (await host.GetDevicesAsync()).Select(AliceMapper.ToDevice).ToArray()
+                ? (await host.GetDevicesAsync()).SelectMany(AliceMapper.ToDevices).ToArray()
                 : [];
 
             return new DevicesResponse
@@ -83,19 +84,20 @@ namespace ThinkingHome.Alice.Service
             };
         }
 
-        // ── per-device orchestration (маппер чистый, вызовы хоста — здесь) ──
+        // ── per-device orchestration: разбираем составной id, зовём хост, маппер чистый ──
 
-        private static async Task<AliceDeviceState> QueryDevice(IDeviceHost host, string deviceId)
+        private static async Task<AliceDeviceState> QueryDevice(IDeviceHost host, string aliceId)
         {
-            if (host == null) return UnreachableState(deviceId);
+            if (host == null) return UnreachableState(aliceId);
 
+            var id = AliceDeviceId.Parse(aliceId);
             try
             {
-                return AliceMapper.ToDeviceState(await host.QueryAsync(deviceId));
+                return AliceMapper.ToDeviceState(id, await host.QueryAsync(id.DeviceId));
             }
             catch (Exception)
             {
-                return UnreachableState(deviceId);
+                return UnreachableState(aliceId);
             }
         }
 
@@ -103,12 +105,13 @@ namespace ThinkingHome.Alice.Service
         {
             if (host == null) return UnreachableAction(action.Id);
 
+            var id = AliceDeviceId.Parse(action.Id);
             try
             {
                 var capabilities = new List<CapabilityActionResultBase>();
                 foreach (var capability in action.Capabilities)
                 {
-                    var outcome = await host.ExecuteAsync(action.Id, AliceMapper.ToCommand(capability));
+                    var outcome = await host.ExecuteAsync(id.DeviceId, AliceMapper.ToCommand(capability, id.EndpointId));
                     capabilities.Add(AliceMapper.ToCapabilityActionResult(capability, outcome));
                 }
 
@@ -120,16 +123,16 @@ namespace ThinkingHome.Alice.Service
             }
         }
 
-        private static AliceDeviceState UnreachableState(string deviceId) => new()
+        private static AliceDeviceState UnreachableState(string aliceId) => new()
         {
-            Id = deviceId,
+            Id = aliceId,
             ErrorCode = ActionResultErrorCode.DEVICE_UNREACHABLE.ToString(),
             ErrorMessage = "device host is not connected",
         };
 
-        private static DeviceActionResult UnreachableAction(string deviceId) => new()
+        private static DeviceActionResult UnreachableAction(string aliceId) => new()
         {
-            Id = deviceId,
+            Id = aliceId,
             ActionResult = new AliceActionResult
             {
                 Status = ActionResultStatus.ERROR,

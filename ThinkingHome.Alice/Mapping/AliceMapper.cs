@@ -1,6 +1,7 @@
 #nullable enable
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using ThinkingHome.Alice.Model.ActionResult;
 using ThinkingHome.Alice.Model.Capabilities;
@@ -18,37 +19,44 @@ using AliceDeviceType = ThinkingHome.Alice.Model.DeviceType;
 namespace ThinkingHome.Alice.Mapping;
 
 /// <summary>
-/// Перевод нейтральной модели устройств (ThinkingHome.DeviceModel) в DTO Алисы и обратно.
-/// Здесь живёт вся специфика формата Яндекса; ядро о ней не знает. Пока покрыт OnOff.
+/// Перевод нейтральной модели устройств (ThinkingHome.DeviceModel) в DTO Алисы и обратно. Модель
+/// Алисы плоская, поэтому каждый нейтральный endpoint → отдельное устройство с составным id
+/// (<see cref="AliceDeviceId"/>). Здесь живёт вся специфика формата Яндекса; ядро о ней не знает.
+/// Пока покрыт OnOff.
 /// </summary>
 public static class AliceMapper
 {
-    // ── discovery: нейтральный дескриптор → Device Алисы ──
-    public static AliceDevice ToDevice(DeviceDescriptor descriptor) => new()
+    // ── discovery: нейтральный дескриптор → по одному Device Алисы на каждый endpoint ──
+    public static IEnumerable<AliceDevice> ToDevices(DeviceDescriptor descriptor) =>
+        descriptor.Endpoints.Select(endpoint => new AliceDevice
+        {
+            Id = new AliceDeviceId(descriptor.Id, endpoint.Id).ToAlice(),
+            Name = descriptor.Title,
+            Room = descriptor.Room,
+            Type = ToAliceDeviceType(endpoint.Type),
+            Capabilities = endpoint.Capabilities.Select(ToCapabilityInfo).ToArray(),
+            DeviceInfo = ToDeviceInfo(descriptor.Manufacturer),
+        });
+
+    // ── query: весь снимок устройства + id → DeviceState (только значения нужного endpoint'а) ──
+    public static AliceDeviceState ToDeviceState(AliceDeviceId id, DeviceSnapshot snapshot) => new()
     {
-        Id = descriptor.Id,
-        Name = descriptor.Title,
-        Room = descriptor.Room,
-        // Alice-модель плоская: тип берём у первого endpoint'а, способности — со всех
-        Type = ToAliceDeviceType(descriptor.Endpoints[0].Type),
-        Capabilities = descriptor.Endpoints
-            .SelectMany(e => e.Capabilities)
-            .Select(ToCapabilityInfo)
+        Id = id.ToAlice(),
+        Capabilities = snapshot.Values
+            .Where(value => value.EndpointId == id.EndpointId)
+            .Select(ToCapabilityState)
             .ToArray(),
-        DeviceInfo = ToDeviceInfo(descriptor.Manufacturer),
     };
 
-    // ── query: нейтральный снимок → DeviceState Алисы ──
-    public static AliceDeviceState ToDeviceState(DeviceSnapshot snapshot) => new()
+    // ── action: параметры способности Алисы + endpoint → нейтральная команда ──
+    public static DeviceCommand ToCommand(CapabilityActionParamsBase action, int endpointId) => action switch
     {
-        Id = snapshot.DeviceId,
-        Capabilities = snapshot.Values.Select(ToCapabilityState).ToArray(),
-    };
-
-    // ── action: параметры способности Алисы → нейтральная команда ──
-    public static DeviceCommand ToCommand(CapabilityActionParamsBase action) => action switch
-    {
-        CapabilityActionParamsOnOff a => new OnOffCommand { Instance = "on", Value = a.State.Value },
+        CapabilityActionParamsOnOff a => new OnOffCommand
+        {
+            EndpointId = endpointId,
+            Instance = "on",
+            Value = a.State.Value,
+        },
         _ => throw new NotSupportedException($"Нет нейтрального маппинга для {action.GetType().Name}"),
     };
 

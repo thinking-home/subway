@@ -20,13 +20,13 @@ public class AliceControllerTests
         };
 
     [Fact]
-    public async Task Devices_online_maps_descriptors()
+    public async Task Devices_online_maps_descriptors_with_composite_id()
     {
         var response = await Controller(new FakeHost()).Devices("req-1");
 
         Assert.Equal("home", response.Payload.UserId);
         var device = Assert.Single(response.Payload.Devices);
-        Assert.Equal("lamp", device.Id);
+        Assert.Equal("lamp#0", device.Id);
     }
 
     [Fact]
@@ -37,7 +37,7 @@ public class AliceControllerTests
     }
 
     [Fact]
-    public async Task Action_executes_command_on_host()
+    public async Task Action_parses_composite_id_and_executes_on_host()
     {
         var host = new FakeHost();
         var request = new DevicesActionRequest
@@ -48,7 +48,7 @@ public class AliceControllerTests
                 [
                     new DeviceActionParams
                     {
-                        Id = "lamp",
+                        Id = "lamp#0",
                         Capabilities =
                         [
                             new CapabilityActionParamsOnOff
@@ -68,8 +68,9 @@ public class AliceControllerTests
         var response = await Controller(host).DevicesAction("req-1", request);
 
         var executed = Assert.Single(host.Executed);
-        Assert.Equal("lamp", executed.DeviceId);
+        Assert.Equal("lamp", executed.DeviceId); // распарсен из "lamp#0"
         var command = Assert.IsType<OnOffCommand>(executed.Command);
+        Assert.Equal(0, command.EndpointId);
         Assert.True(command.Value);
         Assert.Single(response.Payload.Devices);
     }

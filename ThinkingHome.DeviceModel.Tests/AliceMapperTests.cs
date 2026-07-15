@@ -10,25 +10,25 @@ namespace ThinkingHome.DeviceModel.Tests;
 
 public class AliceMapperTests
 {
-    private static DeviceDescriptor Lamp() => new()
-    {
-        Id = "lamp-1",
-        Title = "Лампа",
-        Room = "Кухня",
-        Endpoints = [new Endpoint
-        {
-            Id = 0,
-            Type = DeviceType.OnOffLight,
-            Capabilities = [new OnOffCapability { Instance = "on" }],
-        }],
-    };
-
     [Fact]
-    public void ToDevice_maps_fields_and_onoff_capability()
+    public void ToDevices_single_endpoint_uses_composite_id()
     {
-        var device = AliceMapper.ToDevice(Lamp());
+        var descriptor = new DeviceDescriptor
+        {
+            Id = "lamp-1",
+            Title = "Лампа",
+            Room = "Кухня",
+            Endpoints = [new Endpoint
+            {
+                Id = 0,
+                Type = DeviceType.OnOffLight,
+                Capabilities = [new OnOffCapability { Instance = "on" }],
+            }],
+        };
 
-        Assert.Equal("lamp-1", device.Id);
+        var device = Assert.Single(AliceMapper.ToDevices(descriptor));
+
+        Assert.Equal("lamp-1#0", device.Id);
         Assert.Equal("Лампа", device.Name);
         Assert.Equal("Кухня", device.Room);
         Assert.Equal(AliceDeviceType.Light, device.Type);
@@ -36,31 +36,55 @@ public class AliceMapperTests
     }
 
     [Fact]
-    public void ToDeviceState_maps_onoff_state()
+    public void ToDevices_splits_endpoints_into_separate_devices()
     {
-        var snapshot = new DeviceSnapshot
+        var descriptor = new DeviceDescriptor
         {
-            DeviceId = "lamp-1",
-            Values = [new OnOffState { Instance = "on", Value = true }],
+            Id = "switch",
+            Title = "Выключатель",
+            Endpoints =
+            [
+                new Endpoint { Id = 0, Type = DeviceType.OnOffLight, Capabilities = [new OnOffCapability { Instance = "on" }] },
+                new Endpoint { Id = 1, Type = DeviceType.OnOffLight, Capabilities = [new OnOffCapability { Instance = "on" }] },
+            ],
         };
 
-        var state = AliceMapper.ToDeviceState(snapshot);
+        var ids = AliceMapper.ToDevices(descriptor).Select(d => d.Id).ToArray();
 
-        Assert.Equal("lamp-1", state.Id);
-        var cap = Assert.IsType<CapabilityStateOnOff>(Assert.Single(state.Capabilities));
-        Assert.Equal(CapabilityStateOnOffInstance.On, cap.State.Instance);
-        Assert.True(cap.State.Value);
+        Assert.Equal(new[] { "switch#0", "switch#1" }, ids);
     }
 
     [Fact]
-    public void ToCommand_maps_onoff_action()
+    public void ToDeviceState_filters_values_by_endpoint()
     {
-        CapabilityActionParamsOnOff action = new()
+        var snapshot = new DeviceSnapshot
+        {
+            DeviceId = "switch",
+            Values =
+            [
+                new OnOffState { EndpointId = 0, Instance = "on", Value = false },
+                new OnOffState { EndpointId = 1, Instance = "on", Value = true },
+            ],
+        };
+
+        var state = AliceMapper.ToDeviceState(new AliceDeviceId("switch", 1), snapshot);
+
+        Assert.Equal("switch#1", state.Id);
+        var cap = Assert.IsType<CapabilityStateOnOff>(Assert.Single(state.Capabilities));
+        Assert.True(cap.State.Value); // значение именно endpoint'а 1
+    }
+
+    [Fact]
+    public void ToCommand_sets_endpoint()
+    {
+        var action = new CapabilityActionParamsOnOff
         {
             State = new CapabilityStateOnOffData { Instance = CapabilityStateOnOffInstance.On, Value = true },
         };
 
-        var command = Assert.IsType<OnOffCommand>(AliceMapper.ToCommand(action));
+        var command = Assert.IsType<OnOffCommand>(AliceMapper.ToCommand(action, endpointId: 2));
+
+        Assert.Equal(2, command.EndpointId);
         Assert.Equal("on", command.Instance);
         Assert.True(command.Value);
     }
@@ -73,5 +97,17 @@ public class AliceMapperTests
         var error = AliceMapper.ToActionResult(CommandOutcome.Error(CommandErrorCode.DeviceUnreachable, "нет связи"));
         Assert.Equal(ActionResultStatus.ERROR, error.Status);
         Assert.Equal(ActionResultErrorCode.DEVICE_UNREACHABLE, error.ErrorCode);
+    }
+
+    [Fact]
+    public void AliceDeviceId_roundtrips_and_parses_defensively()
+    {
+        Assert.Equal("lamp-1#0", new AliceDeviceId("lamp-1", 0).ToAlice());
+
+        var id = AliceDeviceId.Parse("lamp-1#2");
+        Assert.Equal("lamp-1", id.DeviceId);
+        Assert.Equal(2, id.EndpointId);
+
+        Assert.Equal(new AliceDeviceId("legacy", 0), AliceDeviceId.Parse("legacy"));
     }
 }
