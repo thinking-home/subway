@@ -16,8 +16,7 @@ namespace ThinkingHome.Subway.Hub
             services.AddDeviceRemotingProxy();
             services.AddDeviceRemotingProxyAuth(SigningKey());
 
-            // TODO: реальный маппинг пользователя OAuth → hostId; пока одно домохозяйство
-            services.AddSingleton<IHostIdResolver>(new StaticHostIdResolver("home"));
+            services.AddSingleton<IHostIdResolver, ClaimHostIdResolver>();
 
             services
                 .AddControllers()

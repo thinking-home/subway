@@ -226,7 +226,7 @@ light.OnChanged(change => Log(change));                     // подписка 
   stub-устройства убраны.
 - Тест-проект `…Tests` (xUnit): реестр (роутинг, last-wins, оффлайн), хост (single-flight, кэш+репорт,
   неизвестное устройство), сериализация (полнота `[JsonDerivedType]`, round-trip), `AliceMapper`,
-  контроллеры Алисы, endpoint-маппинг (составной id, мультиэндпоинт), JWT `HostToken` — 23 зелёных.
+  контроллеры Алисы, endpoint-маппинг, JWT `HostToken` (аудитории connector/authcode/alice) — 26 зелёных.
 - Домашнее приложение `ThinkingHome.Home`: `DeviceHost` + `Connector` + временная заглушка `StubLamp`
   (3 лампы). Стартует, регистрирует устройства, подключается к прокси с ретраем начального коннекта.
   Проверено smoke-прогоном. (`ThinkingHome.Alice.Service/Stub` удалён.)
@@ -243,14 +243,20 @@ light.OnChanged(change => Log(change));                     // подписка 
   `{hostId, aud:connector}` без срока; JWT bearer на `/hub`, `DeviceHub` читает hostId из claim,
   `Connector` шлёт токен через `AccessTokenProvider`. Query-string hostId убран. Проверено живым
   прогоном (минт → connect → discovery/action) + юнит-тесты `HostToken`.
+- OAuth пользователя (момент 1), stateless: `/oauth/authorize` в 2 шага (hostId → OTP → ввод кода;
+  redirect_uri/state/hostId — в скрытых полях, без сессии), OTP — «доказательство доступа к хосту»:
+  генерится/проверяется на хосте (`IOtpDelivery` — интерфейс в библиотеке, реализация `LogOtpDelivery`
+  у потребителя; состояние OTP на хосте). `/oauth/token` → access token `{hostId, aud:alice}`; «код» и
+  access token — JWT (без хранилища, аудитории изолированы). Resource-server: `[Authorize]` (схема alice)
+  на `/service/v1.0/*` + `ClaimHostIdResolver` (hostId из claim). Прокси остаётся stateless. Проверен
+  живой сквозной прогон: authorize → OTP из лога → code → token → `/devices` (401 без токена, лампы с ним).
 
 Остальные способности/свойства пока не добавлены — заводим по одному **полному** набору за раз, со
 сверкой по машиночитаемому словарю Matter, чтобы не держать неполную иерархию.
 
 Дальше по плану:
-1. OAuth (момент 1): `/oauth/authorize` с OTP-через-лог (абстракция `IOtpDelivery`) → `/oauth/token`
-   выдаёт access token `{hostId, aud:alice}` → `IHostIdResolver` читает hostId из Bearer. Токен хоста
-   всегда минтится вручную (CLI). Затем прогон против настоящей Алисы.
+1. Прод-хардненинг перед боевой Алисой: валидация `client_id`/`client_secret` Яндекса на `/oauth/token`,
+   HTTPS/деплой (rate-limit на генерацию OTP — по желанию).
 2. Эргономичный фасад; следующие полные наборы способностей (`Level`, `Color`, `Mode`, `Range`, `Toggle`).
 
 ---

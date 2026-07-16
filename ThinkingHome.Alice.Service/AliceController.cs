@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ThinkingHome.Alice.Handlers;
 using ThinkingHome.Alice.Handlers.Devices;
@@ -17,6 +18,7 @@ using AliceDeviceState = ThinkingHome.Alice.Model.DeviceState;
 
 namespace ThinkingHome.Alice.Service
 {
+    [Authorize(AuthenticationSchemes = HostToken.AliceScheme)]
     [Route("/service/v1.0")]
     public class AliceController(IRemoteHostRegistry registry, IHostIdResolver hostIds) : Controller
     {
