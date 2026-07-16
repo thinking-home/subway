@@ -12,7 +12,7 @@ host.Register(new StubLamp("lamp-2", "Лампа на кухне", "Кухня")
 host.Register(new StubLamp("lamp-3", "Торшер в гостиной", "Гостиная"));
 
 // коннектор к прокси (hub); JWT хоста — из аргумента или переменной окружения HOST_TOKEN
-await using var connector = new Connector(host, proxyUrl, () => Task.FromResult(token));
+await using var connector = new Connector(host, new LogOtpDelivery(), proxyUrl, () => Task.FromResult(token));
 
 Console.WriteLine($"Домашний хост: 3 лампы зарегистрированы, подключаюсь к {proxyUrl} …");
 

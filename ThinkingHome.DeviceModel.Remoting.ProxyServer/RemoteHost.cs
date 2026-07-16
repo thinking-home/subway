@@ -75,4 +75,12 @@ public sealed class RemoteHost(string hostId, IHubContext<DeviceHub> hub) : IDev
             return CommandOutcome.Error(CommandErrorCode.DeviceUnreachable, $"host '{hostId}' offline");
         }
     }
+
+    /// <summary>Привязка: попросить хост сгенерировать и доставить OTP.</summary>
+    public Task GenerateLinkingOtpAsync(CancellationToken ct = default)
+        => Client.SendAsync(DeviceHubMethods.GenerateLinkingOtp, ct);
+
+    /// <summary>Привязка: проверить OTP на хосте.</summary>
+    public Task<bool> ValidateLinkingOtpAsync(string otp, CancellationToken ct = default)
+        => Client.InvokeAsync<bool>(DeviceHubMethods.ValidateLinkingOtp, otp, ct);
 }

@@ -10,6 +10,8 @@ public static class DeviceHubMethods
     public const string GetDevices = "GetDevices";
     public const string Query = "Query";
     public const string Execute = "Execute";
+    public const string GenerateLinkingOtp = "GenerateLinkingOtp";
+    public const string ValidateLinkingOtp = "ValidateLinkingOtp";
 
     // дом → прокси (client → server)
     public const string Report = "Report";

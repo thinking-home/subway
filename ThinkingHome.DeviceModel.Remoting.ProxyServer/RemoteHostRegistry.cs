@@ -59,4 +59,16 @@ public sealed class RemoteHostRegistry(IHubContext<DeviceHub> hub) : IRemoteHost
         host = null;
         return false;
     }
+
+    // OTP-привязка: маршрутизируем на онлайн-хост по hostId (состояние OTP — на хосте, прокси stateless)
+    public Task GenerateLinkingOtpAsync(string hostId, CancellationToken ct = default)
+        => RequiredOnline(hostId).GenerateLinkingOtpAsync(ct);
+
+    public Task<bool> ValidateLinkingOtpAsync(string hostId, string otp, CancellationToken ct = default)
+        => RequiredOnline(hostId).ValidateLinkingOtpAsync(otp, ct);
+
+    private RemoteHost RequiredOnline(string hostId)
+        => hostsById.TryGetValue(hostId, out var host) && host.IsOnline
+            ? host
+            : throw new HostUnavailableException(hostId);
 }

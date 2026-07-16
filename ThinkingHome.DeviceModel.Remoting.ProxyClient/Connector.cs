@@ -6,16 +6,18 @@ namespace ThinkingHome.DeviceModel.Remoting.ProxyClient;
 
 /// <summary>
 /// Домашняя сторона ремоутинга: SignalR-клиент, подключающийся к прокси и оборачивающий локальный
-/// <see cref="IDeviceHost"/>. Обрабатывает вызовы прокси (GetDevices/Query/Execute → локальный хост)
-/// и пушит изменения состояния (Changed → Report). Идентичность (hostId) — в JWT из
-/// <paramref name="accessTokenProvider"/>; прокси читает её из claims.
+/// <see cref="IDeviceHost"/>. Обрабатывает вызовы прокси (GetDevices/Query/Execute → локальный хост),
+/// пушит изменения (Changed → Report) и генерирует/проверяет OTP привязки (состояние OTP живёт здесь,
+/// на хосте — прокси остаётся stateless). Идентичность — в JWT из <paramref name="accessTokenProvider"/>;
+/// доставку OTP даёт потребитель через <see cref="IOtpDelivery"/>.
 /// </summary>
 public sealed class Connector : IAsyncDisposable
 {
     private readonly IDeviceHost host;
     private readonly HubConnection connection;
+    private readonly OtpState otp = new();
 
-    public Connector(IDeviceHost host, string url, Func<Task<string?>>? accessTokenProvider = null)
+    public Connector(IDeviceHost host, IOtpDelivery otpDelivery, string url, Func<Task<string?>>? accessTokenProvider = null)
     {
         this.host = host;
 
@@ -31,12 +33,14 @@ public sealed class Connector : IAsyncDisposable
             .Build();
 
         // прокси → дом (server → client с результатом)
-        connection.On(DeviceHubMethods.GetDevices,
-            () => host.GetDevicesAsync());
-        connection.On<string, DeviceSnapshot>(DeviceHubMethods.Query,
-            deviceId => host.QueryAsync(deviceId));
+        connection.On(DeviceHubMethods.GetDevices, () => host.GetDevicesAsync());
+        connection.On<string, DeviceSnapshot>(DeviceHubMethods.Query, deviceId => host.QueryAsync(deviceId));
         connection.On<string, DeviceCommand, CommandOutcome>(DeviceHubMethods.Execute,
             (deviceId, command) => host.ExecuteAsync(deviceId, command));
+
+        // OTP привязки: состояние — на хосте, доставку даёт потребитель
+        connection.On(DeviceHubMethods.GenerateLinkingOtp, () => otp.GenerateAndDeliverAsync(otpDelivery));
+        connection.On<string, bool>(DeviceHubMethods.ValidateLinkingOtp, code => Task.FromResult(otp.Validate(code)));
     }
 
     /// <summary>Текущее состояние соединения с прокси.</summary>
@@ -54,7 +58,6 @@ public sealed class Connector : IAsyncDisposable
         await connection.StopAsync(ct);
     }
 
-    // дом → прокси: отчёт об изменении, best-effort (при разрыве теряется — Алиса перезапросит)
     private void OnHostChanged(StateChange change)
     {
         if (connection.State != HubConnectionState.Connected) return;
@@ -69,7 +72,7 @@ public sealed class Connector : IAsyncDisposable
         }
         catch
         {
-            // репорт best-effort; проглатываем ошибку отправки при разрыве
+            // репорт best-effort; при разрыве теряется
         }
     }
 
@@ -77,5 +80,33 @@ public sealed class Connector : IAsyncDisposable
     {
         host.Changed -= OnHostChanged;
         await connection.DisposeAsync();
+    }
+
+    // одноразовый пароль привязки: один активный код с TTL, проверка одноразовая
+    private sealed class OtpState
+    {
+        private readonly Lock gate = new();
+        private (string Value, DateTime Expires)? pending;
+
+        public async Task GenerateAndDeliverAsync(IOtpDelivery delivery)
+        {
+            var code = Random.Shared.Next(1_000_000).ToString("D6");
+            lock (gate) pending = (code, DateTime.UtcNow.AddMinutes(2));
+            await delivery.DeliverAsync(code);
+        }
+
+        public bool Validate(string code)
+        {
+            lock (gate)
+            {
+                if (pending is { } p && p.Value == code && DateTime.UtcNow < p.Expires)
+                {
+                    pending = null; // одноразовый
+                    return true;
+                }
+
+                return false;
+            }
+        }
     }
 }
