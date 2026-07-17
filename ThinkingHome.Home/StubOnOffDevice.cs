@@ -6,10 +6,11 @@ using ThinkingHome.DeviceModel.State;
 namespace ThinkingHome.Home;
 
 /// <summary>
-/// Временная заглушка лампы (OnOff) с состоянием в памяти. Реальные драйверы придут позже —
-/// нужна, чтобы поднять домашний хост и проверить сквозной путь до Алисы.
+/// Временная заглушка On/Off-устройства (лампа/розетка/выключатель) с состоянием в памяти. Способность
+/// одна — OnOff, различается только <see cref="DeviceType"/>. Реальные драйверы придут позже; нужна,
+/// чтобы поднять домашний хост и проверить сквозной путь до Алисы.
 /// </summary>
-public sealed class StubLamp(string id, string title, string? room = null) : IDevice
+public sealed class StubOnOffDevice(string id, string title, DeviceType type, string? room = null) : IDevice
 {
     private bool isOn;
 
@@ -22,11 +23,11 @@ public sealed class StubLamp(string id, string title, string? room = null) : IDe
         Id = id,
         Title = title,
         Room = room,
-        Manufacturer = new DeviceManufacturer { Name = "ThinkingHome", Model = "stub-lamp" },
+        Manufacturer = new DeviceManufacturer { Name = "ThinkingHome", Model = "stub" },
         Endpoints = [new Endpoint
         {
             Id = 0,
-            Type = DeviceType.OnOffLight,
+            Type = type,
             Capabilities = [new OnOffCapability { Instance = "on" }],
         }],
     };

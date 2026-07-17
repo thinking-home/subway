@@ -118,6 +118,8 @@ public static class AliceMapper
     private static AliceDeviceType ToAliceDeviceType(DeviceType type) => type switch
     {
         DeviceType.OnOffLight => AliceDeviceType.Light,
+        DeviceType.OnOffSocket => AliceDeviceType.Socket,
+        DeviceType.OnOffSwitch => AliceDeviceType.Switch,
         _ => throw new NotSupportedException($"Нет маппинга типа устройства {type} в Alice"),
     };
 

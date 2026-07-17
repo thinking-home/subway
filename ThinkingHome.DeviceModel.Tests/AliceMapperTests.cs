@@ -110,4 +110,21 @@ public class AliceMapperTests
 
         Assert.Equal(new AliceDeviceId("legacy", 0), AliceDeviceId.Parse("legacy"));
     }
+
+    [Theory]
+    [InlineData(DeviceType.OnOffLight, AliceDeviceType.Light)]
+    [InlineData(DeviceType.OnOffSocket, AliceDeviceType.Socket)]
+    [InlineData(DeviceType.OnOffSwitch, AliceDeviceType.Switch)]
+    public void ToDevices_maps_onoff_device_types(DeviceType type, AliceDeviceType expected)
+    {
+        var descriptor = new DeviceDescriptor
+        {
+            Id = "d",
+            Title = "T",
+            Endpoints = [new Endpoint { Id = 0, Type = type, Capabilities = [new OnOffCapability { Instance = "on" }] }],
+        };
+
+        var device = Assert.Single(AliceMapper.ToDevices(descriptor));
+        Assert.Equal(expected, device.Type);
+    }
 }

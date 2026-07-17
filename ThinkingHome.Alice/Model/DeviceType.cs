@@ -11,4 +11,7 @@ public enum DeviceType
 
     [JsonStringEnumMemberName("devices.types.socket")]
     Socket,
+
+    [JsonStringEnumMemberName("devices.types.switch")]
+    Switch,
 }
