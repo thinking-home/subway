@@ -1,0 +1,5 @@
+# Caddy сам получит и будет обновлять сертификат Let's Encrypt, а также
+# проксирует WebSocket (нужно для SignalR /hub) по умолчанию.
+alice.thinking-home.ru {
+	reverse_proxy 127.0.0.1:8080
+}

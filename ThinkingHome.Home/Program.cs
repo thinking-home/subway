@@ -2,7 +2,7 @@ using ThinkingHome.DeviceModel;
 using ThinkingHome.DeviceModel.Remoting.ProxyClient;
 using ThinkingHome.Home;
 
-var proxyUrl = args.Length > 0 ? args[0] : "http://localhost:5000/hub";
+var proxyUrl = args.Length > 0 ? args[0] : "https://alice.thinking-home.ru/hub";
 var token = args.Length > 1 ? args[1] : Environment.GetEnvironmentVariable("HOST_TOKEN");
 
 // хост устройств + временные заглушки-лампы

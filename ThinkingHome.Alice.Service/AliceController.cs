@@ -22,6 +22,8 @@ namespace ThinkingHome.Alice.Service
     [Route("/service/v1.0")]
     public class AliceController(IRemoteHostRegistry registry, IHostIdResolver hostIds) : Controller
     {
+        // health-check Яндекса (HEAD /v1.0) идёт без авторизации — ждёт 200
+        [AllowAnonymous]
         [HttpGet, HttpHead]
         public IActionResult Index() => Ok("moo");
 

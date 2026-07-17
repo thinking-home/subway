@@ -1,0 +1,19 @@
+[Unit]
+Description=ThinkingHome Alice proxy (hub)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=thinkinghome
+WorkingDirectory=/opt/thinkinghome-hub
+ExecStart=/opt/thinkinghome-hub/ThinkingHome.Subway.Hub
+Environment=ASPNETCORE_URLS=http://127.0.0.1:8080
+Environment=DOTNET_ENVIRONMENT=Production
+# Секрет подписи JWT — из отдельного файла, НЕ в репозитории (см. runbook):
+EnvironmentFile=/etc/thinkinghome/hub.env
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
