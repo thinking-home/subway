@@ -9,6 +9,7 @@ namespace ThinkingHome.DeviceModel.Commands;
 /// </summary>
 [JsonPolymorphic(TypeDiscriminatorPropertyName = "$type")]
 [JsonDerivedType(typeof(OnOffCommand), "onOff")]
+[JsonDerivedType(typeof(BrightnessCommand), "brightness")]
 public abstract record DeviceCommand
 {
     /// <summary>Endpoint устройства (0 — основной).</summary>

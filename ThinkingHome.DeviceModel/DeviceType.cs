@@ -15,6 +15,9 @@ public enum DeviceType
     /// <summary>Недиммируемый источник света (только On/Off). Matter 0x0100.</summary>
     OnOffLight,
 
+    /// <summary>Диммируемый источник света (On/Off + яркость). Matter 0x0101.</summary>
+    DimmableLight,
+
     /// <summary>Управляемая розетка (только On/Off). Matter On/Off Plug-in Unit 0x010A.</summary>
     OnOffSocket,
 

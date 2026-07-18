@@ -47,6 +47,19 @@ public class SerializationTests
     }
 
     [Fact]
+    public void Brightness_command_round_trips_polymorphically()
+    {
+        DeviceCommand command = new BrightnessCommand { Instance = "brightness", Value = 42 };
+
+        var json = JsonSerializer.Serialize(command);
+        var back = JsonSerializer.Deserialize<DeviceCommand>(json);
+
+        var brightness = Assert.IsType<BrightnessCommand>(back);
+        Assert.Equal(42, brightness.Value);
+        Assert.Equal("brightness", brightness.Instance);
+    }
+
+    [Fact]
     public void Snapshot_round_trips_with_polymorphic_values()
     {
         var snapshot = new DeviceSnapshot

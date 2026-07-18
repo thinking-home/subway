@@ -9,6 +9,7 @@ namespace ThinkingHome.DeviceModel.Capabilities;
 /// </summary>
 [JsonPolymorphic(TypeDiscriminatorPropertyName = "$type")]
 [JsonDerivedType(typeof(OnOffCapability), "onOff")]
+[JsonDerivedType(typeof(BrightnessCapability), "brightness")]
 public abstract record Capability
 {
     /// <summary>Экземпляр способности (например, "on", "brightness").</summary>

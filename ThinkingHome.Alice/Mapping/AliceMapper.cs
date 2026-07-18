@@ -6,6 +6,7 @@ using System.Linq;
 using ThinkingHome.Alice.Model.ActionResult;
 using ThinkingHome.Alice.Model.Capabilities;
 using ThinkingHome.Alice.Model.Capabilities.OnOff;
+using ThinkingHome.Alice.Model.Capabilities.Range;
 using ThinkingHome.DeviceModel;
 using ThinkingHome.DeviceModel.Capabilities;
 using ThinkingHome.DeviceModel.Commands;
@@ -22,7 +23,7 @@ namespace ThinkingHome.Alice.Mapping;
 /// Перевод нейтральной модели устройств (ThinkingHome.DeviceModel) в DTO Алисы и обратно. Модель
 /// Алисы плоская, поэтому каждый нейтральный endpoint → отдельное устройство с составным id
 /// (<see cref="AliceDeviceId"/>). Здесь живёт вся специфика формата Яндекса; ядро о ней не знает.
-/// Пока покрыт OnOff.
+/// Пока покрыты OnOff и яркость (range).
 /// </summary>
 public static class AliceMapper
 {
@@ -57,6 +58,12 @@ public static class AliceMapper
             Instance = "on",
             Value = a.State.Value,
         },
+        CapabilityActionParamsRange { State.Instance: CapabilityStateRangeInstance.Brightness } a => new BrightnessCommand
+        {
+            EndpointId = endpointId,
+            Instance = "brightness",
+            Value = (int)a.State.Value,
+        },
         _ => throw new NotSupportedException($"Нет нейтрального маппинга для {action.GetType().Name}"),
     };
 
@@ -69,6 +76,14 @@ public static class AliceMapper
             State = new CapabilityStateActionResult<CapabilityStateOnOffInstance>
             {
                 Instance = CapabilityStateOnOffInstance.On,
+                ActionResult = ToActionResult(outcome),
+            },
+        },
+        CapabilityActionParamsRange { State.Instance: CapabilityStateRangeInstance.Brightness } => new CapabilityActionResultRange
+        {
+            State = new CapabilityStateActionResult<CapabilityStateRangeInstance>
+            {
+                Instance = CapabilityStateRangeInstance.Brightness,
                 ActionResult = ToActionResult(outcome),
             },
         },
@@ -93,6 +108,18 @@ public static class AliceMapper
             Reportable = c.Reportable,
             Parameters = new CapabilityInfoOnOffParams { Split = false },
         },
+        BrightnessCapability c => new CapabilityInfoRange
+        {
+            Retrievable = c.Retrievable,
+            Reportable = c.Reportable,
+            Parameters = new CapabilityRangeParams
+            {
+                Instance = CapabilityStateRangeInstance.Brightness,
+                Unit = Units.PERCENT,
+                RandomAccess = true,
+                Range = new CapabilityRangeLimits { Min = 0, Max = 100, Precision = 1 },
+            },
+        },
         _ => throw new NotSupportedException($"Нет маппинга способности {capability.GetType().Name} в Alice"),
     };
 
@@ -101,6 +128,10 @@ public static class AliceMapper
         OnOffState s => new CapabilityStateOnOff
         {
             State = new CapabilityStateOnOffData { Instance = CapabilityStateOnOffInstance.On, Value = s.Value },
+        },
+        BrightnessState s => new CapabilityStateRange
+        {
+            State = new CapabilityStateRangeData { Instance = CapabilityStateRangeInstance.Brightness, Value = s.Value },
         },
         _ => throw new NotSupportedException($"Нет маппинга состояния {value.GetType().Name} в Alice"),
     };
@@ -118,6 +149,7 @@ public static class AliceMapper
     private static AliceDeviceType ToAliceDeviceType(DeviceType type) => type switch
     {
         DeviceType.OnOffLight => AliceDeviceType.Light,
+        DeviceType.DimmableLight => AliceDeviceType.Light,
         DeviceType.OnOffSocket => AliceDeviceType.Socket,
         DeviceType.OnOffSwitch => AliceDeviceType.Switch,
         _ => throw new NotSupportedException($"Нет маппинга типа устройства {type} в Alice"),

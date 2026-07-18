@@ -1,6 +1,7 @@
 using ThinkingHome.Alice.Mapping;
 using ThinkingHome.Alice.Model.ActionResult;
 using ThinkingHome.Alice.Model.Capabilities.OnOff;
+using ThinkingHome.Alice.Model.Capabilities.Range;
 using ThinkingHome.DeviceModel.Capabilities;
 using ThinkingHome.DeviceModel.Commands;
 using ThinkingHome.DeviceModel.State;
@@ -113,9 +114,10 @@ public class AliceMapperTests
 
     [Theory]
     [InlineData(DeviceType.OnOffLight, AliceDeviceType.Light)]
+    [InlineData(DeviceType.DimmableLight, AliceDeviceType.Light)]
     [InlineData(DeviceType.OnOffSocket, AliceDeviceType.Socket)]
     [InlineData(DeviceType.OnOffSwitch, AliceDeviceType.Switch)]
-    public void ToDevices_maps_onoff_device_types(DeviceType type, AliceDeviceType expected)
+    public void ToDevices_maps_device_types(DeviceType type, AliceDeviceType expected)
     {
         var descriptor = new DeviceDescriptor
         {
@@ -126,5 +128,47 @@ public class AliceMapperTests
 
         var device = Assert.Single(AliceMapper.ToDevices(descriptor));
         Assert.Equal(expected, device.Type);
+    }
+
+    [Fact]
+    public void Brightness_maps_to_alice_range()
+    {
+        // info: способность → range brightness, 0–100 %
+        var descriptor = new DeviceDescriptor
+        {
+            Id = "d",
+            Title = "T",
+            Endpoints = [new Endpoint
+            {
+                Id = 0,
+                Type = DeviceType.DimmableLight,
+                Capabilities = [new BrightnessCapability { Instance = "brightness" }],
+            }],
+        };
+        var info = Assert.IsType<CapabilityInfoRange>(Assert.Single(Assert.Single(AliceMapper.ToDevices(descriptor)).Capabilities));
+        Assert.Equal(CapabilityStateRangeInstance.Brightness, info.Parameters.Instance);
+        Assert.Equal("unit.percent", info.Parameters.Unit);
+        Assert.Equal(0f, info.Parameters.Range.Min);
+        Assert.Equal(100f, info.Parameters.Range.Max);
+
+        // action → команда
+        var action = new CapabilityActionParamsRange
+        {
+            State = new CapabilityStateRangeData { Instance = CapabilityStateRangeInstance.Brightness, Value = 42 },
+        };
+        var command = Assert.IsType<BrightnessCommand>(AliceMapper.ToCommand(action, endpointId: 3));
+        Assert.Equal(3, command.EndpointId);
+        Assert.Equal("brightness", command.Instance);
+        Assert.Equal(42, command.Value);
+
+        // snapshot → state
+        var snapshot = new DeviceSnapshot
+        {
+            DeviceId = "d",
+            Values = [new BrightnessState { EndpointId = 0, Instance = "brightness", Value = 42 }],
+        };
+        var state = AliceMapper.ToDeviceState(new AliceDeviceId("d", 0), snapshot);
+        var rangeState = Assert.IsType<CapabilityStateRange>(Assert.Single(state.Capabilities));
+        Assert.Equal(42f, rangeState.State.Value);
     }
 }
