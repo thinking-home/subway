@@ -12,6 +12,7 @@ namespace ThinkingHome.DeviceModel.Commands;
 [JsonDerivedType(typeof(BrightnessCommand), "brightness")]
 [JsonDerivedType(typeof(ColorTemperatureCommand), "colorTemperature")]
 [JsonDerivedType(typeof(ColorCommand), "color")]
+[JsonDerivedType(typeof(OpenCommand), "open")]
 public abstract record DeviceCommand
 {
     /// <summary>Endpoint устройства (0 — основной).</summary>

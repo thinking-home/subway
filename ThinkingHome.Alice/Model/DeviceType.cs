@@ -14,4 +14,7 @@ public enum DeviceType
 
     [JsonStringEnumMemberName("devices.types.switch")]
     Switch,
+
+    [JsonStringEnumMemberName("devices.types.openable.curtain")]
+    Curtain,
 }

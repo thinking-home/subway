@@ -120,6 +120,7 @@ public class AliceMapperTests
     [InlineData(DeviceType.ExtendedColorLight, AliceDeviceType.Light)]
     [InlineData(DeviceType.OnOffSocket, AliceDeviceType.Socket)]
     [InlineData(DeviceType.OnOffSwitch, AliceDeviceType.Switch)]
+    [InlineData(DeviceType.Curtain, AliceDeviceType.Curtain)]
     public void ToDevices_maps_device_types(DeviceType type, AliceDeviceType expected)
     {
         var descriptor = new DeviceDescriptor
@@ -233,6 +234,35 @@ public class AliceMapperTests
         Assert.Equal("rgb", info.Parameters.ColorModel);
         Assert.Equal(2000, info.Parameters.TemperatureK.Min);
         Assert.Equal(9000, info.Parameters.TemperatureK.Max);
+    }
+
+    [Fact]
+    public void Open_maps_to_alice_range()
+    {
+        // info: способность open → range с instance open, 0–100 %
+        var info = Assert.IsType<CapabilityInfoRange>(Assert.Single(Assert.Single(AliceMapper.ToDevices(
+            Descriptor(DeviceType.Curtain, new OpenCapability { Instance = "open" }))).Capabilities));
+        Assert.Equal(CapabilityStateRangeInstance.Open, info.Parameters.Instance);
+        Assert.Equal("unit.percent", info.Parameters.Unit);
+
+        // action → команда
+        var action = new CapabilityActionParamsRange
+        {
+            State = new CapabilityStateRangeData { Instance = CapabilityStateRangeInstance.Open, Value = 70 },
+        };
+        var command = Assert.IsType<OpenCommand>(AliceMapper.ToCommand(action, endpointId: 0));
+        Assert.Equal(70, command.Value);
+        Assert.Equal("open", command.Instance);
+
+        // snapshot → state
+        var state = AliceMapper.ToDeviceState(new AliceDeviceId("d", 0), new DeviceSnapshot
+        {
+            DeviceId = "d",
+            Values = [new OpenState { EndpointId = 0, Instance = "open", Value = 70 }],
+        });
+        var rangeState = Assert.IsType<CapabilityStateRange>(Assert.Single(state.Capabilities));
+        Assert.Equal(CapabilityStateRangeInstance.Open, rangeState.State.Instance);
+        Assert.Equal(70f, rangeState.State.Value);
     }
 
     private static DeviceDescriptor Descriptor(DeviceType type, params Capability[] capabilities) => new()

@@ -29,4 +29,7 @@ public enum DeviceType
 
     /// <summary>Реле/выключатель нагрузки (только On/Off). Matter On/Off Light Switch 0x0103.</summary>
     OnOffSwitch,
+
+    /// <summary>Штора/жалюзи (открытие/закрытие + положение). Matter Window Covering 0x0202.</summary>
+    Curtain,
 }

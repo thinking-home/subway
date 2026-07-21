@@ -72,6 +72,16 @@ public class SerializationTests
     }
 
     [Fact]
+    public void Open_command_round_trips_polymorphically()
+    {
+        DeviceCommand command = new OpenCommand { Instance = "open", Value = 70 };
+
+        var open = Assert.IsType<OpenCommand>(JsonSerializer.Deserialize<DeviceCommand>(JsonSerializer.Serialize(command)));
+        Assert.Equal(70, open.Value);
+        Assert.Equal("open", open.Instance);
+    }
+
+    [Fact]
     public void Snapshot_round_trips_with_polymorphic_values()
     {
         var snapshot = new DeviceSnapshot

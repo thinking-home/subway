@@ -6,4 +6,5 @@ namespace ThinkingHome.Alice.Model.Capabilities.Range;
 public enum CapabilityStateRangeInstance
 {
     [JsonStringEnumMemberName("brightness")] Brightness,
+    [JsonStringEnumMemberName("open")] Open,
 }

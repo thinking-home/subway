@@ -24,7 +24,7 @@ namespace ThinkingHome.Alice.Mapping;
 /// Перевод нейтральной модели устройств (ThinkingHome.DeviceModel) в DTO Алисы и обратно. Модель
 /// Алисы плоская, поэтому каждый нейтральный endpoint → отдельное устройство с составным id
 /// (<see cref="AliceDeviceId"/>). Здесь живёт вся специфика формата Яндекса; ядро о ней не знает.
-/// Пока покрыты OnOff, яркость (range) и цвет (color_setting).
+/// Пока покрыты OnOff, range (яркость, положение) и цвет (color_setting).
 /// </summary>
 public static class AliceMapper
 {
@@ -43,6 +43,12 @@ public static class AliceMapper
         {
             EndpointId = endpointId,
             Instance = "brightness",
+            Value = (int)a.State.Value,
+        },
+        CapabilityActionParamsRange { State.Instance: CapabilityStateRangeInstance.Open } a => new OpenCommand
+        {
+            EndpointId = endpointId,
+            Instance = "open",
             Value = (int)a.State.Value,
         },
         CapabilityActionParamsColorSetting { State.Instance: CapabilityColorInstance.TemperatureK } a => new ColorTemperatureCommand
@@ -98,11 +104,11 @@ public static class AliceMapper
                 ActionResult = ToActionResult(outcome),
             },
         },
-        CapabilityActionParamsRange { State.Instance: CapabilityStateRangeInstance.Brightness } => new CapabilityActionResultRange
+        CapabilityActionParamsRange a => new CapabilityActionResultRange
         {
             State = new CapabilityStateActionResult<CapabilityStateRangeInstance>
             {
-                Instance = CapabilityStateRangeInstance.Brightness,
+                Instance = a.State.Instance,
                 ActionResult = ToActionResult(outcome),
             },
         },
@@ -170,19 +176,23 @@ public static class AliceMapper
             Reportable = c.Reportable,
             Parameters = new CapabilityInfoOnOffParams { Split = false },
         },
-        BrightnessCapability c => new CapabilityInfoRange
-        {
-            Retrievable = c.Retrievable,
-            Reportable = c.Reportable,
-            Parameters = new CapabilityRangeParams
-            {
-                Instance = CapabilityStateRangeInstance.Brightness,
-                Unit = Units.PERCENT,
-                RandomAccess = true,
-                Range = new CapabilityRangeLimits { Min = 0, Max = 100, Precision = 1 },
-            },
-        },
+        BrightnessCapability c => PercentRange(c, CapabilityStateRangeInstance.Brightness),
+        OpenCapability c => PercentRange(c, CapabilityStateRangeInstance.Open),
         _ => throw new NotSupportedException($"Нет маппинга способности {capability.GetType().Name} в Alice"),
+    };
+
+    // range 0–100 % (яркость, положение шторы …) — единый вид, различается только instance
+    private static CapabilityInfoRange PercentRange(Capability c, CapabilityStateRangeInstance instance) => new()
+    {
+        Retrievable = c.Retrievable,
+        Reportable = c.Reportable,
+        Parameters = new CapabilityRangeParams
+        {
+            Instance = instance,
+            Unit = Units.PERCENT,
+            RandomAccess = true,
+            Range = new CapabilityRangeLimits { Min = 0, Max = 100, Precision = 1 },
+        },
     };
 
     private static CapabilityStateBase ToCapabilityState(StateValue value) => value switch
@@ -194,6 +204,10 @@ public static class AliceMapper
         BrightnessState s => new CapabilityStateRange
         {
             State = new CapabilityStateRangeData { Instance = CapabilityStateRangeInstance.Brightness, Value = s.Value },
+        },
+        OpenState s => new CapabilityStateRange
+        {
+            State = new CapabilityStateRangeData { Instance = CapabilityStateRangeInstance.Open, Value = s.Value },
         },
         ColorTemperatureState s => new CapabilityStateColorSetting
         {
@@ -224,6 +238,7 @@ public static class AliceMapper
         DeviceType.ExtendedColorLight => AliceDeviceType.Light,
         DeviceType.OnOffSocket => AliceDeviceType.Socket,
         DeviceType.OnOffSwitch => AliceDeviceType.Switch,
+        DeviceType.Curtain => AliceDeviceType.Curtain,
         _ => throw new NotSupportedException($"Нет маппинга типа устройства {type} в Alice"),
     };
 
