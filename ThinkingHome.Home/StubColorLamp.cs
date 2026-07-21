@@ -6,9 +6,8 @@ using ThinkingHome.DeviceModel.State;
 namespace ThinkingHome.Home;
 
 /// <summary>
-/// Заглушка лампы с полной цветопередачей (OnOff + яркость + RGB + цветовая температура). Как реальный
-/// extended color light держит один активный цветовой режим (rgb или temperature_k) и отдаёт в снимке
-/// именно его — так у color_setting остаётся одно состояние.
+/// Заглушка лампы с полной цветопередачей (OnOff + яркость + RGB + цветовая температура). Держит один
+/// активный цветовой режим и отдаёт в снимке именно его — у color_setting остаётся одно состояние.
 /// </summary>
 public sealed class StubColorLamp(string id, string title, string? room = null) : IDevice
 {
@@ -16,7 +15,7 @@ public sealed class StubColorLamp(string id, string title, string? room = null) 
     private int brightness = 100;
     private int kelvin = 4000;
     private int rgb = 0xFFFFFF;
-    private bool rgbMode; // false — temperature_k, true — rgb
+    private bool rgbMode; // false — температура, true — rgb
 
     public string Id => id;
 
@@ -36,8 +35,12 @@ public sealed class StubColorLamp(string id, string title, string? room = null) 
             [
                 new OnOffCapability { Instance = "on" },
                 new BrightnessCapability { Instance = "brightness" },
-                new ColorTemperatureCapability { Instance = "temperature_k" },
-                new ColorCapability { Instance = "rgb" },
+                new ColorCapability
+                {
+                    Instance = ColorCapability.InstanceName,
+                    Model = ColorModel.Rgb,
+                    Temperature = new ColorTemperatureRange { MinKelvin = 2700, MaxKelvin = 6500 },
+                },
             ],
         }],
     };
@@ -51,8 +54,8 @@ public sealed class StubColorLamp(string id, string title, string? room = null) 
                 new OnOffState { Instance = "on", Value = isOn },
                 new BrightnessState { Instance = "brightness", Value = brightness },
                 rgbMode
-                    ? new ColorState { Instance = "rgb", Value = rgb }
-                    : new ColorTemperatureState { Instance = "temperature_k", Value = kelvin },
+                    ? new ColorRgbState { Instance = ColorCapability.InstanceName, Value = rgb }
+                    : new ColorTemperatureState { Instance = ColorCapability.InstanceName, Value = kelvin },
             ],
         });
 
@@ -76,14 +79,14 @@ public sealed class StubColorLamp(string id, string title, string? room = null) 
                 kelvin = temp.Value;
                 rgbMode = false;
                 Console.WriteLine($"[{id}] → температура {kelvin}K");
-                Report(new ColorTemperatureState { Instance = "temperature_k", Value = kelvin });
+                Report(new ColorTemperatureState { Instance = ColorCapability.InstanceName, Value = kelvin });
                 return Task.FromResult(CommandOutcome.Done);
 
-            case ColorCommand color:
+            case ColorRgbCommand color:
                 rgb = color.Value;
                 rgbMode = true;
                 Console.WriteLine($"[{id}] → цвет #{rgb:X6}");
-                Report(new ColorState { Instance = "rgb", Value = rgb });
+                Report(new ColorRgbState { Instance = ColorCapability.InstanceName, Value = rgb });
                 return Task.FromResult(CommandOutcome.Done);
 
             default:

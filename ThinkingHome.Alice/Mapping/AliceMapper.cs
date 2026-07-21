@@ -54,13 +54,13 @@ public static class AliceMapper
         CapabilityActionParamsColorSetting { State.Instance: CapabilityColorInstance.TemperatureK } a => new ColorTemperatureCommand
         {
             EndpointId = endpointId,
-            Instance = "temperature_k",
+            Instance = ColorCapability.InstanceName,
             Value = a.State.Value,
         },
-        CapabilityActionParamsColorSetting { State.Instance: CapabilityColorInstance.Rgb } a => new ColorCommand
+        CapabilityActionParamsColorSetting { State.Instance: CapabilityColorInstance.Rgb } a => new ColorRgbCommand
         {
             EndpointId = endpointId,
-            Instance = "rgb",
+            Instance = ColorCapability.InstanceName,
             Value = a.State.Value,
         },
         _ => throw new NotSupportedException($"Нет нейтрального маппинга для {action.GetType().Name}"),
@@ -78,7 +78,7 @@ public static class AliceMapper
             Name = descriptor.Title,
             Room = descriptor.Room,
             Type = ToAliceDeviceType(endpoint.Type),
-            Capabilities = ToCapabilityInfos(endpoint.Capabilities).ToArray(),
+            Capabilities = endpoint.Capabilities.Select(ToCapabilityInfo).ToArray(),
             DeviceInfo = ToDeviceInfo(descriptor.Manufacturer),
         });
 
@@ -133,41 +133,6 @@ public static class AliceMapper
             ErrorMessage = outcome.ErrorMessage,
         };
 
-    // discovery: способности endpoint'а → capability-инфо Алисы. Цвет (temperature_k/rgb) сливается
-    // в одну color_setting; остальные способности маппятся 1:1.
-    private static IEnumerable<CapabilityInfoBase> ToCapabilityInfos(IReadOnlyList<Capability> capabilities)
-    {
-        foreach (var capability in capabilities)
-        {
-            if (capability is ColorTemperatureCapability or ColorCapability) continue;
-            yield return ToCapabilityInfo(capability);
-        }
-
-        var color = ToColorSettingInfo(capabilities);
-        if (color is not null) yield return color;
-    }
-
-    private static CapabilityInfoColorSetting? ToColorSettingInfo(IReadOnlyList<Capability> capabilities)
-    {
-        var temperature = capabilities.OfType<ColorTemperatureCapability>().FirstOrDefault();
-        var rgb = capabilities.OfType<ColorCapability>().FirstOrDefault();
-        if (temperature is null && rgb is null) return null;
-
-        var any = (Capability?)temperature ?? rgb!;
-        return new CapabilityInfoColorSetting
-        {
-            Retrievable = any.Retrievable,
-            Reportable = any.Reportable,
-            Parameters = new CapabilityColorParams
-            {
-                ColorModel = rgb is null ? null : ColorModels.RGB,
-                TemperatureK = temperature is null
-                    ? null
-                    : new CapabilityColorTemperatureRange { Min = temperature.MinKelvin, Max = temperature.MaxKelvin },
-            },
-        };
-    }
-
     private static CapabilityInfoBase ToCapabilityInfo(Capability capability) => capability switch
     {
         OnOffCapability c => new CapabilityInfoOnOff
@@ -178,6 +143,18 @@ public static class AliceMapper
         },
         BrightnessCapability c => PercentRange(c, CapabilityStateRangeInstance.Brightness),
         OpenCapability c => PercentRange(c, CapabilityStateRangeInstance.Open),
+        ColorCapability c => new CapabilityInfoColorSetting
+        {
+            Retrievable = c.Retrievable,
+            Reportable = c.Reportable,
+            Parameters = new CapabilityColorParams
+            {
+                ColorModel = c.Model is ColorModel.Rgb ? ColorModels.RGB : null,
+                TemperatureK = c.Temperature is { } t
+                    ? new CapabilityColorTemperatureRange { Min = t.MinKelvin, Max = t.MaxKelvin }
+                    : null,
+            },
+        },
         _ => throw new NotSupportedException($"Нет маппинга способности {capability.GetType().Name} в Alice"),
     };
 
@@ -213,7 +190,7 @@ public static class AliceMapper
         {
             State = new CapabilityStateColorData { Instance = CapabilityColorInstance.TemperatureK, Value = s.Value },
         },
-        ColorState s => new CapabilityStateColorSetting
+        ColorRgbState s => new CapabilityStateColorSetting
         {
             State = new CapabilityStateColorData { Instance = CapabilityColorInstance.Rgb, Value = s.Value },
         },

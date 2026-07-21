@@ -179,10 +179,10 @@ public class AliceMapperTests
     [Fact]
     public void ColorTemperature_maps_to_color_setting()
     {
-        // info: одна color_setting с temperature_k, без color_model
+        // info: color_setting с temperature_k, без color_model
         var info = Assert.IsType<CapabilityInfoColorSetting>(Assert.Single(Assert.Single(AliceMapper.ToDevices(
             Descriptor(DeviceType.ColorTemperatureLight,
-                new ColorTemperatureCapability { Instance = "temperature_k", MinKelvin = 2700, MaxKelvin = 6500 }))).Capabilities));
+                new ColorCapability { Instance = ColorCapability.InstanceName, Temperature = new ColorTemperatureRange { MinKelvin = 2700, MaxKelvin = 6500 } }))).Capabilities));
         Assert.Null(info.Parameters.ColorModel);
         Assert.Equal(2700, info.Parameters.TemperatureK.Min);
         Assert.Equal(6500, info.Parameters.TemperatureK.Max);
@@ -194,13 +194,13 @@ public class AliceMapperTests
         };
         var command = Assert.IsType<ColorTemperatureCommand>(AliceMapper.ToCommand(action, endpointId: 0));
         Assert.Equal(3000, command.Value);
-        Assert.Equal("temperature_k", command.Instance);
+        Assert.Equal(ColorCapability.InstanceName, command.Instance);
 
         // snapshot → state
         var state = AliceMapper.ToDeviceState(new AliceDeviceId("d", 0), new DeviceSnapshot
         {
             DeviceId = "d",
-            Values = [new ColorTemperatureState { EndpointId = 0, Instance = "temperature_k", Value = 3000 }],
+            Values = [new ColorTemperatureState { EndpointId = 0, Instance = ColorCapability.InstanceName, Value = 3000 }],
         });
         var colorState = Assert.IsType<CapabilityStateColorSetting>(Assert.Single(state.Capabilities));
         Assert.Equal(CapabilityColorInstance.TemperatureK, colorState.State.Instance);
@@ -211,7 +211,7 @@ public class AliceMapperTests
     public void Rgb_maps_to_color_setting()
     {
         var info = Assert.IsType<CapabilityInfoColorSetting>(Assert.Single(Assert.Single(AliceMapper.ToDevices(
-            Descriptor(DeviceType.ExtendedColorLight, new ColorCapability { Instance = "rgb" }))).Capabilities));
+            Descriptor(DeviceType.ExtendedColorLight, new ColorCapability { Instance = ColorCapability.InstanceName, Model = ColorModel.Rgb }))).Capabilities));
         Assert.Equal("rgb", info.Parameters.ColorModel);
         Assert.Null(info.Parameters.TemperatureK);
 
@@ -219,18 +219,21 @@ public class AliceMapperTests
         {
             State = new CapabilityStateColorData { Instance = CapabilityColorInstance.Rgb, Value = 0xFF0000 },
         };
-        var command = Assert.IsType<ColorCommand>(AliceMapper.ToCommand(action, endpointId: 0));
+        var command = Assert.IsType<ColorRgbCommand>(AliceMapper.ToCommand(action, endpointId: 0));
         Assert.Equal(0xFF0000, command.Value);
-        Assert.Equal("rgb", command.Instance);
+        Assert.Equal(ColorCapability.InstanceName, command.Instance);
     }
 
     [Fact]
-    public void Color_temperature_and_rgb_merge_into_one_color_setting()
+    public void Color_capability_with_rgb_and_temperature_maps_to_one_color_setting()
     {
         var info = Assert.IsType<CapabilityInfoColorSetting>(Assert.Single(Assert.Single(AliceMapper.ToDevices(
-            Descriptor(DeviceType.ExtendedColorLight,
-                new ColorTemperatureCapability { Instance = "temperature_k", MinKelvin = 2000, MaxKelvin = 9000 },
-                new ColorCapability { Instance = "rgb" }))).Capabilities));
+            Descriptor(DeviceType.ExtendedColorLight, new ColorCapability
+            {
+                Instance = ColorCapability.InstanceName,
+                Model = ColorModel.Rgb,
+                Temperature = new ColorTemperatureRange { MinKelvin = 2000, MaxKelvin = 9000 },
+            }))).Capabilities));
         Assert.Equal("rgb", info.Parameters.ColorModel);
         Assert.Equal(2000, info.Parameters.TemperatureK.Min);
         Assert.Equal(9000, info.Parameters.TemperatureK.Max);

@@ -62,12 +62,12 @@ public class SerializationTests
     [Fact]
     public void Color_commands_round_trip_polymorphically()
     {
-        DeviceCommand temp = new ColorTemperatureCommand { Instance = "temperature_k", Value = 3500 };
-        DeviceCommand rgb = new ColorCommand { Instance = "rgb", Value = 0x00FF00 };
+        DeviceCommand temp = new ColorTemperatureCommand { Instance = ColorCapability.InstanceName, Value = 3500 };
+        DeviceCommand rgb = new ColorRgbCommand { Instance = ColorCapability.InstanceName, Value = 0x00FF00 };
 
         Assert.Equal(3500, Assert.IsType<ColorTemperatureCommand>(
             JsonSerializer.Deserialize<DeviceCommand>(JsonSerializer.Serialize(temp))).Value);
-        Assert.Equal(0x00FF00, Assert.IsType<ColorCommand>(
+        Assert.Equal(0x00FF00, Assert.IsType<ColorRgbCommand>(
             JsonSerializer.Deserialize<DeviceCommand>(JsonSerializer.Serialize(rgb))).Value);
     }
 

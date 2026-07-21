@@ -11,7 +11,7 @@ namespace ThinkingHome.DeviceModel.Commands;
 [JsonDerivedType(typeof(OnOffCommand), "onOff")]
 [JsonDerivedType(typeof(BrightnessCommand), "brightness")]
 [JsonDerivedType(typeof(ColorTemperatureCommand), "colorTemperature")]
-[JsonDerivedType(typeof(ColorCommand), "color")]
+[JsonDerivedType(typeof(ColorRgbCommand), "colorRgb")]
 [JsonDerivedType(typeof(OpenCommand), "open")]
 public abstract record DeviceCommand
 {

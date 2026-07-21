@@ -5,7 +5,7 @@ using ThinkingHome.DeviceModel.State;
 
 namespace ThinkingHome.Home;
 
-/// <summary>Заглушка лампы с регулировкой цветовой температуры (OnOff + яркость + temperature_k).</summary>
+/// <summary>Заглушка лампы с регулировкой цветовой температуры (OnOff + яркость + температура).</summary>
 public sealed class StubColorTemperatureLamp(string id, string title, string? room = null) : IDevice
 {
     private bool isOn;
@@ -30,7 +30,7 @@ public sealed class StubColorTemperatureLamp(string id, string title, string? ro
             [
                 new OnOffCapability { Instance = "on" },
                 new BrightnessCapability { Instance = "brightness" },
-                new ColorTemperatureCapability { Instance = "temperature_k" },
+                new ColorCapability { Instance = ColorCapability.InstanceName, Temperature = new ColorTemperatureRange { MinKelvin = 2700, MaxKelvin = 6500 } },
             ],
         }],
     };
@@ -43,7 +43,7 @@ public sealed class StubColorTemperatureLamp(string id, string title, string? ro
             [
                 new OnOffState { Instance = "on", Value = isOn },
                 new BrightnessState { Instance = "brightness", Value = brightness },
-                new ColorTemperatureState { Instance = "temperature_k", Value = kelvin },
+                new ColorTemperatureState { Instance = ColorCapability.InstanceName, Value = kelvin },
             ],
         });
 
@@ -66,7 +66,7 @@ public sealed class StubColorTemperatureLamp(string id, string title, string? ro
             case ColorTemperatureCommand temp:
                 kelvin = temp.Value;
                 Console.WriteLine($"[{id}] → температура {kelvin}K");
-                Report(new ColorTemperatureState { Instance = "temperature_k", Value = kelvin });
+                Report(new ColorTemperatureState { Instance = ColorCapability.InstanceName, Value = kelvin });
                 return Task.FromResult(CommandOutcome.Done);
 
             default:

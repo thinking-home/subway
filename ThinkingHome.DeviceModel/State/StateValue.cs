@@ -10,7 +10,7 @@ namespace ThinkingHome.DeviceModel.State;
 [JsonDerivedType(typeof(OnOffState), "onOff")]
 [JsonDerivedType(typeof(BrightnessState), "brightness")]
 [JsonDerivedType(typeof(ColorTemperatureState), "colorTemperature")]
-[JsonDerivedType(typeof(ColorState), "color")]
+[JsonDerivedType(typeof(ColorRgbState), "colorRgb")]
 [JsonDerivedType(typeof(OpenState), "open")]
 public abstract record StateValue
 {

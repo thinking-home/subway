@@ -10,7 +10,6 @@ namespace ThinkingHome.DeviceModel.Capabilities;
 [JsonPolymorphic(TypeDiscriminatorPropertyName = "$type")]
 [JsonDerivedType(typeof(OnOffCapability), "onOff")]
 [JsonDerivedType(typeof(BrightnessCapability), "brightness")]
-[JsonDerivedType(typeof(ColorTemperatureCapability), "colorTemperature")]
 [JsonDerivedType(typeof(ColorCapability), "color")]
 [JsonDerivedType(typeof(OpenCapability), "open")]
 public abstract record Capability
