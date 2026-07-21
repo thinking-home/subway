@@ -1,0 +1,95 @@
+using ThinkingHome.DeviceModel;
+using ThinkingHome.DeviceModel.Capabilities;
+using ThinkingHome.DeviceModel.Commands;
+using ThinkingHome.DeviceModel.State;
+
+namespace ThinkingHome.Home;
+
+/// <summary>
+/// Заглушка лампы с полной цветопередачей (OnOff + яркость + RGB + цветовая температура). Как реальный
+/// extended color light держит один активный цветовой режим (rgb или temperature_k) и отдаёт в снимке
+/// именно его — так у color_setting остаётся одно состояние.
+/// </summary>
+public sealed class StubColorLamp(string id, string title, string? room = null) : IDevice
+{
+    private bool isOn;
+    private int brightness = 100;
+    private int kelvin = 4000;
+    private int rgb = 0xFFFFFF;
+    private bool rgbMode; // false — temperature_k, true — rgb
+
+    public string Id => id;
+
+    public event Action<StateChange>? Changed;
+
+    public DeviceDescriptor Describe() => new()
+    {
+        Id = id,
+        Title = title,
+        Room = room,
+        Manufacturer = new DeviceManufacturer { Name = "ThinkingHome", Model = "stub-rgb" },
+        Endpoints = [new Endpoint
+        {
+            Id = 0,
+            Type = DeviceType.ExtendedColorLight,
+            Capabilities =
+            [
+                new OnOffCapability { Instance = "on" },
+                new BrightnessCapability { Instance = "brightness" },
+                new ColorTemperatureCapability { Instance = "temperature_k" },
+                new ColorCapability { Instance = "rgb" },
+            ],
+        }],
+    };
+
+    public Task<DeviceSnapshot> QueryAsync(CancellationToken ct = default)
+        => Task.FromResult(new DeviceSnapshot
+        {
+            DeviceId = id,
+            Values =
+            [
+                new OnOffState { Instance = "on", Value = isOn },
+                new BrightnessState { Instance = "brightness", Value = brightness },
+                rgbMode
+                    ? new ColorState { Instance = "rgb", Value = rgb }
+                    : new ColorTemperatureState { Instance = "temperature_k", Value = kelvin },
+            ],
+        });
+
+    public Task<CommandOutcome> ExecuteAsync(DeviceCommand command, CancellationToken ct = default)
+    {
+        switch (command)
+        {
+            case OnOffCommand on:
+                isOn = on.Value;
+                Console.WriteLine($"[{id}] → {(isOn ? "ВКЛ" : "выкл")}");
+                Report(new OnOffState { Instance = "on", Value = isOn });
+                return Task.FromResult(CommandOutcome.Done);
+
+            case BrightnessCommand br:
+                brightness = br.Value;
+                Console.WriteLine($"[{id}] → яркость {brightness}%");
+                Report(new BrightnessState { Instance = "brightness", Value = brightness });
+                return Task.FromResult(CommandOutcome.Done);
+
+            case ColorTemperatureCommand temp:
+                kelvin = temp.Value;
+                rgbMode = false;
+                Console.WriteLine($"[{id}] → температура {kelvin}K");
+                Report(new ColorTemperatureState { Instance = "temperature_k", Value = kelvin });
+                return Task.FromResult(CommandOutcome.Done);
+
+            case ColorCommand color:
+                rgb = color.Value;
+                rgbMode = true;
+                Console.WriteLine($"[{id}] → цвет #{rgb:X6}");
+                Report(new ColorState { Instance = "rgb", Value = rgb });
+                return Task.FromResult(CommandOutcome.Done);
+
+            default:
+                return Task.FromResult(CommandOutcome.Unsupported);
+        }
+    }
+
+    private void Report(StateValue value) => Changed?.Invoke(new StateChange { DeviceId = id, Value = value });
+}

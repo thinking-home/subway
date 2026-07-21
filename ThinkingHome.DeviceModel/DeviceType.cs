@@ -18,6 +18,12 @@ public enum DeviceType
     /// <summary>Диммируемый источник света (On/Off + яркость). Matter 0x0101.</summary>
     DimmableLight,
 
+    /// <summary>Источник света с регулировкой цветовой температуры. Matter Color Temperature Light 0x010C.</summary>
+    ColorTemperatureLight,
+
+    /// <summary>Источник света с полной цветопередачей (RGB + температура). Matter Extended Color Light 0x010D.</summary>
+    ExtendedColorLight,
+
     /// <summary>Управляемая розетка (только On/Off). Matter On/Off Plug-in Unit 0x010A.</summary>
     OnOffSocket,
 

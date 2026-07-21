@@ -1,5 +1,6 @@
 using ThinkingHome.Alice.Mapping;
 using ThinkingHome.Alice.Model.ActionResult;
+using ThinkingHome.Alice.Model.Capabilities.ColorSetting;
 using ThinkingHome.Alice.Model.Capabilities.OnOff;
 using ThinkingHome.Alice.Model.Capabilities.Range;
 using ThinkingHome.DeviceModel.Capabilities;
@@ -115,6 +116,8 @@ public class AliceMapperTests
     [Theory]
     [InlineData(DeviceType.OnOffLight, AliceDeviceType.Light)]
     [InlineData(DeviceType.DimmableLight, AliceDeviceType.Light)]
+    [InlineData(DeviceType.ColorTemperatureLight, AliceDeviceType.Light)]
+    [InlineData(DeviceType.ExtendedColorLight, AliceDeviceType.Light)]
     [InlineData(DeviceType.OnOffSocket, AliceDeviceType.Socket)]
     [InlineData(DeviceType.OnOffSwitch, AliceDeviceType.Switch)]
     public void ToDevices_maps_device_types(DeviceType type, AliceDeviceType expected)
@@ -171,4 +174,71 @@ public class AliceMapperTests
         var rangeState = Assert.IsType<CapabilityStateRange>(Assert.Single(state.Capabilities));
         Assert.Equal(42f, rangeState.State.Value);
     }
+
+    [Fact]
+    public void ColorTemperature_maps_to_color_setting()
+    {
+        // info: одна color_setting с temperature_k, без color_model
+        var info = Assert.IsType<CapabilityInfoColorSetting>(Assert.Single(Assert.Single(AliceMapper.ToDevices(
+            Descriptor(DeviceType.ColorTemperatureLight,
+                new ColorTemperatureCapability { Instance = "temperature_k", MinKelvin = 2700, MaxKelvin = 6500 }))).Capabilities));
+        Assert.Null(info.Parameters.ColorModel);
+        Assert.Equal(2700, info.Parameters.TemperatureK.Min);
+        Assert.Equal(6500, info.Parameters.TemperatureK.Max);
+
+        // action → команда
+        var action = new CapabilityActionParamsColorSetting
+        {
+            State = new CapabilityStateColorData { Instance = CapabilityColorInstance.TemperatureK, Value = 3000 },
+        };
+        var command = Assert.IsType<ColorTemperatureCommand>(AliceMapper.ToCommand(action, endpointId: 0));
+        Assert.Equal(3000, command.Value);
+        Assert.Equal("temperature_k", command.Instance);
+
+        // snapshot → state
+        var state = AliceMapper.ToDeviceState(new AliceDeviceId("d", 0), new DeviceSnapshot
+        {
+            DeviceId = "d",
+            Values = [new ColorTemperatureState { EndpointId = 0, Instance = "temperature_k", Value = 3000 }],
+        });
+        var colorState = Assert.IsType<CapabilityStateColorSetting>(Assert.Single(state.Capabilities));
+        Assert.Equal(CapabilityColorInstance.TemperatureK, colorState.State.Instance);
+        Assert.Equal(3000, colorState.State.Value);
+    }
+
+    [Fact]
+    public void Rgb_maps_to_color_setting()
+    {
+        var info = Assert.IsType<CapabilityInfoColorSetting>(Assert.Single(Assert.Single(AliceMapper.ToDevices(
+            Descriptor(DeviceType.ExtendedColorLight, new ColorCapability { Instance = "rgb" }))).Capabilities));
+        Assert.Equal("rgb", info.Parameters.ColorModel);
+        Assert.Null(info.Parameters.TemperatureK);
+
+        var action = new CapabilityActionParamsColorSetting
+        {
+            State = new CapabilityStateColorData { Instance = CapabilityColorInstance.Rgb, Value = 0xFF0000 },
+        };
+        var command = Assert.IsType<ColorCommand>(AliceMapper.ToCommand(action, endpointId: 0));
+        Assert.Equal(0xFF0000, command.Value);
+        Assert.Equal("rgb", command.Instance);
+    }
+
+    [Fact]
+    public void Color_temperature_and_rgb_merge_into_one_color_setting()
+    {
+        var info = Assert.IsType<CapabilityInfoColorSetting>(Assert.Single(Assert.Single(AliceMapper.ToDevices(
+            Descriptor(DeviceType.ExtendedColorLight,
+                new ColorTemperatureCapability { Instance = "temperature_k", MinKelvin = 2000, MaxKelvin = 9000 },
+                new ColorCapability { Instance = "rgb" }))).Capabilities));
+        Assert.Equal("rgb", info.Parameters.ColorModel);
+        Assert.Equal(2000, info.Parameters.TemperatureK.Min);
+        Assert.Equal(9000, info.Parameters.TemperatureK.Max);
+    }
+
+    private static DeviceDescriptor Descriptor(DeviceType type, params Capability[] capabilities) => new()
+    {
+        Id = "d",
+        Title = "T",
+        Endpoints = [new Endpoint { Id = 0, Type = type, Capabilities = capabilities }],
+    };
 }

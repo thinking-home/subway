@@ -13,11 +13,14 @@ host.Register(new StubOnOffDevice("lamp-3", "Торшер в гостиной", 
 host.Register(new StubOnOffDevice("socket-1", "Розетка у стола", DeviceType.OnOffSocket, "Кабинет"));
 host.Register(new StubOnOffDevice("switch-1", "Выключатель бойлера", DeviceType.OnOffSwitch, "Ванная"));
 host.Register(new StubDimmableLamp("dimmer-1", "Диммер в спальне", "Спальня"));
+host.Register(new StubColorTemperatureLamp("cct-1", "Лампа с подтоном", "Гостиная"));
+host.Register(new StubColorLamp("rgb-1", "RGB-лента", "Гостиная"));
 
 // коннектор к прокси (hub); JWT хоста — из аргумента или переменной окружения HOST_TOKEN
 await using var connector = new Connector(host, new LogOtpDelivery(), proxyUrl, () => Task.FromResult(token));
 
-Console.WriteLine($"Домашний хост: 5 устройств зарегистрировано, подключаюсь к {proxyUrl} …");
+Console.WriteLine($"Зарегистрировано устройств: {host.Count}");
+Console.WriteLine($"Подключаюсь к {proxyUrl} …");
 
 var connected = false;
 while (!connected)

@@ -9,6 +9,8 @@ namespace ThinkingHome.DeviceModel.State;
 [JsonPolymorphic(TypeDiscriminatorPropertyName = "$type")]
 [JsonDerivedType(typeof(OnOffState), "onOff")]
 [JsonDerivedType(typeof(BrightnessState), "brightness")]
+[JsonDerivedType(typeof(ColorTemperatureState), "colorTemperature")]
+[JsonDerivedType(typeof(ColorState), "color")]
 public abstract record StateValue
 {
     /// <summary>Endpoint устройства (0 — основной).</summary>
