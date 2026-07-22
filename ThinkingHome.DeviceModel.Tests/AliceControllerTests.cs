@@ -105,7 +105,7 @@ public class AliceControllerTests
             => Task.FromResult(new DeviceSnapshot
             {
                 DeviceId = deviceId,
-                Values = [new OnOffState { Instance = "on", Value = true }],
+                Values = [new OnOffState { Instance = "on_off", Value = true }],
             });
 
         public Task<CommandOutcome> ExecuteAsync(string deviceId, DeviceCommand command, CancellationToken ct = default)
@@ -122,7 +122,7 @@ public class AliceControllerTests
             {
                 Id = 0,
                 Type = DeviceType.OnOffLight,
-                Capabilities = [new OnOffCapability { Instance = "on" }],
+                Capabilities = [new OnOffCapability { Instance = "on_off" }],
             }],
         };
     }

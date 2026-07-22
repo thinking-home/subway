@@ -33,7 +33,7 @@ public sealed class StubColorLamp(string id, string title, string? room = null) 
             Type = DeviceType.ExtendedColorLight,
             Capabilities =
             [
-                new OnOffCapability { Instance = "on" },
+                new OnOffCapability { Instance = "on_off" },
                 new BrightnessCapability { Instance = "brightness" },
                 new ColorCapability
                 {
@@ -51,7 +51,7 @@ public sealed class StubColorLamp(string id, string title, string? room = null) 
             DeviceId = id,
             Values =
             [
-                new OnOffState { Instance = "on", Value = isOn },
+                new OnOffState { Instance = "on_off", Value = isOn },
                 new BrightnessState { Instance = "brightness", Value = brightness },
                 rgbMode
                     ? new ColorRgbState { Instance = ColorCapability.InstanceName, Value = rgb }
@@ -66,7 +66,7 @@ public sealed class StubColorLamp(string id, string title, string? room = null) 
             case OnOffCommand on:
                 isOn = on.Value;
                 Console.WriteLine($"[{id}] → {(isOn ? "ВКЛ" : "выкл")}");
-                Report(new OnOffState { Instance = "on", Value = isOn });
+                Report(new OnOffState { Instance = "on_off", Value = isOn });
                 return Task.FromResult(CommandOutcome.Done);
 
             case BrightnessCommand br:

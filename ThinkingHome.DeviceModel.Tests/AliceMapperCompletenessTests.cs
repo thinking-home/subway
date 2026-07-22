@@ -27,13 +27,13 @@ public class AliceMapperCompletenessTests
 
     private static readonly Capability[] CapabilitySamples =
     [
-        new OnOffCapability { Instance = "on" },
+        new OnOffCapability { Instance = "on_off" },
         new BrightnessCapability { Instance = "brightness" },
         new ColorCapability { Instance = ColorCapability.InstanceName, Model = ColorModel.Rgb },
         new OpenCapability { Instance = "open" },
         new FanSpeedCapability { Instance = "fan_speed", Speeds = [FanSpeed.Low] },
         new OscillationCapability { Instance = "oscillation" },
-        new ThermostatModeCapability { Instance = "thermostat", Modes = [ThermostatMode.Cool] },
+        new ThermostatModeCapability { Instance = "thermostat_mode", Modes = [ThermostatMode.Cool] },
         new TargetTemperatureCapability { Instance = "target_temperature", MinCelsius = 18, MaxCelsius = 33 },
     ];
 
@@ -43,23 +43,27 @@ public class AliceMapperCompletenessTests
         new HumidityProperty { Instance = "humidity" },
         new OccupancyProperty { Instance = "occupancy" },
         new ContactProperty { Instance = "contact" },
+        new WaterLeakProperty { Instance = "water_leak" },
+        new BatteryProperty { Instance = "battery" },
     ];
 
     private static readonly StateValue[] StateSamples =
     [
-        new OnOffState { Instance = "on", Value = true },
+        new OnOffState { Instance = "on_off", Value = true },
         new BrightnessState { Instance = "brightness", Value = 50 },
         new ColorRgbState { Instance = ColorCapability.InstanceName, Value = 0xFF0000 },
         new ColorTemperatureState { Instance = ColorCapability.InstanceName, Value = 3500 },
         new OpenState { Instance = "open", Value = 70 },
         new FanSpeedState { Instance = "fan_speed", Value = FanSpeed.Low },
         new OscillationState { Instance = "oscillation", Value = true },
-        new ThermostatModeState { Instance = "thermostat", Value = ThermostatMode.Cool },
+        new ThermostatModeState { Instance = "thermostat_mode", Value = ThermostatMode.Cool },
         new TargetTemperatureState { Instance = "target_temperature", Value = 23 },
         new TemperatureState { Instance = "temperature", Value = 23.5 },
         new HumidityState { Instance = "humidity", Value = 41 },
         new OccupancyState { Instance = "occupancy", Value = true },
         new ContactState { Instance = "contact", Value = true },
+        new WaterLeakState { Instance = "water_leak", Value = false },
+        new BatteryState { Instance = "battery", Value = 87 },
     ];
 
     // все поддерживаемые действия Алисы — по одному образцу на каждую ветку ToCommand (тип + instance)
@@ -207,6 +211,33 @@ public class AliceMapperCompletenessTests
                 DeliberateSharedSlots.TryGetValue(group.Key, out var allowed) && types.ToHashSet().SetEquals(allowed),
                 $"Типы состояний делят слот кэша (endpoint, \"{group.Key}\") вне допуска: {string.Join(", ", types.Select(t => t.Name))}");
         }
+    }
+
+    [Fact]
+    public void Canonical_instances_are_derived_from_type_names()
+    {
+        // правило идентификаторов (README ядра): instance не выбирается вручную, а выводится из
+        // имени типа — snake_case без суффикса Capability/Property; поэтому пересечения невозможны
+        foreach (var (sample, instance) in CapabilitySamples.Select(c => ((object)c, c.Instance))
+                     .Concat(PropertySamples.Select(p => ((object)p, p.Instance))))
+        {
+            Assert.Equal(DerivedInstance(sample.GetType()), instance);
+        }
+    }
+
+    private static string DerivedInstance(Type type)
+    {
+        var name = type.Name;
+        foreach (var suffix in new[] { "Capability", "Property" })
+        {
+            if (name.EndsWith(suffix))
+            {
+                name = name[..^suffix.Length];
+                break;
+            }
+        }
+
+        return string.Concat(name.Select((c, i) => char.IsUpper(c) ? (i > 0 ? "_" : "") + char.ToLowerInvariant(c) : c.ToString()));
     }
 
     [Fact]

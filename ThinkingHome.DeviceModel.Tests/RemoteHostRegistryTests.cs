@@ -7,7 +7,7 @@ namespace ThinkingHome.DeviceModel.Tests;
 public class RemoteHostRegistryTests
 {
     private static StateChange Change(string deviceId) =>
-        new() { DeviceId = deviceId, Value = new OnOffState { Instance = "on", Value = true } };
+        new() { DeviceId = deviceId, Value = new OnOffState { Instance = "on_off", Value = true } };
 
     [Fact]
     public void Report_is_routed_to_the_owning_host()

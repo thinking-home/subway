@@ -29,7 +29,7 @@ public class AliceMapperTests
             {
                 Id = 0,
                 Type = DeviceType.OnOffLight,
-                Capabilities = [new OnOffCapability { Instance = "on" }],
+                Capabilities = [new OnOffCapability { Instance = "on_off" }],
             }],
         };
 
@@ -51,8 +51,8 @@ public class AliceMapperTests
             Title = "Выключатель",
             Endpoints =
             [
-                new Endpoint { Id = 0, Type = DeviceType.OnOffLight, Capabilities = [new OnOffCapability { Instance = "on" }] },
-                new Endpoint { Id = 1, Type = DeviceType.OnOffLight, Capabilities = [new OnOffCapability { Instance = "on" }] },
+                new Endpoint { Id = 0, Type = DeviceType.OnOffLight, Capabilities = [new OnOffCapability { Instance = "on_off" }] },
+                new Endpoint { Id = 1, Type = DeviceType.OnOffLight, Capabilities = [new OnOffCapability { Instance = "on_off" }] },
             ],
         };
 
@@ -69,8 +69,8 @@ public class AliceMapperTests
             DeviceId = "switch",
             Values =
             [
-                new OnOffState { EndpointId = 0, Instance = "on", Value = false },
-                new OnOffState { EndpointId = 1, Instance = "on", Value = true },
+                new OnOffState { EndpointId = 0, Instance = "on_off", Value = false },
+                new OnOffState { EndpointId = 1, Instance = "on_off", Value = true },
             ],
         };
 
@@ -92,7 +92,7 @@ public class AliceMapperTests
         var command = Assert.IsType<OnOffCommand>(AliceMapper.ToCommand(action, endpointId: 2));
 
         Assert.Equal(2, command.EndpointId);
-        Assert.Equal("on", command.Instance);
+        Assert.Equal("on_off", command.Instance);
         Assert.True(command.Value);
     }
 
@@ -132,13 +132,14 @@ public class AliceMapperTests
     [InlineData(DeviceType.HumiditySensor, AliceDeviceType.SensorClimate)]
     [InlineData(DeviceType.OccupancySensor, AliceDeviceType.SensorMotion)]
     [InlineData(DeviceType.ContactSensor, AliceDeviceType.SensorOpen)]
+    [InlineData(DeviceType.WaterLeakSensor, AliceDeviceType.SensorWaterLeak)]
     public void ToDevices_maps_device_types(DeviceType type, AliceDeviceType expected)
     {
         var descriptor = new DeviceDescriptor
         {
             Id = "d",
             Title = "T",
-            Endpoints = [new Endpoint { Id = 0, Type = type, Capabilities = [new OnOffCapability { Instance = "on" }] }],
+            Endpoints = [new Endpoint { Id = 0, Type = type, Capabilities = [new OnOffCapability { Instance = "on_off" }] }],
         };
 
         var device = Assert.Single(AliceMapper.ToDevices(descriptor));
@@ -344,7 +345,7 @@ public class AliceMapperTests
         // info: способность → mode:thermostat со списком режимов
         var info = Assert.IsType<CapabilityInfoMode>(Assert.Single(Assert.Single(AliceMapper.ToDevices(
             Descriptor(DeviceType.AirConditioner,
-                new ThermostatModeCapability { Instance = "thermostat", Modes = [ThermostatMode.Cool, ThermostatMode.Heat, ThermostatMode.FanOnly] }))).Capabilities));
+                new ThermostatModeCapability { Instance = "thermostat_mode", Modes = [ThermostatMode.Cool, ThermostatMode.Heat, ThermostatMode.FanOnly] }))).Capabilities));
         Assert.Equal(CapabilityModeInstance.Thermostat, info.Parameters.Instance);
         Assert.Equal(new[] { CapabilityModeValue.Cool, CapabilityModeValue.Heat, CapabilityModeValue.FanOnly },
             info.Parameters.Modes.Select(m => m.Value).ToArray());
@@ -356,13 +357,13 @@ public class AliceMapperTests
         };
         var command = Assert.IsType<ThermostatModeCommand>(AliceMapper.ToCommand(action, endpointId: 0));
         Assert.Equal(ThermostatMode.Dry, command.Value);
-        Assert.Equal("thermostat", command.Instance);
+        Assert.Equal("thermostat_mode", command.Instance);
 
         // snapshot → state
         var state = AliceMapper.ToDeviceState(new AliceDeviceId("d", 0), new DeviceSnapshot
         {
             DeviceId = "d",
-            Values = [new ThermostatModeState { EndpointId = 0, Instance = "thermostat", Value = ThermostatMode.Heat }],
+            Values = [new ThermostatModeState { EndpointId = 0, Instance = "thermostat_mode", Value = ThermostatMode.Heat }],
         });
         var modeState = Assert.IsType<CapabilityStateMode>(Assert.Single(state.Capabilities));
         Assert.Equal(CapabilityModeInstance.Thermostat, modeState.State.Instance);
@@ -499,6 +500,66 @@ public class AliceMapperTests
                 var e = Assert.IsType<PropertyStateEvent>(p);
                 Assert.Equal(PropertyEventInstance.Open, e.State.Instance);
                 Assert.Equal(PropertyEventValue.Closed, e.State.Value); // семантика Matter: контакт замкнут → закрыто
+            });
+    }
+
+    [Fact]
+    public void WaterLeak_and_battery_map_to_alice_properties()
+    {
+        // discovery: протечка → event:water_leak (dry/leak), батарея → float:battery_level (percent)
+        var device = Assert.Single(AliceMapper.ToDevices(new DeviceDescriptor
+        {
+            Id = "d",
+            Title = "T",
+            Endpoints = [new Endpoint
+            {
+                Id = 0,
+                Type = DeviceType.WaterLeakSensor,
+                Properties =
+                [
+                    new WaterLeakProperty { Instance = "water_leak" },
+                    new BatteryProperty { Instance = "battery" },
+                ],
+            }],
+        }));
+        Assert.Equal(AliceDeviceType.SensorWaterLeak, device.Type);
+        Assert.Collection(device.Properties,
+            p =>
+            {
+                var e = Assert.IsType<PropertyInfoEvent>(p);
+                Assert.Equal(PropertyEventInstance.WaterLeak, e.Parameters.Instance);
+                Assert.Equal(new[] { PropertyEventValue.Dry, PropertyEventValue.Leak },
+                    e.Parameters.Events.Select(o => o.Value).ToArray());
+            },
+            p =>
+            {
+                var f = Assert.IsType<PropertyInfoFloat>(p);
+                Assert.Equal(PropertyFloatInstance.BatteryLevel, f.Parameters.Instance);
+                Assert.Equal("unit.percent", f.Parameters.Unit);
+            });
+
+        // state: bool → dry/leak, заряд → float
+        var state = AliceMapper.ToDeviceState(new AliceDeviceId("d", 0), new DeviceSnapshot
+        {
+            DeviceId = "d",
+            Values =
+            [
+                new WaterLeakState { EndpointId = 0, Instance = "water_leak", Value = true },
+                new BatteryState { EndpointId = 0, Instance = "battery", Value = 87 },
+            ],
+        });
+        Assert.Collection(state.Properties,
+            p =>
+            {
+                var e = Assert.IsType<PropertyStateEvent>(p);
+                Assert.Equal(PropertyEventInstance.WaterLeak, e.State.Instance);
+                Assert.Equal(PropertyEventValue.Leak, e.State.Value); // true → протечка
+            },
+            p =>
+            {
+                var f = Assert.IsType<PropertyStateFloat>(p);
+                Assert.Equal(PropertyFloatInstance.BatteryLevel, f.State.Instance);
+                Assert.Equal(87f, f.State.Value);
             });
     }
 

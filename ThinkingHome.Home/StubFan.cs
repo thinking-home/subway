@@ -28,7 +28,7 @@ public sealed class StubFan(string id, string title, string? room = null) : IDev
             Type = DeviceType.Fan,
             Capabilities =
             [
-                new OnOffCapability { Instance = "on" },
+                new OnOffCapability { Instance = "on_off" },
                 new FanSpeedCapability { Instance = "fan_speed", Speeds = [FanSpeed.Auto, FanSpeed.Low, FanSpeed.Medium, FanSpeed.High] },
                 new OscillationCapability { Instance = "oscillation" },
             ],
@@ -41,7 +41,7 @@ public sealed class StubFan(string id, string title, string? room = null) : IDev
             DeviceId = id,
             Values =
             [
-                new OnOffState { Instance = "on", Value = isOn },
+                new OnOffState { Instance = "on_off", Value = isOn },
                 new FanSpeedState { Instance = "fan_speed", Value = speed },
                 new OscillationState { Instance = "oscillation", Value = oscillating },
             ],
@@ -54,7 +54,7 @@ public sealed class StubFan(string id, string title, string? room = null) : IDev
             case OnOffCommand on:
                 isOn = on.Value;
                 Console.WriteLine($"[{id}] → {(isOn ? "ВКЛ" : "выкл")}");
-                Report(new OnOffState { Instance = "on", Value = isOn });
+                Report(new OnOffState { Instance = "on_off", Value = isOn });
                 return Task.FromResult(CommandOutcome.Done);
 
             case FanSpeedCommand fan:

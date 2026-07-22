@@ -51,4 +51,7 @@ public enum DeviceType
 
     /// <summary>Датчик открытия (контакт). Matter Contact Sensor 0x0015.</summary>
     ContactSensor,
+
+    /// <summary>Датчик протечки воды. Matter Water Leak Detector 0x0043.</summary>
+    WaterLeakSensor,
 }

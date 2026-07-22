@@ -7,4 +7,5 @@ public enum PropertyEventInstance
 {
     [JsonStringEnumMemberName("motion")] Motion,
     [JsonStringEnumMemberName("open")] Open,
+    [JsonStringEnumMemberName("water_leak")] WaterLeak,
 }

@@ -70,10 +70,11 @@ snapshot.Values.SelectMany(ToCapabilityStates)        // состояние
 - **состояние:** значения одного снимка разъезжаются по веткам по типу значения (`IsPropertyValue`);
   команд у свойств нет — входящее направление их не касается.
 
-Преобразования — те же виды словаря: `1:1 relabel` (`occupancy → motion`, `contact → open`),
-`value-transform` (`bool` → значение события: `detected/not_detected`, `opened/closed`; семантика
-ядра — Matter Boolean State: true = контакт замкнут = закрыто). Числовые свойства — `float`
-с единицей Алисы (`temperature` °C, `humidity` %).
+Преобразования — те же виды словаря: `1:1 relabel` (`occupancy → motion`, `contact → open`,
+`battery → battery_level`), `value-transform` (`bool` → значение события: `detected/not_detected`,
+`opened/closed`, `dry/leak`; семантика ядра — Matter Boolean State: у контакта true = замкнут =
+закрыто, у протечки true = протечка). Числовые свойства — `float` с единицей Алисы
+(`temperature` °C, `humidity` и `battery_level` %).
 
 Нейтральные instance'ы свойств и способностей не пересекаются в пределах endpoint'а — кэш хоста
 ключуется `(endpoint, instance)`. Поэтому уставка кондиционера — `target_temperature`, а сенсорная
@@ -126,7 +127,8 @@ snapshot.Values.SelectMany(ToCapabilityStates)        // состояние
   иерархиям: каждый конкретный тип `Capability`/`Property`/`StateValue` имеет образец и маппится без
   исключений; каждое зарегистрированное действие Алисы даёт команду и результат; каждая нейтральная
   команда достижима из действий Алисы; discovery и состояние объявляют одинаковые наборы умений и
-  свойств на instance (включая derivation); канонические instance способностей и свойств не
-  пересекаются, а слот кэша `(endpoint, instance)` делится типами состояний только по явному допуску
-  (цвет). Новый тип без образца или ветки — красный тест с именем типа.
+  свойств на instance (включая derivation); канонические instance выводятся из имён типов и не
+  пересекаются (правило идентификаторов — см. README ядра), а слот кэша `(endpoint, instance)`
+  делится типами состояний только по явному допуску (цвет). Новый тип без образца или ветки —
+  красный тест с именем типа.
 - `DeviceHostTests.Color_switch_overwrites_previous_representation` — регресс на общий слот кэша у цвета.

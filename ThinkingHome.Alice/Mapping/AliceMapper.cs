@@ -32,8 +32,8 @@ namespace ThinkingHome.Alice.Mapping;
 /// (<see cref="AliceDeviceId"/>). Здесь живёт вся специфика формата Яндекса; ядро о ней не знает.
 /// Пока покрыты OnOff, range (яркость, положение, температура), цвет (color_setting),
 /// режимы (mode: fan_speed, thermostat), тумблеры (toggle: oscillation) и свойства-сенсоры
-/// (properties: float temperature/humidity, event motion/open) — свойства read-only, идут в
-/// отдельную ветку properties у Алисы.
+/// (properties: float temperature/humidity/battery_level, event motion/open/water_leak) —
+/// свойства read-only, идут в отдельную ветку properties у Алисы.
 ///
 /// Маппинг ограничен замкнутым словарём преобразований (все — детерминированные, чистые функции):
 ///   • 1:1 relabel      — OnOff → on_off
@@ -53,7 +53,7 @@ public static class AliceMapper
         CapabilityActionParamsOnOff a => new OnOffCommand
         {
             EndpointId = endpointId,
-            Instance = "on",
+            Instance = "on_off",
             Value = a.State.Value,
         },
         CapabilityActionParamsRange { State.Instance: CapabilityStateRangeInstance.Brightness } a => new BrightnessCommand
@@ -95,7 +95,7 @@ public static class AliceMapper
         CapabilityActionParamsMode { State.Instance: CapabilityModeInstance.Thermostat } a => new ThermostatModeCommand
         {
             EndpointId = endpointId,
-            Instance = "thermostat",
+            Instance = "thermostat_mode",
             Value = ToThermostatMode(a.State.Value),
         },
         CapabilityActionParamsToggle { State.Instance: CapabilityToggleInstance.Oscillation } a => new OscillationCommand
@@ -139,7 +139,8 @@ public static class AliceMapper
 
     // значения свойств (сенсоров) — у Алисы это properties, а не capabilities
     private static bool IsPropertyValue(StateValue value) =>
-        value is TemperatureState or HumidityState or OccupancyState or ContactState;
+        value is TemperatureState or HumidityState or OccupancyState or ContactState
+            or WaterLeakState or BatteryState;
 
     // ── action: результат нейтральной команды → результат способности Алисы ──
     public static CapabilityActionResultBase ToCapabilityActionResult(
@@ -350,6 +351,9 @@ public static class AliceMapper
             [PropertyEventValue.Detected, PropertyEventValue.NotDetected]),
         ContactProperty p => EventProperty(p, PropertyEventInstance.Open,
             [PropertyEventValue.Opened, PropertyEventValue.Closed]),
+        WaterLeakProperty p => EventProperty(p, PropertyEventInstance.WaterLeak,
+            [PropertyEventValue.Dry, PropertyEventValue.Leak]),
+        BatteryProperty p => FloatProperty(p, PropertyFloatInstance.BatteryLevel, Units.PERCENT),
         _ => throw new NotSupportedException($"Нет маппинга свойства {property.GetType().Name} в Alice"),
     };
 
@@ -399,6 +403,18 @@ public static class AliceMapper
                 Value = s.Value ? PropertyEventValue.Closed : PropertyEventValue.Opened,
             },
         },
+        WaterLeakState s => new PropertyStateEvent
+        {
+            State = new PropertyStateEventData
+            {
+                Instance = PropertyEventInstance.WaterLeak,
+                Value = s.Value ? PropertyEventValue.Leak : PropertyEventValue.Dry,
+            },
+        },
+        BatteryState s => new PropertyStateFloat
+        {
+            State = new PropertyStateFloatData { Instance = PropertyFloatInstance.BatteryLevel, Value = (float)s.Value },
+        },
         _ => throw new NotSupportedException($"Нет маппинга свойства-состояния {value.GetType().Name} в Alice"),
     };
 
@@ -427,6 +443,7 @@ public static class AliceMapper
         DeviceType.HumiditySensor => AliceDeviceType.SensorClimate,
         DeviceType.OccupancySensor => AliceDeviceType.SensorMotion,
         DeviceType.ContactSensor => AliceDeviceType.SensorOpen,
+        DeviceType.WaterLeakSensor => AliceDeviceType.SensorWaterLeak,
         _ => throw new NotSupportedException($"Нет маппинга типа устройства {type} в Alice"),
     };
 

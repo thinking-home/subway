@@ -27,7 +27,7 @@ public class DeviceHostTests
         host.Register(device);
 
         _ = await host.QueryAsync("lamp"); // прайминг (1 обращение к драйверу)
-        await host.ExecuteAsync("lamp", new OnOffCommand { Instance = "on", Value = true }); // → Report обновляет кэш
+        await host.ExecuteAsync("lamp", new OnOffCommand { Instance = "on_off", Value = true }); // → Report обновляет кэш
 
         var snapshot = await host.QueryAsync("lamp"); // из кэша
         var state = Assert.IsType<OnOffState>(Assert.Single(snapshot.Values));
@@ -73,7 +73,7 @@ public class DeviceHostTests
             {
                 Id = 0,
                 Type = DeviceType.OnOffLight,
-                Capabilities = [new OnOffCapability { Instance = "on" }],
+                Capabilities = [new OnOffCapability { Instance = "on_off" }],
             }],
         };
 
@@ -81,7 +81,7 @@ public class DeviceHostTests
         {
             Interlocked.Increment(ref QueryCount);
             await Task.Delay(30, ct); // окно для проверки single-flight
-            return new DeviceSnapshot { DeviceId = id, Values = [new OnOffState { Instance = "on", Value = isOn }] };
+            return new DeviceSnapshot { DeviceId = id, Values = [new OnOffState { Instance = "on_off", Value = isOn }] };
         }
 
         public Task<CommandOutcome> ExecuteAsync(DeviceCommand command, CancellationToken ct = default)
@@ -92,7 +92,7 @@ public class DeviceHostTests
                 Changed?.Invoke(new StateChange
                 {
                     DeviceId = id,
-                    Value = new OnOffState { Instance = "on", Value = isOn },
+                    Value = new OnOffState { Instance = "on_off", Value = isOn },
                 });
                 return Task.FromResult(CommandOutcome.Done);
             }

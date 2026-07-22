@@ -28,7 +28,7 @@ public sealed class StubOnOffDevice(string id, string title, DeviceType type, st
         {
             Id = 0,
             Type = type,
-            Capabilities = [new OnOffCapability { Instance = "on" }],
+            Capabilities = [new OnOffCapability { Instance = "on_off" }],
         }],
     };
 
@@ -36,7 +36,7 @@ public sealed class StubOnOffDevice(string id, string title, DeviceType type, st
         => Task.FromResult(new DeviceSnapshot
         {
             DeviceId = id,
-            Values = [new OnOffState { Instance = "on", Value = isOn }],
+            Values = [new OnOffState { Instance = "on_off", Value = isOn }],
         });
 
     public Task<CommandOutcome> ExecuteAsync(DeviceCommand command, CancellationToken ct = default)
@@ -48,7 +48,7 @@ public sealed class StubOnOffDevice(string id, string title, DeviceType type, st
             Changed?.Invoke(new StateChange
             {
                 DeviceId = id,
-                Value = new OnOffState { Instance = "on", Value = isOn },
+                Value = new OnOffState { Instance = "on_off", Value = isOn },
             });
             return Task.FromResult(CommandOutcome.Done);
         }

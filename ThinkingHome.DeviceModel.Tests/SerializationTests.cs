@@ -35,17 +35,39 @@ public class SerializationTests
         Assert.True(missing.Length == 0, $"Не зарегистрированы в [JsonDerivedType]: {string.Join(", ", missing)}");
     }
 
+    [Theory]
+    [MemberData(nameof(PolymorphicBases))]
+    public void Json_discriminators_are_derived_from_type_names(Type baseType)
+    {
+        // правило идентификаторов (README ядра): $type = camelCase имени типа без суффикса
+        foreach (var attr in baseType.GetCustomAttributes(typeof(JsonDerivedTypeAttribute), false)
+                     .Cast<JsonDerivedTypeAttribute>())
+        {
+            var name = attr.DerivedType.Name;
+            foreach (var suffix in new[] { "Capability", "Property", "Command", "State" })
+            {
+                if (name.EndsWith(suffix))
+                {
+                    name = name[..^suffix.Length];
+                    break;
+                }
+            }
+
+            Assert.Equal(char.ToLowerInvariant(name[0]) + name[1..], attr.TypeDiscriminator as string);
+        }
+    }
+
     [Fact]
     public void Command_round_trips_polymorphically()
     {
-        DeviceCommand command = new OnOffCommand { Instance = "on", Value = true };
+        DeviceCommand command = new OnOffCommand { Instance = "on_off", Value = true };
 
         var json = JsonSerializer.Serialize(command);
         var back = JsonSerializer.Deserialize<DeviceCommand>(json);
 
         var onOff = Assert.IsType<OnOffCommand>(back);
         Assert.True(onOff.Value);
-        Assert.Equal("on", onOff.Instance);
+        Assert.Equal("on_off", onOff.Instance);
     }
 
     [Fact]
@@ -105,8 +127,8 @@ public class SerializationTests
     [Fact]
     public void Thermostat_commands_round_trip_polymorphically()
     {
-        DeviceCommand mode = new ThermostatModeCommand { Instance = "thermostat", Value = ThermostatMode.Dry };
-        DeviceCommand temp = new TargetTemperatureCommand { Instance = "temperature", Value = 24 };
+        DeviceCommand mode = new ThermostatModeCommand { Instance = "thermostat_mode", Value = ThermostatMode.Dry };
+        DeviceCommand temp = new TargetTemperatureCommand { Instance = "target_temperature", Value = 24 };
 
         Assert.Equal(ThermostatMode.Dry, Assert.IsType<ThermostatModeCommand>(
             JsonSerializer.Deserialize<DeviceCommand>(JsonSerializer.Serialize(mode))).Value);
@@ -150,7 +172,7 @@ public class SerializationTests
         var snapshot = new DeviceSnapshot
         {
             DeviceId = "lamp",
-            Values = [new OnOffState { Instance = "on", Value = true }],
+            Values = [new OnOffState { Instance = "on_off", Value = true }],
         };
 
         var json = JsonSerializer.Serialize(snapshot);
