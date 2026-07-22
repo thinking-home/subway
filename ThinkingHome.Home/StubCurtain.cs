@@ -6,8 +6,10 @@ using ThinkingHome.DeviceModel.State;
 namespace ThinkingHome.Home;
 
 /// <summary>
-/// Заглушка шторы (открыть/закрыть + положение). Держит одно число — положение 0–100 % (0 — закрыта,
-/// 100 — открыта); on_off задаёт крайние положения, range "open" — произвольное.
+/// Заглушка шторы — одно свойство «положение» 0–100 % (0 — закрыта, 100 — открыта), как Window Covering
+/// (0x0102) в Matter. Принимает две команды: OpenCommand (в положение %) и OnOffCommand (открыть/закрыть =
+/// крайние положения, аналог Matter UpOrOpen/DownOrClose). Тумблер on_off для Алисы (умение + состояние)
+/// синтезирует маппер — в ядре отдельного on/off-состояния нет.
 /// </summary>
 public sealed class StubCurtain(string id, string title, string? room = null) : IDevice
 {
@@ -27,7 +29,7 @@ public sealed class StubCurtain(string id, string title, string? room = null) : 
         {
             Id = 0,
             Type = DeviceType.Curtain,
-            Capabilities = [new OnOffCapability { Instance = "on" }, new OpenCapability { Instance = "open" }],
+            Capabilities = [new OpenCapability { Instance = "open" }],
         }],
     };
 
@@ -35,40 +37,25 @@ public sealed class StubCurtain(string id, string title, string? room = null) : 
         => Task.FromResult(new DeviceSnapshot
         {
             DeviceId = id,
-            Values =
-            [
-                new OnOffState { Instance = "on", Value = position > 0 },
-                new OpenState { Instance = "open", Value = position },
-            ],
+            Values = [new OpenState { Instance = "open", Value = position }],
         });
 
     public Task<CommandOutcome> ExecuteAsync(DeviceCommand command, CancellationToken ct = default)
     {
         switch (command)
         {
-            case OnOffCommand on:
-                position = on.Value ? 100 : 0;
-                Console.WriteLine($"[{id}] → {(on.Value ? "открыть" : "закрыть")} ({position}%)");
-                ReportPosition();
-                return Task.FromResult(CommandOutcome.Done);
-
             case OpenCommand open:
                 position = open.Value;
-                Console.WriteLine($"[{id}] → положение {position}%");
-                ReportPosition();
-                return Task.FromResult(CommandOutcome.Done);
-
+                break;
+            case OnOffCommand on: // открыть/закрыть = крайние положения
+                position = on.Value ? 100 : 0;
+                break;
             default:
                 return Task.FromResult(CommandOutcome.Unsupported);
         }
-    }
 
-    // положение отражается сразу в двух инстансах (on/open) — репортим оба, чтобы кэш не рассинхронился
-    private void ReportPosition()
-    {
-        Report(new OnOffState { Instance = "on", Value = position > 0 });
-        Report(new OpenState { Instance = "open", Value = position });
+        Console.WriteLine($"[{id}] → положение {position}%");
+        Changed?.Invoke(new StateChange { DeviceId = id, Value = new OpenState { Instance = "open", Value = position } });
+        return Task.FromResult(CommandOutcome.Done);
     }
-
-    private void Report(StateValue value) => Changed?.Invoke(new StateChange { DeviceId = id, Value = value });
 }

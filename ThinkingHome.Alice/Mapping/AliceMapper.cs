@@ -25,6 +25,14 @@ namespace ThinkingHome.Alice.Mapping;
 /// Алисы плоская, поэтому каждый нейтральный endpoint → отдельное устройство с составным id
 /// (<see cref="AliceDeviceId"/>). Здесь живёт вся специфика формата Яндекса; ядро о ней не знает.
 /// Пока покрыты OnOff, range (яркость, положение) и цвет (color_setting).
+///
+/// Маппинг ограничен замкнутым словарём преобразований (все — детерминированные, чистые функции):
+///   • 1:1 relabel      — OnOff → on_off
+///   • value-transform  — Brightness (int) → range (0–100)
+///   • type ↔ instance  — Color{Rgb,Temperature}State ↔ color_setting {rgb, temperature_k}
+///   • derivation (1:N) — Open → range:open + производное on_off (открыто = положение &gt; 0)
+/// Правила: (1) ядро — гранулярность Matter; (2) любой маппинг выражается этим словарём; (3) если
+/// не выражается — это дефект ядра, чинится там, а не escape-hatch'ем в маппере.
 /// </summary>
 public static class AliceMapper
 {
@@ -78,7 +86,7 @@ public static class AliceMapper
             Name = descriptor.Title,
             Room = descriptor.Room,
             Type = ToAliceDeviceType(endpoint.Type),
-            Capabilities = endpoint.Capabilities.Select(ToCapabilityInfo).ToArray(),
+            Capabilities = endpoint.Capabilities.SelectMany(ToCapabilityInfos).ToArray(),
             DeviceInfo = ToDeviceInfo(descriptor.Manufacturer),
         });
 
@@ -88,7 +96,7 @@ public static class AliceMapper
         Id = id.ToAlice(),
         Capabilities = snapshot.Values
             .Where(value => value.EndpointId == id.EndpointId)
-            .Select(ToCapabilityState)
+            .SelectMany(ToCapabilityStates)
             .ToArray(),
     };
 
@@ -133,14 +141,26 @@ public static class AliceMapper
             ErrorMessage = outcome.ErrorMessage,
         };
 
+    // discovery: одно умение ядра → одно или несколько умений Алисы (виды преобразования — в описании класса)
+    private static IEnumerable<CapabilityInfoBase> ToCapabilityInfos(Capability capability)
+    {
+        yield return ToCapabilityInfo(capability); // базовый маппинг 1:1
+
+        // derivation: у openable положение (range:open) дополняется тумблером on_off
+        if (capability is OpenCapability)
+            yield return OnOffInfo(capability);
+    }
+
+    private static CapabilityInfoOnOff OnOffInfo(Capability c) => new()
+    {
+        Retrievable = c.Retrievable,
+        Reportable = c.Reportable,
+        Parameters = new CapabilityInfoOnOffParams { Split = false },
+    };
+
     private static CapabilityInfoBase ToCapabilityInfo(Capability capability) => capability switch
     {
-        OnOffCapability c => new CapabilityInfoOnOff
-        {
-            Retrievable = c.Retrievable,
-            Reportable = c.Reportable,
-            Parameters = new CapabilityInfoOnOffParams { Split = false },
-        },
+        OnOffCapability c => OnOffInfo(c),
         BrightnessCapability c => PercentRange(c, CapabilityStateRangeInstance.Brightness),
         OpenCapability c => PercentRange(c, CapabilityStateRangeInstance.Open),
         ColorCapability c => new CapabilityInfoColorSetting
@@ -171,6 +191,19 @@ public static class AliceMapper
             Range = new CapabilityRangeLimits { Min = 0, Max = 100, Precision = 1 },
         },
     };
+
+    // query: одно значение ядра → одно или несколько состояний Алисы
+    private static IEnumerable<CapabilityStateBase> ToCapabilityStates(StateValue value)
+    {
+        yield return ToCapabilityState(value); // базовый маппинг 1:1
+
+        // derivation: on_off у openable выводится из положения (открыто = положение > 0)
+        if (value is OpenState open)
+            yield return new CapabilityStateOnOff
+            {
+                State = new CapabilityStateOnOffData { Instance = CapabilityStateOnOffInstance.On, Value = open.Value > 0 },
+            };
+    }
 
     private static CapabilityStateBase ToCapabilityState(StateValue value) => value switch
     {

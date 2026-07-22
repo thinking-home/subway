@@ -240,15 +240,17 @@ public class AliceMapperTests
     }
 
     [Fact]
-    public void Open_maps_to_alice_range()
+    public void Open_maps_to_range_and_derives_on_off()
     {
-        // info: способность open → range с instance open, 0–100 %
-        var info = Assert.IsType<CapabilityInfoRange>(Assert.Single(Assert.Single(AliceMapper.ToDevices(
-            Descriptor(DeviceType.Curtain, new OpenCapability { Instance = "open" }))).Capabilities));
+        // discovery: одно OpenCapability → range:open + производное on_off (derivation 1:N)
+        var caps = Assert.Single(AliceMapper.ToDevices(
+            Descriptor(DeviceType.Curtain, new OpenCapability { Instance = "open" }))).Capabilities;
+        var info = Assert.IsType<CapabilityInfoRange>(caps.Single(c => c is CapabilityInfoRange));
         Assert.Equal(CapabilityStateRangeInstance.Open, info.Parameters.Instance);
         Assert.Equal("unit.percent", info.Parameters.Unit);
+        Assert.Contains(caps, c => c is CapabilityInfoOnOff);
 
-        // action → команда
+        // action open → OpenCommand
         var action = new CapabilityActionParamsRange
         {
             State = new CapabilityStateRangeData { Instance = CapabilityStateRangeInstance.Open, Value = 70 },
@@ -257,15 +259,16 @@ public class AliceMapperTests
         Assert.Equal(70, command.Value);
         Assert.Equal("open", command.Instance);
 
-        // snapshot → state
+        // snapshot: одно OpenState → range + производное on_off (открыто = положение > 0)
         var state = AliceMapper.ToDeviceState(new AliceDeviceId("d", 0), new DeviceSnapshot
         {
             DeviceId = "d",
             Values = [new OpenState { EndpointId = 0, Instance = "open", Value = 70 }],
         });
-        var rangeState = Assert.IsType<CapabilityStateRange>(Assert.Single(state.Capabilities));
-        Assert.Equal(CapabilityStateRangeInstance.Open, rangeState.State.Instance);
+        var rangeState = Assert.IsType<CapabilityStateRange>(state.Capabilities.Single(c => c is CapabilityStateRange));
         Assert.Equal(70f, rangeState.State.Value);
+        var onOff = Assert.IsType<CapabilityStateOnOff>(state.Capabilities.Single(c => c is CapabilityStateOnOff));
+        Assert.True(onOff.State.Value); // 70 > 0 → открыто
     }
 
     private static DeviceDescriptor Descriptor(DeviceType type, params Capability[] capabilities) => new()
