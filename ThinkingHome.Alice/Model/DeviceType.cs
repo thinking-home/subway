@@ -23,4 +23,13 @@ public enum DeviceType
 
     [JsonStringEnumMemberName("devices.types.thermostat.ac")]
     ThermostatAc,
+
+    [JsonStringEnumMemberName("devices.types.sensor.climate")]
+    SensorClimate,
+
+    [JsonStringEnumMemberName("devices.types.sensor.motion")]
+    SensorMotion,
+
+    [JsonStringEnumMemberName("devices.types.sensor.open")]
+    SensorOpen,
 }

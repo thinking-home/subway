@@ -5,8 +5,11 @@ using ThinkingHome.Alice.Model.Capabilities.Mode;
 using ThinkingHome.Alice.Model.Capabilities.OnOff;
 using ThinkingHome.Alice.Model.Capabilities.Range;
 using ThinkingHome.Alice.Model.Capabilities.Toggle;
+using ThinkingHome.Alice.Model.Properties.Event;
+using ThinkingHome.Alice.Model.Properties.Float;
 using ThinkingHome.DeviceModel.Capabilities;
 using ThinkingHome.DeviceModel.Commands;
+using ThinkingHome.DeviceModel.Properties;
 using ThinkingHome.DeviceModel.State;
 using AliceDeviceType = ThinkingHome.Alice.Model.DeviceType;
 
@@ -125,6 +128,10 @@ public class AliceMapperTests
     [InlineData(DeviceType.Curtain, AliceDeviceType.Curtain)]
     [InlineData(DeviceType.Fan, AliceDeviceType.Fan)]
     [InlineData(DeviceType.AirConditioner, AliceDeviceType.ThermostatAc)]
+    [InlineData(DeviceType.TemperatureSensor, AliceDeviceType.SensorClimate)]
+    [InlineData(DeviceType.HumiditySensor, AliceDeviceType.SensorClimate)]
+    [InlineData(DeviceType.OccupancySensor, AliceDeviceType.SensorMotion)]
+    [InlineData(DeviceType.ContactSensor, AliceDeviceType.SensorOpen)]
     public void ToDevices_maps_device_types(DeviceType type, AliceDeviceType expected)
     {
         var descriptor = new DeviceDescriptor
@@ -368,7 +375,7 @@ public class AliceMapperTests
         // info: первый непроцентный range — unit celsius, границы из способности
         var info = Assert.IsType<CapabilityInfoRange>(Assert.Single(Assert.Single(AliceMapper.ToDevices(
             Descriptor(DeviceType.AirConditioner,
-                new TargetTemperatureCapability { Instance = "temperature", MinCelsius = 18, MaxCelsius = 33 }))).Capabilities));
+                new TargetTemperatureCapability { Instance = "target_temperature", MinCelsius = 18, MaxCelsius = 33 }))).Capabilities));
         Assert.Equal(CapabilityStateRangeInstance.Temperature, info.Parameters.Instance);
         Assert.Equal("unit.temperature.celsius", info.Parameters.Unit);
         Assert.Equal(18f, info.Parameters.Range.Min);
@@ -382,17 +389,117 @@ public class AliceMapperTests
         };
         var command = Assert.IsType<TargetTemperatureCommand>(AliceMapper.ToCommand(action, endpointId: 0));
         Assert.Equal(24, command.Value);
-        Assert.Equal("temperature", command.Instance);
+        Assert.Equal("target_temperature", command.Instance);
 
         // snapshot → state
         var state = AliceMapper.ToDeviceState(new AliceDeviceId("d", 0), new DeviceSnapshot
         {
             DeviceId = "d",
-            Values = [new TargetTemperatureState { EndpointId = 0, Instance = "temperature", Value = 24 }],
+            Values = [new TargetTemperatureState { EndpointId = 0, Instance = "target_temperature", Value = 24 }],
         });
         var rangeState = Assert.IsType<CapabilityStateRange>(Assert.Single(state.Capabilities));
         Assert.Equal(CapabilityStateRangeInstance.Temperature, rangeState.State.Instance);
         Assert.Equal(24f, rangeState.State.Value);
+    }
+
+    [Fact]
+    public void Climate_properties_map_to_alice_float()
+    {
+        // discovery: температура + влажность → float:temperature (celsius) + float:humidity (percent)
+        var device = Assert.Single(AliceMapper.ToDevices(new DeviceDescriptor
+        {
+            Id = "d",
+            Title = "T",
+            Endpoints = [new Endpoint
+            {
+                Id = 0,
+                Type = DeviceType.TemperatureSensor,
+                Properties =
+                [
+                    new TemperatureProperty { Instance = "temperature" },
+                    new HumidityProperty { Instance = "humidity" },
+                ],
+            }],
+        }));
+        Assert.Equal(AliceDeviceType.SensorClimate, device.Type);
+        Assert.Empty(device.Capabilities);
+        Assert.Collection(device.Properties,
+            p =>
+            {
+                var f = Assert.IsType<PropertyInfoFloat>(p);
+                Assert.Equal(PropertyFloatInstance.Temperature, f.Parameters.Instance);
+                Assert.Equal("unit.temperature.celsius", f.Parameters.Unit);
+            },
+            p =>
+            {
+                var f = Assert.IsType<PropertyInfoFloat>(p);
+                Assert.Equal(PropertyFloatInstance.Humidity, f.Parameters.Instance);
+                Assert.Equal("unit.percent", f.Parameters.Unit);
+            });
+
+        // snapshot → properties (не capabilities)
+        var state = AliceMapper.ToDeviceState(new AliceDeviceId("d", 0), new DeviceSnapshot
+        {
+            DeviceId = "d",
+            Values =
+            [
+                new TemperatureState { EndpointId = 0, Instance = "temperature", Value = 23.5 },
+                new HumidityState { EndpointId = 0, Instance = "humidity", Value = 41 },
+            ],
+        });
+        Assert.Empty(state.Capabilities);
+        Assert.Collection(state.Properties,
+            p =>
+            {
+                var f = Assert.IsType<PropertyStateFloat>(p);
+                Assert.Equal(PropertyFloatInstance.Temperature, f.State.Instance);
+                Assert.Equal(23.5f, f.State.Value);
+            },
+            p =>
+            {
+                var f = Assert.IsType<PropertyStateFloat>(p);
+                Assert.Equal(PropertyFloatInstance.Humidity, f.State.Instance);
+                Assert.Equal(41f, f.State.Value);
+            });
+    }
+
+    [Fact]
+    public void Occupancy_and_contact_map_to_alice_events()
+    {
+        // discovery: occupancy → event:motion (relabel), contact → event:open (relabel)
+        var motionInfo = Assert.IsType<PropertyInfoEvent>(Assert.Single(Assert.Single(AliceMapper.ToDevices(new DeviceDescriptor
+        {
+            Id = "d",
+            Title = "T",
+            Endpoints = [new Endpoint { Id = 0, Type = DeviceType.OccupancySensor, Properties = [new OccupancyProperty { Instance = "occupancy" }] }],
+        })).Properties));
+        Assert.Equal(PropertyEventInstance.Motion, motionInfo.Parameters.Instance);
+        Assert.Equal(new[] { PropertyEventValue.Detected, PropertyEventValue.NotDetected },
+            motionInfo.Parameters.Events.Select(e => e.Value).ToArray());
+
+        // state: bool → значение события (value-transform)
+        var state = AliceMapper.ToDeviceState(new AliceDeviceId("d", 0), new DeviceSnapshot
+        {
+            DeviceId = "d",
+            Values =
+            [
+                new OccupancyState { EndpointId = 0, Instance = "occupancy", Value = true },
+                new ContactState { EndpointId = 0, Instance = "contact", Value = true },
+            ],
+        });
+        Assert.Collection(state.Properties,
+            p =>
+            {
+                var e = Assert.IsType<PropertyStateEvent>(p);
+                Assert.Equal(PropertyEventInstance.Motion, e.State.Instance);
+                Assert.Equal(PropertyEventValue.Detected, e.State.Value); // true → движение обнаружено
+            },
+            p =>
+            {
+                var e = Assert.IsType<PropertyStateEvent>(p);
+                Assert.Equal(PropertyEventInstance.Open, e.State.Instance);
+                Assert.Equal(PropertyEventValue.Closed, e.State.Value); // семантика Matter: контакт замкнут → закрыто
+            });
     }
 
     private static DeviceDescriptor Descriptor(DeviceType type, params Capability[] capabilities) => new()

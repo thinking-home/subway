@@ -6,18 +6,20 @@ using ThinkingHome.Alice.Model.Capabilities.Mode;
 using ThinkingHome.Alice.Model.Capabilities.OnOff;
 using ThinkingHome.Alice.Model.Capabilities.Range;
 using ThinkingHome.Alice.Model.Capabilities.Toggle;
+using ThinkingHome.Alice.Model.Properties;
 using ThinkingHome.DeviceModel.Capabilities;
 using ThinkingHome.DeviceModel.Commands;
+using ThinkingHome.DeviceModel.Properties;
 using ThinkingHome.DeviceModel.State;
 
 namespace ThinkingHome.DeviceModel.Tests;
 
 /// <summary>
-/// Механическая полнота маппера Алисы. Словарь способностей растёт, а реальных устройств на каждый
-/// тип нет — поэтому «забытая ветка» должна ловиться тестом по закрытым иерархиям, а не в проде.
-/// Каждый конкретный тип ядра обязан иметь образец в этом файле и маппиться без исключений; каждое
-/// действие Алисы — давать нейтральную команду и результат. Новый тип без образца или без ветки
-/// маппера → красный тест, называющий тип по имени.
+/// Механическая полнота маппера Алисы. Словарь способностей и свойств растёт, а реальных устройств
+/// на каждый тип нет — поэтому «забытая ветка» должна ловиться тестом по закрытым иерархиям, а не в
+/// проде. Каждый конкретный тип ядра обязан иметь образец в этом файле и маппиться без исключений;
+/// каждое действие Алисы — давать нейтральную команду и результат. Новый тип без образца или без
+/// ветки маппера → красный тест, называющий тип по имени.
 /// </summary>
 public class AliceMapperCompletenessTests
 {
@@ -32,7 +34,15 @@ public class AliceMapperCompletenessTests
         new FanSpeedCapability { Instance = "fan_speed", Speeds = [FanSpeed.Low] },
         new OscillationCapability { Instance = "oscillation" },
         new ThermostatModeCapability { Instance = "thermostat", Modes = [ThermostatMode.Cool] },
-        new TargetTemperatureCapability { Instance = "temperature", MinCelsius = 18, MaxCelsius = 33 },
+        new TargetTemperatureCapability { Instance = "target_temperature", MinCelsius = 18, MaxCelsius = 33 },
+    ];
+
+    private static readonly Property[] PropertySamples =
+    [
+        new TemperatureProperty { Instance = "temperature" },
+        new HumidityProperty { Instance = "humidity" },
+        new OccupancyProperty { Instance = "occupancy" },
+        new ContactProperty { Instance = "contact" },
     ];
 
     private static readonly StateValue[] StateSamples =
@@ -45,7 +55,11 @@ public class AliceMapperCompletenessTests
         new FanSpeedState { Instance = "fan_speed", Value = FanSpeed.Low },
         new OscillationState { Instance = "oscillation", Value = true },
         new ThermostatModeState { Instance = "thermostat", Value = ThermostatMode.Cool },
-        new TargetTemperatureState { Instance = "temperature", Value = 23 },
+        new TargetTemperatureState { Instance = "target_temperature", Value = 23 },
+        new TemperatureState { Instance = "temperature", Value = 23.5 },
+        new HumidityState { Instance = "humidity", Value = 41 },
+        new OccupancyState { Instance = "occupancy", Value = true },
+        new ContactState { Instance = "contact", Value = true },
     ];
 
     // все поддерживаемые действия Алисы — по одному образцу на каждую ветку ToCommand (тип + instance)
@@ -83,7 +97,21 @@ public class AliceMapperCompletenessTests
         {
             var state = AliceMapper.ToDeviceState(new AliceDeviceId("d", 0),
                 new DeviceSnapshot { DeviceId = "d", Values = [value] });
-            Assert.NotEmpty(state.Capabilities); // ветка ToCapabilityState существует и не бросает
+            // значение обязано попасть в одну из веток (capabilities или properties) и не бросить
+            Assert.True(state.Capabilities.Length + state.Properties.Length > 0,
+                $"Состояние {value.GetType().Name} не дало ни умения, ни свойства Алисы");
+        }
+    }
+
+    [Fact]
+    public void Every_property_type_has_sample_and_maps_to_discovery()
+    {
+        AssertAllSubtypesCovered(typeof(Property), PropertySamples, "свойства");
+
+        foreach (var property in PropertySamples)
+        {
+            var device = Assert.Single(AliceMapper.ToDevices(Descriptor(property)));
+            Assert.NotEmpty(device.Properties); // ветка ToPropertyInfo существует и не бросает
         }
     }
 
@@ -145,6 +173,74 @@ public class AliceMapperCompletenessTests
         }
     }
 
+    // осознанное деление слота кэша: альтернативные представления одной способности (прецедент цвета)
+    private static readonly Dictionary<string, Type[]> DeliberateSharedSlots = new()
+    {
+        [ColorCapability.InstanceName] = [typeof(ColorRgbState), typeof(ColorTemperatureState)],
+    };
+
+    [Fact]
+    public void Neutral_instances_do_not_collide_across_capabilities_and_properties()
+    {
+        // кэш хоста ключуется (endpoint, instance): способность и свойство с одним instance затирали бы
+        // состояния друг друга (прецедент: уставка target_temperature против сенсорной temperature)
+        var duplicates = CapabilitySamples.Select(c => c.Instance)
+            .Concat(PropertySamples.Select(p => p.Instance))
+            .GroupBy(i => i)
+            .Where(g => g.Count() > 1)
+            .Select(g => g.Key)
+            .ToArray();
+
+        Assert.True(duplicates.Length == 0, $"Пересечение канонических instance: {string.Join(", ", duplicates)}");
+    }
+
+    [Fact]
+    public void State_types_share_instance_slot_only_by_design()
+    {
+        foreach (var group in StateSamples.GroupBy(s => s.Instance))
+        {
+            var types = group.Select(s => s.GetType()).Distinct().ToArray();
+            if (types.Length == 1)
+                continue;
+
+            Assert.True(
+                DeliberateSharedSlots.TryGetValue(group.Key, out var allowed) && types.ToHashSet().SetEquals(allowed),
+                $"Типы состояний делят слот кэша (endpoint, \"{group.Key}\") вне допуска: {string.Join(", ", types.Select(t => t.Name))}");
+        }
+    }
+
+    [Fact]
+    public void Every_state_instance_is_declared_by_capability_or_property()
+    {
+        // состояние с instance, которого нет ни у одной способности/свойства, — мёртвый слот кэша
+        var declared = CapabilitySamples.Select(c => c.Instance)
+            .Concat(PropertySamples.Select(p => p.Instance))
+            .ToHashSet();
+        var orphans = StateSamples.Select(s => s.Instance).Where(i => !declared.Contains(i)).Distinct().ToArray();
+
+        Assert.True(orphans.Length == 0, $"Состояния с необъявленным instance: {string.Join(", ", orphans)}");
+    }
+
+    [Fact]
+    public void Discovery_and_state_report_same_alice_property_types_per_instance()
+    {
+        // как и для умений: объявленное свойство обязано отдаваться в состоянии, и наоборот
+        foreach (var property in PropertySamples)
+        {
+            var declared = Assert.Single(AliceMapper.ToDevices(Descriptor(property)))
+                .Properties.Select(p => Discriminator(typeof(PropertyInfoBase), p)).ToHashSet();
+
+            var states = StateSamples.Where(s => s.Instance == property.Instance).ToArray();
+            Assert.NotEmpty(states); // у каждого свойства должен быть образец состояния того же instance
+
+            var reported = AliceMapper.ToDeviceState(new AliceDeviceId("d", 0),
+                    new DeviceSnapshot { DeviceId = "d", Values = states })
+                .Properties.Select(p => Discriminator(typeof(PropertyStateBase), p)).ToHashSet();
+
+            Assert.Equal(declared, reported);
+        }
+    }
+
     // ── вспомогательное ──
 
     private static IEnumerable<Type> ConcreteSubtypes(Type baseType) =>
@@ -174,5 +270,12 @@ public class AliceMapperCompletenessTests
         Id = "d",
         Title = "T",
         Endpoints = [new Endpoint { Id = 0, Type = type, Capabilities = [capability] }],
+    };
+
+    private static DeviceDescriptor Descriptor(Property property, DeviceType type = DeviceType.TemperatureSensor) => new()
+    {
+        Id = "d",
+        Title = "T",
+        Endpoints = [new Endpoint { Id = 0, Type = type, Properties = [property] }],
     };
 }

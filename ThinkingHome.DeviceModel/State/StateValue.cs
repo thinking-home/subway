@@ -16,6 +16,10 @@ namespace ThinkingHome.DeviceModel.State;
 [JsonDerivedType(typeof(OscillationState), "oscillation")]
 [JsonDerivedType(typeof(ThermostatModeState), "thermostatMode")]
 [JsonDerivedType(typeof(TargetTemperatureState), "targetTemperature")]
+[JsonDerivedType(typeof(TemperatureState), "temperature")]
+[JsonDerivedType(typeof(HumidityState), "humidity")]
+[JsonDerivedType(typeof(OccupancyState), "occupancy")]
+[JsonDerivedType(typeof(ContactState), "contact")]
 public abstract record StateValue
 {
     /// <summary>Endpoint устройства (0 — основной).</summary>

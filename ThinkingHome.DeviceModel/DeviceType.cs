@@ -7,7 +7,8 @@ namespace ThinkingHome.DeviceModel;
 /// в комментарии — идентификатор Matter. Каждый адаптер (Алиса/HomeKit) держит свою
 /// таблицу перевода этих значений в свой формат.
 ///
-/// Заведены типы, покрытые способностью On/Off; остальные добавляются со сверкой по Matter.
+/// Заведены типы, покрытые текущим словарём способностей и свойств; остальные добавляются со
+/// сверкой по Matter.
 /// </summary>
 [JsonConverter(typeof(JsonStringEnumConverter))]
 public enum DeviceType
@@ -38,4 +39,16 @@ public enum DeviceType
 
     /// <summary>Кондиционер (On/Off + уставка температуры + режим + скорость + осцилляция). Matter Room Air Conditioner 0x0072.</summary>
     AirConditioner,
+
+    /// <summary>Датчик температуры (может нести и влажность доп. свойством). Matter Temperature Sensor 0x0302.</summary>
+    TemperatureSensor,
+
+    /// <summary>Датчик влажности. Matter Humidity Sensor 0x0307.</summary>
+    HumiditySensor,
+
+    /// <summary>Датчик присутствия/движения. Matter Occupancy Sensor 0x0107.</summary>
+    OccupancySensor,
+
+    /// <summary>Датчик открытия (контакт). Matter Contact Sensor 0x0015.</summary>
+    ContactSensor,
 }

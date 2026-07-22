@@ -1,11 +1,12 @@
 using ThinkingHome.DeviceModel;
 using ThinkingHome.DeviceModel.Capabilities;
 using ThinkingHome.DeviceModel.Commands;
+using ThinkingHome.DeviceModel.Properties;
 using ThinkingHome.DeviceModel.State;
 
 namespace ThinkingHome.Home;
 
-/// <summary>Заглушка кондиционера (OnOff + уставка температуры + режим + скорость + осцилляция).</summary>
+/// <summary>Заглушка кондиционера (OnOff + уставка температуры + режим + скорость + осцилляция + сенсор комнатной температуры).</summary>
 public sealed class StubAirConditioner(string id, string title, string? room = null) : IDevice
 {
     private bool isOn;
@@ -13,6 +14,7 @@ public sealed class StubAirConditioner(string id, string title, string? room = n
     private ThermostatMode mode = ThermostatMode.Cool;
     private FanSpeed speed = FanSpeed.Auto;
     private bool oscillating;
+    private readonly double roomCelsius = 26.5;
 
     public string Id => id;
 
@@ -31,11 +33,12 @@ public sealed class StubAirConditioner(string id, string title, string? room = n
             Capabilities =
             [
                 new OnOffCapability { Instance = "on" },
-                new TargetTemperatureCapability { Instance = "temperature", MinCelsius = 18, MaxCelsius = 33 },
+                new TargetTemperatureCapability { Instance = "target_temperature", MinCelsius = 18, MaxCelsius = 33 },
                 new ThermostatModeCapability { Instance = "thermostat", Modes = [ThermostatMode.Auto, ThermostatMode.Heat, ThermostatMode.Cool, ThermostatMode.Dry, ThermostatMode.FanOnly] },
                 new FanSpeedCapability { Instance = "fan_speed", Speeds = [FanSpeed.Auto, FanSpeed.Low, FanSpeed.Medium, FanSpeed.High] },
                 new OscillationCapability { Instance = "oscillation" },
             ],
+            Properties = [new TemperatureProperty { Instance = "temperature" }],
         }],
     };
 
@@ -46,10 +49,11 @@ public sealed class StubAirConditioner(string id, string title, string? room = n
             Values =
             [
                 new OnOffState { Instance = "on", Value = isOn },
-                new TargetTemperatureState { Instance = "temperature", Value = targetCelsius },
+                new TargetTemperatureState { Instance = "target_temperature", Value = targetCelsius },
                 new ThermostatModeState { Instance = "thermostat", Value = mode },
                 new FanSpeedState { Instance = "fan_speed", Value = speed },
                 new OscillationState { Instance = "oscillation", Value = oscillating },
+                new TemperatureState { Instance = "temperature", Value = roomCelsius },
             ],
         });
 
@@ -66,7 +70,7 @@ public sealed class StubAirConditioner(string id, string title, string? room = n
             case TargetTemperatureCommand temp:
                 targetCelsius = temp.Value;
                 Console.WriteLine($"[{id}] → уставка {targetCelsius} °C");
-                Report(new TargetTemperatureState { Instance = "temperature", Value = targetCelsius });
+                Report(new TargetTemperatureState { Instance = "target_temperature", Value = targetCelsius });
                 return Task.FromResult(CommandOutcome.Done);
 
             case ThermostatModeCommand m:

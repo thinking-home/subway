@@ -1,5 +1,6 @@
 using System.Text.Json.Serialization;
 using ThinkingHome.Alice.Model.Capabilities;
+using ThinkingHome.Alice.Model.Properties;
 
 namespace ThinkingHome.Alice.Model;
 
@@ -27,7 +28,7 @@ public class Device
     public CapabilityInfoBase[] Capabilities { get; set; }
     
     [JsonPropertyName("properties")]
-    public object[] Properties { get; set; }
+    public PropertyInfoBase[] Properties { get; set; }
 
     [JsonPropertyName("device_info")]
     public DeviceInfo DeviceInfo { get; set; }

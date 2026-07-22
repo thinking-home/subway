@@ -10,9 +10,13 @@ using ThinkingHome.Alice.Model.Capabilities.Mode;
 using ThinkingHome.Alice.Model.Capabilities.OnOff;
 using ThinkingHome.Alice.Model.Capabilities.Range;
 using ThinkingHome.Alice.Model.Capabilities.Toggle;
+using ThinkingHome.Alice.Model.Properties;
+using ThinkingHome.Alice.Model.Properties.Event;
+using ThinkingHome.Alice.Model.Properties.Float;
 using ThinkingHome.DeviceModel;
 using ThinkingHome.DeviceModel.Capabilities;
 using ThinkingHome.DeviceModel.Commands;
+using ThinkingHome.DeviceModel.Properties;
 using ThinkingHome.DeviceModel.State;
 using AliceActionResult = ThinkingHome.Alice.Model.ActionResult.ActionResult;
 using AliceDevice = ThinkingHome.Alice.Model.Device;
@@ -27,7 +31,9 @@ namespace ThinkingHome.Alice.Mapping;
 /// Алисы плоская, поэтому каждый нейтральный endpoint → отдельное устройство с составным id
 /// (<see cref="AliceDeviceId"/>). Здесь живёт вся специфика формата Яндекса; ядро о ней не знает.
 /// Пока покрыты OnOff, range (яркость, положение, температура), цвет (color_setting),
-/// режимы (mode: fan_speed, thermostat) и тумблеры (toggle: oscillation).
+/// режимы (mode: fan_speed, thermostat), тумблеры (toggle: oscillation) и свойства-сенсоры
+/// (properties: float temperature/humidity, event motion/open) — свойства read-only, идут в
+/// отдельную ветку properties у Алисы.
 ///
 /// Маппинг ограничен замкнутым словарём преобразований (все — детерминированные, чистые функции):
 ///   • 1:1 relabel      — OnOff → on_off
@@ -65,7 +71,7 @@ public static class AliceMapper
         CapabilityActionParamsRange { State.Instance: CapabilityStateRangeInstance.Temperature } a => new TargetTemperatureCommand
         {
             EndpointId = endpointId,
-            Instance = "temperature",
+            Instance = "target_temperature",
             Value = (int)a.State.Value,
         },
         CapabilityActionParamsColorSetting { State.Instance: CapabilityColorInstance.TemperatureK } a => new ColorTemperatureCommand
@@ -114,18 +120,26 @@ public static class AliceMapper
             Room = descriptor.Room,
             Type = ToAliceDeviceType(endpoint.Type),
             Capabilities = endpoint.Capabilities.SelectMany(ToCapabilityInfos).ToArray(),
+            Properties = endpoint.Properties.Select(ToPropertyInfo).ToArray(),
             DeviceInfo = ToDeviceInfo(descriptor.Manufacturer),
         });
 
-    // ── query: весь снимок устройства + id → DeviceState (только значения нужного endpoint'а) ──
-    public static AliceDeviceState ToDeviceState(AliceDeviceId id, DeviceSnapshot snapshot) => new()
+    // ── query: весь снимок устройства + id → DeviceState (только значения нужного endpoint'а);
+    //    значения способностей и свойств разъезжаются по своим веткам по типу значения ──
+    public static AliceDeviceState ToDeviceState(AliceDeviceId id, DeviceSnapshot snapshot)
     {
-        Id = id.ToAlice(),
-        Capabilities = snapshot.Values
-            .Where(value => value.EndpointId == id.EndpointId)
-            .SelectMany(ToCapabilityStates)
-            .ToArray(),
-    };
+        var values = snapshot.Values.Where(value => value.EndpointId == id.EndpointId).ToArray();
+        return new()
+        {
+            Id = id.ToAlice(),
+            Capabilities = values.Where(v => !IsPropertyValue(v)).SelectMany(ToCapabilityStates).ToArray(),
+            Properties = values.Where(IsPropertyValue).Select(ToPropertyState).ToArray(),
+        };
+    }
+
+    // значения свойств (сенсоров) — у Алисы это properties, а не capabilities
+    private static bool IsPropertyValue(StateValue value) =>
+        value is TemperatureState or HumidityState or OccupancyState or ContactState;
 
     // ── action: результат нейтральной команды → результат способности Алисы ──
     public static CapabilityActionResultBase ToCapabilityActionResult(
@@ -327,6 +341,67 @@ public static class AliceMapper
         _ => throw new NotSupportedException($"Нет маппинга состояния {value.GetType().Name} в Alice"),
     };
 
+    // discovery: свойство ядра → property Алисы (relabel occupancy→motion, contact→open)
+    private static PropertyInfoBase ToPropertyInfo(Property property) => property switch
+    {
+        TemperatureProperty p => FloatProperty(p, PropertyFloatInstance.Temperature, Units.CELSIUS),
+        HumidityProperty p => FloatProperty(p, PropertyFloatInstance.Humidity, Units.PERCENT),
+        OccupancyProperty p => EventProperty(p, PropertyEventInstance.Motion,
+            [PropertyEventValue.Detected, PropertyEventValue.NotDetected]),
+        ContactProperty p => EventProperty(p, PropertyEventInstance.Open,
+            [PropertyEventValue.Opened, PropertyEventValue.Closed]),
+        _ => throw new NotSupportedException($"Нет маппинга свойства {property.GetType().Name} в Alice"),
+    };
+
+    private static PropertyInfoFloat FloatProperty(Property p, PropertyFloatInstance instance, string unit) => new()
+    {
+        Retrievable = p.Retrievable,
+        Reportable = p.Reportable,
+        Parameters = new PropertyFloatParams { Instance = instance, Unit = unit },
+    };
+
+    private static PropertyInfoEvent EventProperty(Property p, PropertyEventInstance instance, PropertyEventValue[] events) => new()
+    {
+        Retrievable = p.Retrievable,
+        Reportable = p.Reportable,
+        Parameters = new PropertyEventParams
+        {
+            Instance = instance,
+            Events = events.Select(v => new PropertyEventOption { Value = v }).ToArray(),
+        },
+    };
+
+    // query: значение свойства → состояние property Алисы (value-transform: bool → значение события)
+    private static PropertyStateBase ToPropertyState(StateValue value) => value switch
+    {
+        TemperatureState s => new PropertyStateFloat
+        {
+            State = new PropertyStateFloatData { Instance = PropertyFloatInstance.Temperature, Value = (float)s.Value },
+        },
+        HumidityState s => new PropertyStateFloat
+        {
+            State = new PropertyStateFloatData { Instance = PropertyFloatInstance.Humidity, Value = (float)s.Value },
+        },
+        OccupancyState s => new PropertyStateEvent
+        {
+            State = new PropertyStateEventData
+            {
+                Instance = PropertyEventInstance.Motion,
+                Value = s.Value ? PropertyEventValue.Detected : PropertyEventValue.NotDetected,
+            },
+        },
+        ContactState s => new PropertyStateEvent
+        {
+            State = new PropertyStateEventData
+            {
+                Instance = PropertyEventInstance.Open,
+                // семантика Matter Boolean State: true — контакт замкнут, т.е. закрыто
+                Value = s.Value ? PropertyEventValue.Closed : PropertyEventValue.Opened,
+            },
+        },
+        _ => throw new NotSupportedException($"Нет маппинга свойства-состояния {value.GetType().Name} в Alice"),
+    };
+
     private static AliceDeviceInfo? ToDeviceInfo(DeviceManufacturer? m) => m is null
         ? null
         : new AliceDeviceInfo
@@ -348,6 +423,10 @@ public static class AliceMapper
         DeviceType.Curtain => AliceDeviceType.Curtain,
         DeviceType.Fan => AliceDeviceType.Fan,
         DeviceType.AirConditioner => AliceDeviceType.ThermostatAc,
+        DeviceType.TemperatureSensor => AliceDeviceType.SensorClimate,
+        DeviceType.HumiditySensor => AliceDeviceType.SensorClimate,
+        DeviceType.OccupancySensor => AliceDeviceType.SensorMotion,
+        DeviceType.ContactSensor => AliceDeviceType.SensorOpen,
         _ => throw new NotSupportedException($"Нет маппинга типа устройства {type} в Alice"),
     };
 

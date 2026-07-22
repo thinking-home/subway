@@ -18,6 +18,9 @@ host.Register(new StubColorLamp("rgb-1", "RGB-лента", "Гостиная"));
 host.Register(new StubCurtain("curtain-1", "Штора в спальне", "Спальня"));
 host.Register(new StubFan("fan-1", "Вентилятор в спальне", "Спальня"));
 host.Register(new StubAirConditioner("ac-1", "Кондиционер в гостиной", "Гостиная"));
+host.Register(new StubClimateSensor("climate-1", "Датчик климата", "Кабинет"));
+host.Register(new StubMotionSensor("motion-1", "Датчик движения", "Коридор"));
+host.Register(new StubContactSensor("door-1", "Датчик двери", "Прихожая"));
 
 // коннектор к прокси (hub); JWT хоста — из аргумента или переменной окружения HOST_TOKEN
 await using var connector = new Connector(host, new LogOtpDelivery(), proxyUrl, () => Task.FromResult(token));

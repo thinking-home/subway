@@ -2,6 +2,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using ThinkingHome.DeviceModel.Capabilities;
 using ThinkingHome.DeviceModel.Commands;
+using ThinkingHome.DeviceModel.Properties;
 using ThinkingHome.DeviceModel.State;
 
 namespace ThinkingHome.DeviceModel.Tests;
@@ -11,6 +12,7 @@ public class SerializationTests
     public static IEnumerable<object[]> PolymorphicBases => new[]
     {
         new object[] { typeof(Capability) },
+        new object[] { typeof(Property) },
         new object[] { typeof(DeviceCommand) },
         new object[] { typeof(StateValue) },
     };
@@ -110,6 +112,36 @@ public class SerializationTests
             JsonSerializer.Deserialize<DeviceCommand>(JsonSerializer.Serialize(mode))).Value);
         Assert.Equal(24, Assert.IsType<TargetTemperatureCommand>(
             JsonSerializer.Deserialize<DeviceCommand>(JsonSerializer.Serialize(temp))).Value);
+    }
+
+    [Fact]
+    public void Sensor_states_round_trip_polymorphically()
+    {
+        StateValue temperature = new TemperatureState { Instance = "temperature", Value = 23.5 };
+        StateValue contact = new ContactState { Instance = "contact", Value = true };
+
+        Assert.Equal(23.5, Assert.IsType<TemperatureState>(
+            JsonSerializer.Deserialize<StateValue>(JsonSerializer.Serialize(temperature))).Value);
+        Assert.True(Assert.IsType<ContactState>(
+            JsonSerializer.Deserialize<StateValue>(JsonSerializer.Serialize(contact))).Value);
+    }
+
+    [Fact]
+    public void Property_round_trips_polymorphically_in_descriptor()
+    {
+        var endpoint = new Endpoint
+        {
+            Id = 0,
+            Type = DeviceType.TemperatureSensor,
+            Properties = [new TemperatureProperty { Instance = "temperature" }, new HumidityProperty { Instance = "humidity" }],
+        };
+
+        var json = JsonSerializer.Serialize(endpoint);
+        var back = JsonSerializer.Deserialize<Endpoint>(json)!;
+
+        Assert.Collection(back.Properties,
+            p => Assert.IsType<TemperatureProperty>(p),
+            p => Assert.IsType<HumidityProperty>(p));
     }
 
     [Fact]
