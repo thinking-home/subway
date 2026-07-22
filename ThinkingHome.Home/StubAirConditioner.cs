@@ -5,10 +5,12 @@ using ThinkingHome.DeviceModel.State;
 
 namespace ThinkingHome.Home;
 
-/// <summary>Заглушка вентилятора (OnOff + скорость fan_speed + осцилляция).</summary>
-public sealed class StubFan(string id, string title, string? room = null) : IDevice
+/// <summary>Заглушка кондиционера (OnOff + уставка температуры + режим + скорость + осцилляция).</summary>
+public sealed class StubAirConditioner(string id, string title, string? room = null) : IDevice
 {
     private bool isOn;
+    private int targetCelsius = 23;
+    private ThermostatMode mode = ThermostatMode.Cool;
     private FanSpeed speed = FanSpeed.Auto;
     private bool oscillating;
 
@@ -21,14 +23,16 @@ public sealed class StubFan(string id, string title, string? room = null) : IDev
         Id = id,
         Title = title,
         Room = room,
-        Manufacturer = new DeviceManufacturer { Name = "ThinkingHome", Model = "stub-fan" },
+        Manufacturer = new DeviceManufacturer { Name = "ThinkingHome", Model = "stub-ac" },
         Endpoints = [new Endpoint
         {
             Id = 0,
-            Type = DeviceType.Fan,
+            Type = DeviceType.AirConditioner,
             Capabilities =
             [
                 new OnOffCapability { Instance = "on" },
+                new TargetTemperatureCapability { Instance = "temperature", MinCelsius = 18, MaxCelsius = 33 },
+                new ThermostatModeCapability { Instance = "thermostat", Modes = [ThermostatMode.Auto, ThermostatMode.Heat, ThermostatMode.Cool, ThermostatMode.Dry, ThermostatMode.FanOnly] },
                 new FanSpeedCapability { Instance = "fan_speed", Speeds = [FanSpeed.Auto, FanSpeed.Low, FanSpeed.Medium, FanSpeed.High] },
                 new OscillationCapability { Instance = "oscillation" },
             ],
@@ -42,6 +46,8 @@ public sealed class StubFan(string id, string title, string? room = null) : IDev
             Values =
             [
                 new OnOffState { Instance = "on", Value = isOn },
+                new TargetTemperatureState { Instance = "temperature", Value = targetCelsius },
+                new ThermostatModeState { Instance = "thermostat", Value = mode },
                 new FanSpeedState { Instance = "fan_speed", Value = speed },
                 new OscillationState { Instance = "oscillation", Value = oscillating },
             ],
@@ -55,6 +61,18 @@ public sealed class StubFan(string id, string title, string? room = null) : IDev
                 isOn = on.Value;
                 Console.WriteLine($"[{id}] → {(isOn ? "ВКЛ" : "выкл")}");
                 Report(new OnOffState { Instance = "on", Value = isOn });
+                return Task.FromResult(CommandOutcome.Done);
+
+            case TargetTemperatureCommand temp:
+                targetCelsius = temp.Value;
+                Console.WriteLine($"[{id}] → уставка {targetCelsius} °C");
+                Report(new TargetTemperatureState { Instance = "temperature", Value = targetCelsius });
+                return Task.FromResult(CommandOutcome.Done);
+
+            case ThermostatModeCommand m:
+                mode = m.Value;
+                Console.WriteLine($"[{id}] → режим {mode}");
+                Report(new ThermostatModeState { Instance = "thermostat", Value = mode });
                 return Task.FromResult(CommandOutcome.Done);
 
             case FanSpeedCommand fan:

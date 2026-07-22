@@ -20,4 +20,7 @@ public enum DeviceType
 
     [JsonStringEnumMemberName("devices.types.ventilation.fan")]
     Fan,
+
+    [JsonStringEnumMemberName("devices.types.thermostat.ac")]
+    ThermostatAc,
 }

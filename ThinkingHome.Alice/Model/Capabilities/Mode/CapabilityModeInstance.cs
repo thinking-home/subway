@@ -6,4 +6,5 @@ namespace ThinkingHome.Alice.Model.Capabilities.Mode;
 public enum CapabilityModeInstance
 {
     [JsonStringEnumMemberName("fan_speed")] FanSpeed,
+    [JsonStringEnumMemberName("thermostat")] Thermostat,
 }

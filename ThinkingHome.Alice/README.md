@@ -70,6 +70,15 @@ snapshot.Values.SelectMany(ToCapabilityStates)        // состояние
   (`ColorRgbState`/`ColorTemperatureState`) с **общим** `Instance = "color"` → один слот кэша,
   переключение перезаписывает. В маппере остался чистый `type ↔ instance`, склейка исчезла.
 
+- **Тумблеры — тип-концепт на каждый, не generic `Toggle{instance}`.** У Алисы `toggle` — один
+  generic-тип умения, дискриминируемый instance'ом (oscillation, mute, backlight, …). В ядро это
+  обобщение не переносится: в Matter нет кластера «toggle» — осцилляция это атрибут Fan Control
+  (`RockSetting`), mute и backlight — совсем другие кластеры, то есть каждый тумблер — отдельный
+  концепт (правило 1). Поэтому в ядре — дедицированный тип на концепт (`OscillationCapability`,
+  bool как OnOff), как уже сделано для `range` (Brightness/Open) и `mode` (FanSpeed/ThermostatMode);
+  generic-структура «все тумблеры — bool» живёт только на стороне DTO Алисы. Маппинг — чистый
+  `1:1 relabel` → `toggle:oscillation`.
+
 - **Штора — derivation (не тащим Алисизм в ядро).** Алиса даёт «открыть/закрыть» как **отдельное
   умение `on_off` со своим состоянием**. В Matter это команды одного кластера Window Covering
   (`UpOrOpen`/`DownOrClose`), отдельного on/off-**состояния** нет. Поэтому ядро держит **одно** свойство
@@ -86,10 +95,17 @@ snapshot.Values.SelectMany(ToCapabilityStates)        // состояние
 3. Для `derivation (1:N)` расширь `ToCapabilityInfos`/`ToCapabilityStates`, а не отдельные ветки.
 4. Если способность **не выражается** ни одним видом — это сигнал править ядро (см. прецедент с
    цветом), а не добавлять произвольную логику в маппер.
-5. Покрой тестом в `ThinkingHome.DeviceModel.Tests/AliceMapperTests`.
+5. Покрой тестом в `ThinkingHome.DeviceModel.Tests/AliceMapperTests` и добавь образцы новых типов в
+   `AliceMapperCompletenessTests` — тесты полноты сами перечислят забытые ветки и типы по именам.
 
 ## Тесты
 
 - `AliceMapperTests` — все виды преобразования (relabel, value-transform, type↔instance, derivation),
   составные id, коды ошибок.
+- `AliceMapperCompletenessTests` — механическая полнота маппера (страховка: на каждый тип ядра нет
+  реального устройства, «забытая ветка» должна ловиться тестом, а не в проде). Рефлексией по закрытым
+  иерархиям: каждый конкретный тип `Capability`/`StateValue` имеет образец и маппится без исключений;
+  каждое зарегистрированное действие Алисы даёт команду и результат; каждая нейтральная команда
+  достижима из действий Алисы; discovery и состояние объявляют одинаковые наборы умений на instance
+  (включая derivation). Новый тип без образца или ветки — красный тест с именем типа.
 - `DeviceHostTests.Color_switch_overwrites_previous_representation` — регресс на общий слот кэша у цвета.

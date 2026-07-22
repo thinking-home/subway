@@ -4,6 +4,7 @@ using ThinkingHome.Alice.Model.Capabilities.ColorSetting;
 using ThinkingHome.Alice.Model.Capabilities.Mode;
 using ThinkingHome.Alice.Model.Capabilities.OnOff;
 using ThinkingHome.Alice.Model.Capabilities.Range;
+using ThinkingHome.Alice.Model.Capabilities.Toggle;
 using ThinkingHome.DeviceModel.Capabilities;
 using ThinkingHome.DeviceModel.Commands;
 using ThinkingHome.DeviceModel.State;
@@ -123,6 +124,7 @@ public class AliceMapperTests
     [InlineData(DeviceType.OnOffSwitch, AliceDeviceType.Switch)]
     [InlineData(DeviceType.Curtain, AliceDeviceType.Curtain)]
     [InlineData(DeviceType.Fan, AliceDeviceType.Fan)]
+    [InlineData(DeviceType.AirConditioner, AliceDeviceType.ThermostatAc)]
     public void ToDevices_maps_device_types(DeviceType type, AliceDeviceType expected)
     {
         var descriptor = new DeviceDescriptor
@@ -299,6 +301,98 @@ public class AliceMapperTests
         });
         var modeState = Assert.IsType<CapabilityStateMode>(Assert.Single(state.Capabilities));
         Assert.Equal(CapabilityModeValue.High, modeState.State.Value);
+    }
+
+    [Fact]
+    public void Oscillation_maps_to_alice_toggle()
+    {
+        // info: способность → toggle:oscillation
+        var info = Assert.IsType<CapabilityInfoToggle>(Assert.Single(Assert.Single(AliceMapper.ToDevices(
+            Descriptor(DeviceType.Fan, new OscillationCapability { Instance = "oscillation" }))).Capabilities));
+        Assert.Equal(CapabilityToggleInstance.Oscillation, info.Parameters.Instance);
+
+        // action → команда
+        var action = new CapabilityActionParamsToggle
+        {
+            State = new CapabilityStateToggleData { Instance = CapabilityToggleInstance.Oscillation, Value = true },
+        };
+        var command = Assert.IsType<OscillationCommand>(AliceMapper.ToCommand(action, endpointId: 0));
+        Assert.True(command.Value);
+        Assert.Equal("oscillation", command.Instance);
+
+        // snapshot → state
+        var state = AliceMapper.ToDeviceState(new AliceDeviceId("d", 0), new DeviceSnapshot
+        {
+            DeviceId = "d",
+            Values = [new OscillationState { EndpointId = 0, Instance = "oscillation", Value = true }],
+        });
+        var toggleState = Assert.IsType<CapabilityStateToggle>(Assert.Single(state.Capabilities));
+        Assert.Equal(CapabilityToggleInstance.Oscillation, toggleState.State.Instance);
+        Assert.True(toggleState.State.Value);
+    }
+
+    [Fact]
+    public void ThermostatMode_maps_to_alice_mode()
+    {
+        // info: способность → mode:thermostat со списком режимов
+        var info = Assert.IsType<CapabilityInfoMode>(Assert.Single(Assert.Single(AliceMapper.ToDevices(
+            Descriptor(DeviceType.AirConditioner,
+                new ThermostatModeCapability { Instance = "thermostat", Modes = [ThermostatMode.Cool, ThermostatMode.Heat, ThermostatMode.FanOnly] }))).Capabilities));
+        Assert.Equal(CapabilityModeInstance.Thermostat, info.Parameters.Instance);
+        Assert.Equal(new[] { CapabilityModeValue.Cool, CapabilityModeValue.Heat, CapabilityModeValue.FanOnly },
+            info.Parameters.Modes.Select(m => m.Value).ToArray());
+
+        // action → команда
+        var action = new CapabilityActionParamsMode
+        {
+            State = new CapabilityStateModeData { Instance = CapabilityModeInstance.Thermostat, Value = CapabilityModeValue.Dry },
+        };
+        var command = Assert.IsType<ThermostatModeCommand>(AliceMapper.ToCommand(action, endpointId: 0));
+        Assert.Equal(ThermostatMode.Dry, command.Value);
+        Assert.Equal("thermostat", command.Instance);
+
+        // snapshot → state
+        var state = AliceMapper.ToDeviceState(new AliceDeviceId("d", 0), new DeviceSnapshot
+        {
+            DeviceId = "d",
+            Values = [new ThermostatModeState { EndpointId = 0, Instance = "thermostat", Value = ThermostatMode.Heat }],
+        });
+        var modeState = Assert.IsType<CapabilityStateMode>(Assert.Single(state.Capabilities));
+        Assert.Equal(CapabilityModeInstance.Thermostat, modeState.State.Instance);
+        Assert.Equal(CapabilityModeValue.Heat, modeState.State.Value);
+    }
+
+    [Fact]
+    public void TargetTemperature_maps_to_celsius_range()
+    {
+        // info: первый непроцентный range — unit celsius, границы из способности
+        var info = Assert.IsType<CapabilityInfoRange>(Assert.Single(Assert.Single(AliceMapper.ToDevices(
+            Descriptor(DeviceType.AirConditioner,
+                new TargetTemperatureCapability { Instance = "temperature", MinCelsius = 18, MaxCelsius = 33 }))).Capabilities));
+        Assert.Equal(CapabilityStateRangeInstance.Temperature, info.Parameters.Instance);
+        Assert.Equal("unit.temperature.celsius", info.Parameters.Unit);
+        Assert.Equal(18f, info.Parameters.Range.Min);
+        Assert.Equal(33f, info.Parameters.Range.Max);
+        Assert.Equal(1f, info.Parameters.Range.Precision);
+
+        // action → команда
+        var action = new CapabilityActionParamsRange
+        {
+            State = new CapabilityStateRangeData { Instance = CapabilityStateRangeInstance.Temperature, Value = 24 },
+        };
+        var command = Assert.IsType<TargetTemperatureCommand>(AliceMapper.ToCommand(action, endpointId: 0));
+        Assert.Equal(24, command.Value);
+        Assert.Equal("temperature", command.Instance);
+
+        // snapshot → state
+        var state = AliceMapper.ToDeviceState(new AliceDeviceId("d", 0), new DeviceSnapshot
+        {
+            DeviceId = "d",
+            Values = [new TargetTemperatureState { EndpointId = 0, Instance = "temperature", Value = 24 }],
+        });
+        var rangeState = Assert.IsType<CapabilityStateRange>(Assert.Single(state.Capabilities));
+        Assert.Equal(CapabilityStateRangeInstance.Temperature, rangeState.State.Instance);
+        Assert.Equal(24f, rangeState.State.Value);
     }
 
     private static DeviceDescriptor Descriptor(DeviceType type, params Capability[] capabilities) => new()

@@ -91,6 +91,28 @@ public class SerializationTests
     }
 
     [Fact]
+    public void Oscillation_command_round_trips_polymorphically()
+    {
+        DeviceCommand command = new OscillationCommand { Instance = "oscillation", Value = true };
+
+        var back = Assert.IsType<OscillationCommand>(JsonSerializer.Deserialize<DeviceCommand>(JsonSerializer.Serialize(command)));
+        Assert.True(back.Value);
+        Assert.Equal("oscillation", back.Instance);
+    }
+
+    [Fact]
+    public void Thermostat_commands_round_trip_polymorphically()
+    {
+        DeviceCommand mode = new ThermostatModeCommand { Instance = "thermostat", Value = ThermostatMode.Dry };
+        DeviceCommand temp = new TargetTemperatureCommand { Instance = "temperature", Value = 24 };
+
+        Assert.Equal(ThermostatMode.Dry, Assert.IsType<ThermostatModeCommand>(
+            JsonSerializer.Deserialize<DeviceCommand>(JsonSerializer.Serialize(mode))).Value);
+        Assert.Equal(24, Assert.IsType<TargetTemperatureCommand>(
+            JsonSerializer.Deserialize<DeviceCommand>(JsonSerializer.Serialize(temp))).Value);
+    }
+
+    [Fact]
     public void Snapshot_round_trips_with_polymorphic_values()
     {
         var snapshot = new DeviceSnapshot

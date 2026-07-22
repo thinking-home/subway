@@ -35,4 +35,7 @@ public enum DeviceType
 
     /// <summary>Вентилятор (On/Off + скорость). Matter Fan 0x002B.</summary>
     Fan,
+
+    /// <summary>Кондиционер (On/Off + уставка температуры + режим + скорость + осцилляция). Matter Room Air Conditioner 0x0072.</summary>
+    AirConditioner,
 }

@@ -9,6 +9,7 @@ using ThinkingHome.Alice.Model.Capabilities.ColorSetting;
 using ThinkingHome.Alice.Model.Capabilities.Mode;
 using ThinkingHome.Alice.Model.Capabilities.OnOff;
 using ThinkingHome.Alice.Model.Capabilities.Range;
+using ThinkingHome.Alice.Model.Capabilities.Toggle;
 using ThinkingHome.DeviceModel;
 using ThinkingHome.DeviceModel.Capabilities;
 using ThinkingHome.DeviceModel.Commands;
@@ -25,7 +26,8 @@ namespace ThinkingHome.Alice.Mapping;
 /// Перевод нейтральной модели устройств (ThinkingHome.DeviceModel) в DTO Алисы и обратно. Модель
 /// Алисы плоская, поэтому каждый нейтральный endpoint → отдельное устройство с составным id
 /// (<see cref="AliceDeviceId"/>). Здесь живёт вся специфика формата Яндекса; ядро о ней не знает.
-/// Пока покрыты OnOff, range (яркость, положение), цвет (color_setting) и режим (mode: fan_speed).
+/// Пока покрыты OnOff, range (яркость, положение, температура), цвет (color_setting),
+/// режимы (mode: fan_speed, thermostat) и тумблеры (toggle: oscillation).
 ///
 /// Маппинг ограничен замкнутым словарём преобразований (все — детерминированные, чистые функции):
 ///   • 1:1 relabel      — OnOff → on_off
@@ -60,6 +62,12 @@ public static class AliceMapper
             Instance = "open",
             Value = (int)a.State.Value,
         },
+        CapabilityActionParamsRange { State.Instance: CapabilityStateRangeInstance.Temperature } a => new TargetTemperatureCommand
+        {
+            EndpointId = endpointId,
+            Instance = "temperature",
+            Value = (int)a.State.Value,
+        },
         CapabilityActionParamsColorSetting { State.Instance: CapabilityColorInstance.TemperatureK } a => new ColorTemperatureCommand
         {
             EndpointId = endpointId,
@@ -77,6 +85,18 @@ public static class AliceMapper
             EndpointId = endpointId,
             Instance = "fan_speed",
             Value = ToFanSpeed(a.State.Value),
+        },
+        CapabilityActionParamsMode { State.Instance: CapabilityModeInstance.Thermostat } a => new ThermostatModeCommand
+        {
+            EndpointId = endpointId,
+            Instance = "thermostat",
+            Value = ToThermostatMode(a.State.Value),
+        },
+        CapabilityActionParamsToggle { State.Instance: CapabilityToggleInstance.Oscillation } a => new OscillationCommand
+        {
+            EndpointId = endpointId,
+            Instance = "oscillation",
+            Value = a.State.Value,
         },
         _ => throw new NotSupportedException($"Нет нейтрального маппинга для {action.GetType().Name}"),
     };
@@ -143,6 +163,14 @@ public static class AliceMapper
                 ActionResult = ToActionResult(outcome),
             },
         },
+        CapabilityActionParamsToggle a => new CapabilityActionResultToggle
+        {
+            State = new CapabilityStateActionResult<CapabilityToggleInstance>
+            {
+                Instance = a.State.Instance,
+                ActionResult = ToActionResult(outcome),
+            },
+        },
         _ => throw new NotSupportedException($"Нет маппинга результата для {action.GetType().Name}"),
     };
 
@@ -200,6 +228,34 @@ public static class AliceMapper
                 Modes = c.Speeds.Select(s => new CapabilityModeOption { Value = ToAliceMode(s) }).ToArray(),
             },
         },
+        ThermostatModeCapability c => new CapabilityInfoMode
+        {
+            Retrievable = c.Retrievable,
+            Reportable = c.Reportable,
+            Parameters = new CapabilityModeParams
+            {
+                Instance = CapabilityModeInstance.Thermostat,
+                Modes = c.Modes.Select(m => new CapabilityModeOption { Value = ToAliceMode(m) }).ToArray(),
+            },
+        },
+        TargetTemperatureCapability c => new CapabilityInfoRange
+        {
+            Retrievable = c.Retrievable,
+            Reportable = c.Reportable,
+            Parameters = new CapabilityRangeParams
+            {
+                Instance = CapabilityStateRangeInstance.Temperature,
+                Unit = Units.CELSIUS,
+                RandomAccess = true,
+                Range = new CapabilityRangeLimits { Min = c.MinCelsius, Max = c.MaxCelsius, Precision = 1 },
+            },
+        },
+        OscillationCapability c => new CapabilityInfoToggle
+        {
+            Retrievable = c.Retrievable,
+            Reportable = c.Reportable,
+            Parameters = new CapabilityToggleParams { Instance = CapabilityToggleInstance.Oscillation },
+        },
         _ => throw new NotSupportedException($"Нет маппинга способности {capability.GetType().Name} в Alice"),
     };
 
@@ -256,6 +312,18 @@ public static class AliceMapper
         {
             State = new CapabilityStateModeData { Instance = CapabilityModeInstance.FanSpeed, Value = ToAliceMode(s.Value) },
         },
+        ThermostatModeState s => new CapabilityStateMode
+        {
+            State = new CapabilityStateModeData { Instance = CapabilityModeInstance.Thermostat, Value = ToAliceMode(s.Value) },
+        },
+        TargetTemperatureState s => new CapabilityStateRange
+        {
+            State = new CapabilityStateRangeData { Instance = CapabilityStateRangeInstance.Temperature, Value = s.Value },
+        },
+        OscillationState s => new CapabilityStateToggle
+        {
+            State = new CapabilityStateToggleData { Instance = CapabilityToggleInstance.Oscillation, Value = s.Value },
+        },
         _ => throw new NotSupportedException($"Нет маппинга состояния {value.GetType().Name} в Alice"),
     };
 
@@ -279,6 +347,7 @@ public static class AliceMapper
         DeviceType.OnOffSwitch => AliceDeviceType.Switch,
         DeviceType.Curtain => AliceDeviceType.Curtain,
         DeviceType.Fan => AliceDeviceType.Fan,
+        DeviceType.AirConditioner => AliceDeviceType.ThermostatAc,
         _ => throw new NotSupportedException($"Нет маппинга типа устройства {type} в Alice"),
     };
 
@@ -299,6 +368,27 @@ public static class AliceMapper
         CapabilityModeValue.Medium => FanSpeed.Medium,
         CapabilityModeValue.High => FanSpeed.High,
         _ => throw new NotSupportedException($"Нет маппинга режима {value} в FanSpeed"),
+    };
+
+    // value-transform: нейтральный режим термостата ↔ значение mode Алисы (enum ↔ enum)
+    private static CapabilityModeValue ToAliceMode(ThermostatMode mode) => mode switch
+    {
+        ThermostatMode.Auto => CapabilityModeValue.Auto,
+        ThermostatMode.Heat => CapabilityModeValue.Heat,
+        ThermostatMode.Cool => CapabilityModeValue.Cool,
+        ThermostatMode.Dry => CapabilityModeValue.Dry,
+        ThermostatMode.FanOnly => CapabilityModeValue.FanOnly,
+        _ => throw new NotSupportedException($"Нет маппинга режима {mode} в Alice"),
+    };
+
+    private static ThermostatMode ToThermostatMode(CapabilityModeValue value) => value switch
+    {
+        CapabilityModeValue.Auto => ThermostatMode.Auto,
+        CapabilityModeValue.Heat => ThermostatMode.Heat,
+        CapabilityModeValue.Cool => ThermostatMode.Cool,
+        CapabilityModeValue.Dry => ThermostatMode.Dry,
+        CapabilityModeValue.FanOnly => ThermostatMode.FanOnly,
+        _ => throw new NotSupportedException($"Нет маппинга режима {value} в ThermostatMode"),
     };
 
     private static ActionResultErrorCode ToErrorCode(CommandErrorCode? code) => code switch

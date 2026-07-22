@@ -3,6 +3,7 @@ using ThinkingHome.Alice.Model.Capabilities.ColorSetting;
 using ThinkingHome.Alice.Model.Capabilities.Mode;
 using ThinkingHome.Alice.Model.Capabilities.OnOff;
 using ThinkingHome.Alice.Model.Capabilities.Range;
+using ThinkingHome.Alice.Model.Capabilities.Toggle;
 
 namespace ThinkingHome.Alice.Model.Capabilities;
 
@@ -11,6 +12,7 @@ namespace ThinkingHome.Alice.Model.Capabilities;
 [JsonDerivedType(typeof(CapabilityInfoRange), CapabilityType.RANGE)]
 [JsonDerivedType(typeof(CapabilityInfoColorSetting), CapabilityType.COLOR_SETTING)]
 [JsonDerivedType(typeof(CapabilityInfoMode), CapabilityType.MODE)]
+[JsonDerivedType(typeof(CapabilityInfoToggle), CapabilityType.TOGGLE)]
 public class CapabilityInfoBase
 {
     [JsonPropertyName("retrievable")] public bool Retrievable { get; set; }

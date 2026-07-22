@@ -175,7 +175,8 @@ light.OnChanged(change => Log(change));                     // подписка 
 | `Capability.OnOff`            | cluster On/Off `0x0006`             | `capabilities.on_off`       |
 | `Capability.Level`            | cluster Level Control `0x0008`      | `range:brightness`          |
 | `Capability.Color`            | cluster Color Control `0x0300`      | `color_setting`             |
-| `Capability.Thermostat`       | cluster Thermostat `0x0201`         | `range:temperature` + `mode`|
+| `Capability.FanSpeed` / `Capability.Oscillation` | cluster Fan Control `0x0202` | `mode:fan_speed` + `toggle:oscillation` |
+| `Capability.ThermostatMode` / `Capability.TargetTemperature` | cluster Thermostat `0x0201` | `mode:thermostat` + `range:temperature` |
 | `Property.Temperature`        | cluster Temperature Meas. `0x0402`  | `float:temperature`         |
 | `Property.Humidity`           | cluster Rel. Humidity Meas. `0x0405`| `float:humidity`            |
 | `Property.Occupancy`          | cluster Occupancy Sensing `0x0406`  | `event:motion`              |

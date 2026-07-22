@@ -4,6 +4,7 @@ using ThinkingHome.Alice.Model.Capabilities.ColorSetting;
 using ThinkingHome.Alice.Model.Capabilities.Mode;
 using ThinkingHome.Alice.Model.Capabilities.OnOff;
 using ThinkingHome.Alice.Model.Capabilities.Range;
+using ThinkingHome.Alice.Model.Capabilities.Toggle;
 
 namespace ThinkingHome.Alice.Model.Capabilities;
 
@@ -12,6 +13,7 @@ namespace ThinkingHome.Alice.Model.Capabilities;
 [JsonDerivedType(typeof(CapabilityActionResultRange), CapabilityType.RANGE)]
 [JsonDerivedType(typeof(CapabilityActionResultColorSetting), CapabilityType.COLOR_SETTING)]
 [JsonDerivedType(typeof(CapabilityActionResultMode), CapabilityType.MODE)]
+[JsonDerivedType(typeof(CapabilityActionResultToggle), CapabilityType.TOGGLE)]
 public class CapabilityActionResultBase
 {
 }

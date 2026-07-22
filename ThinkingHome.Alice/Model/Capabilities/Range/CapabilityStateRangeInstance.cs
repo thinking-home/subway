@@ -7,4 +7,5 @@ public enum CapabilityStateRangeInstance
 {
     [JsonStringEnumMemberName("brightness")] Brightness,
     [JsonStringEnumMemberName("open")] Open,
+    [JsonStringEnumMemberName("temperature")] Temperature,
 }
