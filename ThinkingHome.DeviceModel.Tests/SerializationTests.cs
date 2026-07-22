@@ -82,6 +82,15 @@ public class SerializationTests
     }
 
     [Fact]
+    public void FanSpeed_command_round_trips_polymorphically()
+    {
+        DeviceCommand command = new FanSpeedCommand { Instance = "fan_speed", Value = FanSpeed.Medium };
+
+        var back = Assert.IsType<FanSpeedCommand>(JsonSerializer.Deserialize<DeviceCommand>(JsonSerializer.Serialize(command)));
+        Assert.Equal(FanSpeed.Medium, back.Value);
+    }
+
+    [Fact]
     public void Snapshot_round_trips_with_polymorphic_values()
     {
         var snapshot = new DeviceSnapshot

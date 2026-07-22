@@ -32,4 +32,7 @@ public enum DeviceType
 
     /// <summary>Штора/жалюзи (открытие/закрытие + положение). Matter Window Covering 0x0202.</summary>
     Curtain,
+
+    /// <summary>Вентилятор (On/Off + скорость). Matter Fan 0x002B.</summary>
+    Fan,
 }

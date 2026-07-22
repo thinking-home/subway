@@ -6,6 +6,7 @@ using System.Linq;
 using ThinkingHome.Alice.Model.ActionResult;
 using ThinkingHome.Alice.Model.Capabilities;
 using ThinkingHome.Alice.Model.Capabilities.ColorSetting;
+using ThinkingHome.Alice.Model.Capabilities.Mode;
 using ThinkingHome.Alice.Model.Capabilities.OnOff;
 using ThinkingHome.Alice.Model.Capabilities.Range;
 using ThinkingHome.DeviceModel;
@@ -24,7 +25,7 @@ namespace ThinkingHome.Alice.Mapping;
 /// Перевод нейтральной модели устройств (ThinkingHome.DeviceModel) в DTO Алисы и обратно. Модель
 /// Алисы плоская, поэтому каждый нейтральный endpoint → отдельное устройство с составным id
 /// (<see cref="AliceDeviceId"/>). Здесь живёт вся специфика формата Яндекса; ядро о ней не знает.
-/// Пока покрыты OnOff, range (яркость, положение) и цвет (color_setting).
+/// Пока покрыты OnOff, range (яркость, положение), цвет (color_setting) и режим (mode: fan_speed).
 ///
 /// Маппинг ограничен замкнутым словарём преобразований (все — детерминированные, чистые функции):
 ///   • 1:1 relabel      — OnOff → on_off
@@ -70,6 +71,12 @@ public static class AliceMapper
             EndpointId = endpointId,
             Instance = ColorCapability.InstanceName,
             Value = a.State.Value,
+        },
+        CapabilityActionParamsMode { State.Instance: CapabilityModeInstance.FanSpeed } a => new FanSpeedCommand
+        {
+            EndpointId = endpointId,
+            Instance = "fan_speed",
+            Value = ToFanSpeed(a.State.Value),
         },
         _ => throw new NotSupportedException($"Нет нейтрального маппинга для {action.GetType().Name}"),
     };
@@ -128,6 +135,14 @@ public static class AliceMapper
                 ActionResult = ToActionResult(outcome),
             },
         },
+        CapabilityActionParamsMode a => new CapabilityActionResultMode
+        {
+            State = new CapabilityStateActionResult<CapabilityModeInstance>
+            {
+                Instance = a.State.Instance,
+                ActionResult = ToActionResult(outcome),
+            },
+        },
         _ => throw new NotSupportedException($"Нет маппинга результата для {action.GetType().Name}"),
     };
 
@@ -173,6 +188,16 @@ public static class AliceMapper
                 TemperatureK = c.Temperature is { } t
                     ? new CapabilityColorTemperatureRange { Min = t.MinKelvin, Max = t.MaxKelvin }
                     : null,
+            },
+        },
+        FanSpeedCapability c => new CapabilityInfoMode
+        {
+            Retrievable = c.Retrievable,
+            Reportable = c.Reportable,
+            Parameters = new CapabilityModeParams
+            {
+                Instance = CapabilityModeInstance.FanSpeed,
+                Modes = c.Speeds.Select(s => new CapabilityModeOption { Value = ToAliceMode(s) }).ToArray(),
             },
         },
         _ => throw new NotSupportedException($"Нет маппинга способности {capability.GetType().Name} в Alice"),
@@ -227,6 +252,10 @@ public static class AliceMapper
         {
             State = new CapabilityStateColorData { Instance = CapabilityColorInstance.Rgb, Value = s.Value },
         },
+        FanSpeedState s => new CapabilityStateMode
+        {
+            State = new CapabilityStateModeData { Instance = CapabilityModeInstance.FanSpeed, Value = ToAliceMode(s.Value) },
+        },
         _ => throw new NotSupportedException($"Нет маппинга состояния {value.GetType().Name} в Alice"),
     };
 
@@ -249,7 +278,27 @@ public static class AliceMapper
         DeviceType.OnOffSocket => AliceDeviceType.Socket,
         DeviceType.OnOffSwitch => AliceDeviceType.Switch,
         DeviceType.Curtain => AliceDeviceType.Curtain,
+        DeviceType.Fan => AliceDeviceType.Fan,
         _ => throw new NotSupportedException($"Нет маппинга типа устройства {type} в Alice"),
+    };
+
+    // value-transform: нейтральная скорость ↔ значение mode Алисы (enum ↔ enum)
+    private static CapabilityModeValue ToAliceMode(FanSpeed speed) => speed switch
+    {
+        FanSpeed.Auto => CapabilityModeValue.Auto,
+        FanSpeed.Low => CapabilityModeValue.Low,
+        FanSpeed.Medium => CapabilityModeValue.Medium,
+        FanSpeed.High => CapabilityModeValue.High,
+        _ => throw new NotSupportedException($"Нет маппинга скорости {speed} в Alice"),
+    };
+
+    private static FanSpeed ToFanSpeed(CapabilityModeValue value) => value switch
+    {
+        CapabilityModeValue.Auto => FanSpeed.Auto,
+        CapabilityModeValue.Low => FanSpeed.Low,
+        CapabilityModeValue.Medium => FanSpeed.Medium,
+        CapabilityModeValue.High => FanSpeed.High,
+        _ => throw new NotSupportedException($"Нет маппинга режима {value} в FanSpeed"),
     };
 
     private static ActionResultErrorCode ToErrorCode(CommandErrorCode? code) => code switch

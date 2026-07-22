@@ -12,6 +12,7 @@ namespace ThinkingHome.DeviceModel.Capabilities;
 [JsonDerivedType(typeof(BrightnessCapability), "brightness")]
 [JsonDerivedType(typeof(ColorCapability), "color")]
 [JsonDerivedType(typeof(OpenCapability), "open")]
+[JsonDerivedType(typeof(FanSpeedCapability), "fanSpeed")]
 public abstract record Capability
 {
     /// <summary>Экземпляр способности (например, "on", "brightness").</summary>

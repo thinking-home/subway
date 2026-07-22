@@ -1,6 +1,7 @@
 using ThinkingHome.Alice.Mapping;
 using ThinkingHome.Alice.Model.ActionResult;
 using ThinkingHome.Alice.Model.Capabilities.ColorSetting;
+using ThinkingHome.Alice.Model.Capabilities.Mode;
 using ThinkingHome.Alice.Model.Capabilities.OnOff;
 using ThinkingHome.Alice.Model.Capabilities.Range;
 using ThinkingHome.DeviceModel.Capabilities;
@@ -121,6 +122,7 @@ public class AliceMapperTests
     [InlineData(DeviceType.OnOffSocket, AliceDeviceType.Socket)]
     [InlineData(DeviceType.OnOffSwitch, AliceDeviceType.Switch)]
     [InlineData(DeviceType.Curtain, AliceDeviceType.Curtain)]
+    [InlineData(DeviceType.Fan, AliceDeviceType.Fan)]
     public void ToDevices_maps_device_types(DeviceType type, AliceDeviceType expected)
     {
         var descriptor = new DeviceDescriptor
@@ -269,6 +271,34 @@ public class AliceMapperTests
         Assert.Equal(70f, rangeState.State.Value);
         var onOff = Assert.IsType<CapabilityStateOnOff>(state.Capabilities.Single(c => c is CapabilityStateOnOff));
         Assert.True(onOff.State.Value); // 70 > 0 → открыто
+    }
+
+    [Fact]
+    public void FanSpeed_maps_to_alice_mode()
+    {
+        // info: способность → mode:fan_speed со списком режимов
+        var info = Assert.IsType<CapabilityInfoMode>(Assert.Single(Assert.Single(AliceMapper.ToDevices(
+            Descriptor(DeviceType.Fan, new FanSpeedCapability { Instance = "fan_speed", Speeds = [FanSpeed.Low, FanSpeed.High] }))).Capabilities));
+        Assert.Equal(CapabilityModeInstance.FanSpeed, info.Parameters.Instance);
+        Assert.Equal(new[] { CapabilityModeValue.Low, CapabilityModeValue.High }, info.Parameters.Modes.Select(m => m.Value).ToArray());
+
+        // action → команда
+        var action = new CapabilityActionParamsMode
+        {
+            State = new CapabilityStateModeData { Instance = CapabilityModeInstance.FanSpeed, Value = CapabilityModeValue.Medium },
+        };
+        var command = Assert.IsType<FanSpeedCommand>(AliceMapper.ToCommand(action, endpointId: 0));
+        Assert.Equal(FanSpeed.Medium, command.Value);
+        Assert.Equal("fan_speed", command.Instance);
+
+        // snapshot → state
+        var state = AliceMapper.ToDeviceState(new AliceDeviceId("d", 0), new DeviceSnapshot
+        {
+            DeviceId = "d",
+            Values = [new FanSpeedState { EndpointId = 0, Instance = "fan_speed", Value = FanSpeed.High }],
+        });
+        var modeState = Assert.IsType<CapabilityStateMode>(Assert.Single(state.Capabilities));
+        Assert.Equal(CapabilityModeValue.High, modeState.State.Value);
     }
 
     private static DeviceDescriptor Descriptor(DeviceType type, params Capability[] capabilities) => new()

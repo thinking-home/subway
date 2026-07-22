@@ -17,4 +17,7 @@ public enum DeviceType
 
     [JsonStringEnumMemberName("devices.types.openable.curtain")]
     Curtain,
+
+    [JsonStringEnumMemberName("devices.types.ventilation.fan")]
+    Fan,
 }

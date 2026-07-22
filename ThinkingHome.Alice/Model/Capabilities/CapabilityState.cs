@@ -1,5 +1,6 @@
 using System.Text.Json.Serialization;
 using ThinkingHome.Alice.Model.Capabilities.ColorSetting;
+using ThinkingHome.Alice.Model.Capabilities.Mode;
 using ThinkingHome.Alice.Model.Capabilities.OnOff;
 using ThinkingHome.Alice.Model.Capabilities.Range;
 
@@ -9,6 +10,7 @@ namespace ThinkingHome.Alice.Model.Capabilities;
 [JsonDerivedType(typeof(CapabilityStateOnOff), CapabilityType.ON_OFF)]
 [JsonDerivedType(typeof(CapabilityStateRange), CapabilityType.RANGE)]
 [JsonDerivedType(typeof(CapabilityStateColorSetting), CapabilityType.COLOR_SETTING)]
+[JsonDerivedType(typeof(CapabilityStateMode), CapabilityType.MODE)]
 public class CapabilityStateBase
 {
 }
