@@ -567,31 +567,40 @@ public class AliceMapperTests
     public void StateChange_maps_to_callback_device_state()
     {
         // report-пуш: capability-изменение → ветка capabilities, составной id из endpoint'а значения
-        var capState = AliceMapper.ToDeviceState(new StateChange
-        {
-            DeviceId = "fan-1",
-            Value = new OscillationState { EndpointId = 2, Instance = "oscillation", Value = true },
-        });
+        var capState = Assert.Single(AliceMapper.ToCallbackState("home",
+        [
+            new StateChange
+            {
+                DeviceId = "fan-1",
+                Value = new OscillationState { EndpointId = 2, Instance = "oscillation", Value = true },
+            },
+        ], ts: 1).Payload.Devices);
         Assert.Equal("fan-1#2", capState.Id);
         Assert.IsType<CapabilityStateToggle>(Assert.Single(capState.Capabilities));
         Assert.Empty(capState.Properties);
 
         // property-изменение → ветка properties
-        var propState = AliceMapper.ToDeviceState(new StateChange
-        {
-            DeviceId = "climate-1",
-            Value = new TemperatureState { Instance = "temperature", Value = 23.5 },
-        });
+        var propState = Assert.Single(AliceMapper.ToCallbackState("home",
+        [
+            new StateChange
+            {
+                DeviceId = "climate-1",
+                Value = new TemperatureState { Instance = "temperature", Value = 23.5 },
+            },
+        ], ts: 1).Payload.Devices);
         Assert.Equal("climate-1#0", propState.Id);
         Assert.Empty(propState.Capabilities);
         Assert.IsType<PropertyStateFloat>(Assert.Single(propState.Properties));
 
         // derivation работает и в пуше: изменение положения шторы уведомляет range:open + on_off
-        var openState = AliceMapper.ToDeviceState(new StateChange
-        {
-            DeviceId = "curtain-1",
-            Value = new OpenState { Instance = "open", Value = 70 },
-        });
+        var openState = Assert.Single(AliceMapper.ToCallbackState("home",
+        [
+            new StateChange
+            {
+                DeviceId = "curtain-1",
+                Value = new OpenState { Instance = "open", Value = 70 },
+            },
+        ], ts: 1).Payload.Devices);
         Assert.Equal(2, openState.Capabilities.Length);
     }
 

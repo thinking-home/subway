@@ -8,6 +8,7 @@ using ThinkingHome.Alice.Model.Capabilities;
 using ThinkingHome.Alice.Model.Capabilities.ColorSetting;
 using ThinkingHome.Alice.Model.Capabilities.Mode;
 using ThinkingHome.Alice.Model.Capabilities.OnOff;
+using ThinkingHome.Alice.Model.Callback;
 using ThinkingHome.Alice.Model.Capabilities.Range;
 using ThinkingHome.Alice.Model.Capabilities.Toggle;
 using ThinkingHome.Alice.Model.Properties;
@@ -137,12 +138,27 @@ public static class AliceMapper
         };
     }
 
-    // ── report: одно изменение состояния → DeviceState для callback-уведомления Яндекса.
-    //    Чистый реюз query-ветки: разъезд по capabilities/properties и derivation работают как в query ──
-    public static AliceDeviceState ToDeviceState(StateChange change) =>
-        ToDeviceState(
-            new AliceDeviceId(change.DeviceId, change.Value.EndpointId),
-            new DeviceSnapshot { DeviceId = change.DeviceId, Values = [change.Value] });
+    // ── report: пачка изменений за окно → один callback-запрос Notification API (user_id = hostId).
+    //    Дедуп по слоту кэша (устройство, endpoint, instance) — последнее значение побеждает (то же
+    //    правило, что у кэша хоста, включая осознанно общий слот цвета); затем группировка по
+    //    (устройство, endpoint) и чистый реюз query-ветки: разъезд по capabilities/properties и
+    //    derivation работают как в query ──
+    public static CallbackStateRequest ToCallbackState(string userId, IReadOnlyList<StateChange> changes, long ts) => new()
+    {
+        Ts = ts,
+        Payload = new CallbackStatePayload
+        {
+            UserId = userId,
+            Devices = changes
+                .GroupBy(c => (c.DeviceId, c.Value.EndpointId, c.Value.Instance))
+                .Select(slot => slot.Last())
+                .GroupBy(c => (c.DeviceId, c.Value.EndpointId))
+                .Select(device => ToDeviceState(
+                    new AliceDeviceId(device.Key.DeviceId, device.Key.EndpointId),
+                    new DeviceSnapshot { DeviceId = device.Key.DeviceId, Values = device.Select(c => c.Value).ToArray() }))
+                .ToArray(),
+        },
+    };
 
     // значения свойств (сенсоров) — у Алисы это properties, а не capabilities
     private static bool IsPropertyValue(StateValue value) =>

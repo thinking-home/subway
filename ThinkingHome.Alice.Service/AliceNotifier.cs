@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Text.Json;
@@ -17,9 +19,11 @@ namespace ThinkingHome.Alice.Service
 {
     /// <summary>
     /// Пуш изменений состояния в Яндекс (Notification API): подписывается на Report'ы всех
-    /// подключённых хостов и на каждое изменение шлёт callback/state с user_id = hostId.
-    /// Без настроенных Alice:SkillId / Alice:CallbackToken работает вхолостую — логирует payload
-    /// (проверка пайплайна без секретов). Батчинга нет: одно изменение — один POST.
+    /// подключённых хостов, копит изменения в окне <see cref="FlushWindow"/> и шлёт их одним
+    /// callback/state на хост (user_id = hostId) — Яндекс просит объединять изменения и слать
+    /// не чаще ~раза в секунду. Дедуп внутри окна — в чистом маппере (последнее значение слота
+    /// побеждает). Без настроенных Alice:SkillId / Alice:CallbackToken работает вхолостую —
+    /// логирует payload (проверка пайплайна без секретов).
     /// </summary>
     public sealed class AliceNotifier(
         IRemoteHostRegistry registry,
@@ -27,7 +31,14 @@ namespace ThinkingHome.Alice.Service
         IConfiguration configuration,
         ILogger<AliceNotifier> logger) : IHostedService
     {
+        // окно накопления: максимум одна отправка на хост в секунду, худшая задержка пуша — то же окно
+        private static readonly TimeSpan FlushWindow = TimeSpan.FromSeconds(1);
+
         private readonly ConcurrentDictionary<string, byte> subscribed = new();
+        private readonly Lock gate = new();
+        private readonly List<(string HostId, StateChange Change)> buffer = [];
+        private bool flushScheduled;
+
         private string SkillId => configuration["Alice:SkillId"];
         private string CallbackToken => configuration["Alice:CallbackToken"];
 
@@ -59,52 +70,75 @@ namespace ThinkingHome.Alice.Service
                 return;
             }
 
-            host.Changed += change => _ = NotifyAsync(hostId, change);
+            host.Changed += change => Enqueue(hostId, change);
         }
 
-        private async Task NotifyAsync(string hostId, StateChange change)
+        private void Enqueue(string hostId, StateChange change)
+        {
+            lock (gate)
+            {
+                buffer.Add((hostId, change));
+                if (flushScheduled) return;
+                flushScheduled = true;
+            }
+
+            _ = FlushAfterWindowAsync();
+        }
+
+        private async Task FlushAfterWindowAsync()
         {
             try
             {
-                var request = new CallbackStateRequest
-                {
-                    Ts = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
-                    Payload = new CallbackStatePayload
-                    {
-                        UserId = hostId,
-                        Devices = [AliceMapper.ToDeviceState(change)],
-                    },
-                };
+                await Task.Delay(FlushWindow);
 
-                if (string.IsNullOrEmpty(SkillId) || string.IsNullOrEmpty(CallbackToken))
+                List<(string HostId, StateChange Change)> drained;
+                lock (gate)
                 {
-                    logger.LogInformation("Пуш в Алису (выключен, только лог): {Payload}",
-                        JsonSerializer.Serialize(request));
-                    return;
+                    drained = [.. buffer];
+                    buffer.Clear();
+                    flushScheduled = false;
                 }
 
-                using var http = httpFactory.CreateClient();
-                using var message = new HttpRequestMessage(
-                    HttpMethod.Post,
-                    $"https://dialogs.yandex.net/api/v1/skills/{SkillId}/callback/state");
-                message.Headers.TryAddWithoutValidation("Authorization", $"OAuth {CallbackToken}");
-                message.Content = JsonContent.Create(request);
-
-                using var response = await http.SendAsync(message);
-                if (response.IsSuccessStatusCode)
+                var ts = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+                foreach (var host in drained.GroupBy(x => x.HostId))
                 {
-                    logger.LogInformation("Пуш принят Яндексом ({Status}): {DeviceId}",
-                        (int)response.StatusCode, change.DeviceId);
-                }
-                else
-                {
-                    logger.LogWarning("Яндекс не принял пуш состояния: {Status} {Body}",
-                        (int)response.StatusCode, await response.Content.ReadAsStringAsync());
+                    await SendAsync(AliceMapper.ToCallbackState(host.Key, host.Select(x => x.Change).ToArray(), ts));
                 }
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Ошибка пуша состояния в Алису (host {HostId})", hostId);
+                logger.LogError(ex, "Ошибка пуша состояний в Алису");
+            }
+        }
+
+        private async Task SendAsync(CallbackStateRequest request)
+        {
+            var deviceIds = string.Join(", ", request.Payload.Devices.Select(d => d.Id));
+
+            if (string.IsNullOrEmpty(SkillId) || string.IsNullOrEmpty(CallbackToken))
+            {
+                logger.LogInformation("Пуш в Алису (выключен, только лог): {Payload}",
+                    JsonSerializer.Serialize(request));
+                return;
+            }
+
+            using var http = httpFactory.CreateClient();
+            using var message = new HttpRequestMessage(
+                HttpMethod.Post,
+                $"https://dialogs.yandex.net/api/v1/skills/{SkillId}/callback/state");
+            message.Headers.TryAddWithoutValidation("Authorization", $"OAuth {CallbackToken}");
+            message.Content = JsonContent.Create(request);
+
+            using var response = await http.SendAsync(message);
+            if (response.IsSuccessStatusCode)
+            {
+                logger.LogInformation("Пуш принят Яндексом ({Status}): {DeviceIds}",
+                    (int)response.StatusCode, deviceIds);
+            }
+            else
+            {
+                logger.LogWarning("Яндекс не принял пуш состояния ({DeviceIds}): {Status} {Body}",
+                    deviceIds, (int)response.StatusCode, await response.Content.ReadAsStringAsync());
             }
         }
     }
