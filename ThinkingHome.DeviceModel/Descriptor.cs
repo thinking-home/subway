@@ -19,13 +19,18 @@ public sealed record DeviceDescriptor
     public required IReadOnlyList<Endpoint> Endpoints { get; init; }
 }
 
-/// <summary>Логическая часть устройства: тип + способности и свойства.</summary>
+/// <summary>Логическая часть устройства: типы + способности и свойства.</summary>
 public sealed record Endpoint
 {
     /// <summary>Номер endpoint'а внутри устройства (0 — основной).</summary>
     public required int Id { get; init; }
 
-    public required DeviceType Type { get; init; }
+    /// <summary>
+    /// Типы endpoint'а — как DeviceTypeList в Matter Descriptor: мульти-сенсор объявляет несколько
+    /// типов на одном endpoint'е (метеостанция = [TemperatureSensor, HumiditySensor]). Порядок
+    /// смысла не несёт: представление для плоских экосистем адаптер выводит из всего множества.
+    /// </summary>
+    public required IReadOnlyList<DeviceType> Types { get; init; }
 
     /// <summary>Способности — то, чем можно управлять (актуаторы).</summary>
     public IReadOnlyList<Capability> Capabilities { get; init; } = [];

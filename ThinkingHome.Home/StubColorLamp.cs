@@ -30,7 +30,7 @@ public sealed class StubColorLamp(string id, string title, string? room = null) 
         Endpoints = [new Endpoint
         {
             Id = 0,
-            Type = DeviceType.ExtendedColorLight,
+            Types = [DeviceType.ExtendedColorLight],
             Capabilities =
             [
                 new OnOffCapability { Instance = "on_off" },

@@ -24,7 +24,7 @@ public sealed class StubWaterLeakSensor(string id, string title, string? room = 
         Endpoints = [new Endpoint
         {
             Id = 0,
-            Type = DeviceType.WaterLeakSensor,
+            Types = [DeviceType.WaterLeakSensor],
             Properties =
             [
                 new WaterLeakProperty { Instance = "water_leak" },

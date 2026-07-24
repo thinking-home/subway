@@ -25,7 +25,7 @@ public sealed class StubColorTemperatureLamp(string id, string title, string? ro
         Endpoints = [new Endpoint
         {
             Id = 0,
-            Type = DeviceType.ColorTemperatureLight,
+            Types = [DeviceType.ColorTemperatureLight],
             Capabilities =
             [
                 new OnOffCapability { Instance = "on_off" },

@@ -25,7 +25,7 @@ public sealed class StubFan(string id, string title, string? room = null) : IDev
         Endpoints = [new Endpoint
         {
             Id = 0,
-            Type = DeviceType.Fan,
+            Types = [DeviceType.Fan],
             Capabilities =
             [
                 new OnOffCapability { Instance = "on_off" },

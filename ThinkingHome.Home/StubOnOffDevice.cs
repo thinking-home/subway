@@ -27,7 +27,7 @@ public sealed class StubOnOffDevice(string id, string title, DeviceType type, st
         Endpoints = [new Endpoint
         {
             Id = 0,
-            Type = type,
+            Types = [type],
             Capabilities = [new OnOffCapability { Instance = "on_off" }],
         }],
     };

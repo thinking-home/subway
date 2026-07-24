@@ -119,7 +119,7 @@ public static class AliceMapper
             Id = new AliceDeviceId(descriptor.Id, endpoint.Id).ToAlice(),
             Name = descriptor.Title,
             Room = descriptor.Room,
-            Type = ToAliceDeviceType(endpoint.Type),
+            Type = ToAliceDeviceType(endpoint.Types),
             Capabilities = endpoint.Capabilities.SelectMany(ToCapabilityInfos).ToArray(),
             Properties = endpoint.Properties.Select(ToPropertyInfo).ToArray(),
             DeviceInfo = ToDeviceInfo(descriptor.Manufacturer),
@@ -450,6 +450,18 @@ public static class AliceMapper
             HardwareVersion = m.HardwareVersion,
             SoftwareVersion = m.SoftwareVersion,
         };
+
+    // модель Алисы плоская: все типы endpoint'а обязаны сводиться к одному представлению
+    // (у сенсорных семейств так по построению); порядок типов смысла не несёт,
+    // неоднозначность — дефект дескриптора устройства, чинится там (разбиением endpoint'а)
+    private static AliceDeviceType ToAliceDeviceType(IReadOnlyList<DeviceType> types)
+    {
+        var mapped = types.Select(ToAliceDeviceType).Distinct().ToArray();
+        return mapped.Length == 1
+            ? mapped[0]
+            : throw new NotSupportedException(
+                $"Типы endpoint'а [{string.Join(", ", types)}] дают разные представления Алисы [{string.Join(", ", mapped)}] — неоднозначность чинится в дескрипторе устройства");
+    }
 
     private static AliceDeviceType ToAliceDeviceType(DeviceType type) => type switch
     {

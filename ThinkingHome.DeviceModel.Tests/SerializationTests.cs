@@ -154,7 +154,7 @@ public class SerializationTests
         var endpoint = new Endpoint
         {
             Id = 0,
-            Type = DeviceType.TemperatureSensor,
+            Types = [DeviceType.TemperatureSensor],
             Properties = [new TemperatureProperty { Instance = "temperature" }, new HumidityProperty { Instance = "humidity" }],
         };
 

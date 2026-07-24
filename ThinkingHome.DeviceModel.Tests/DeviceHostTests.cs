@@ -72,7 +72,7 @@ public class DeviceHostTests
             Endpoints = [new Endpoint
             {
                 Id = 0,
-                Type = DeviceType.OnOffLight,
+                Types = [DeviceType.OnOffLight],
                 Capabilities = [new OnOffCapability { Instance = "on_off" }],
             }],
         };
@@ -116,7 +116,7 @@ public class DeviceHostTests
             Endpoints = [new Endpoint
             {
                 Id = 0,
-                Type = DeviceType.ExtendedColorLight,
+                Types = [DeviceType.ExtendedColorLight],
                 Capabilities = [new ColorCapability
                 {
                     Instance = ColorCapability.InstanceName,

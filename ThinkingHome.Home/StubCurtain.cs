@@ -28,7 +28,7 @@ public sealed class StubCurtain(string id, string title, string? room = null) : 
         Endpoints = [new Endpoint
         {
             Id = 0,
-            Type = DeviceType.Curtain,
+            Types = [DeviceType.Curtain],
             Capabilities = [new OpenCapability { Instance = "open" }],
         }],
     };

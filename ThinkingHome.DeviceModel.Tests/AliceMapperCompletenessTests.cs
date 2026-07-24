@@ -300,13 +300,13 @@ public class AliceMapperCompletenessTests
     {
         Id = "d",
         Title = "T",
-        Endpoints = [new Endpoint { Id = 0, Type = type, Capabilities = [capability] }],
+        Endpoints = [new Endpoint { Id = 0, Types = [type], Capabilities = [capability] }],
     };
 
     private static DeviceDescriptor Descriptor(Property property, DeviceType type = DeviceType.TemperatureSensor) => new()
     {
         Id = "d",
         Title = "T",
-        Endpoints = [new Endpoint { Id = 0, Type = type, Properties = [property] }],
+        Endpoints = [new Endpoint { Id = 0, Types = [type], Properties = [property] }],
     };
 }

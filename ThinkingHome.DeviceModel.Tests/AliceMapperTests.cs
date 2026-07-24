@@ -28,7 +28,7 @@ public class AliceMapperTests
             Endpoints = [new Endpoint
             {
                 Id = 0,
-                Type = DeviceType.OnOffLight,
+                Types = [DeviceType.OnOffLight],
                 Capabilities = [new OnOffCapability { Instance = "on_off" }],
             }],
         };
@@ -51,8 +51,8 @@ public class AliceMapperTests
             Title = "Выключатель",
             Endpoints =
             [
-                new Endpoint { Id = 0, Type = DeviceType.OnOffLight, Capabilities = [new OnOffCapability { Instance = "on_off" }] },
-                new Endpoint { Id = 1, Type = DeviceType.OnOffLight, Capabilities = [new OnOffCapability { Instance = "on_off" }] },
+                new Endpoint { Id = 0, Types = [DeviceType.OnOffLight], Capabilities = [new OnOffCapability { Instance = "on_off" }] },
+                new Endpoint { Id = 1, Types = [DeviceType.OnOffLight], Capabilities = [new OnOffCapability { Instance = "on_off" }] },
             ],
         };
 
@@ -139,7 +139,7 @@ public class AliceMapperTests
         {
             Id = "d",
             Title = "T",
-            Endpoints = [new Endpoint { Id = 0, Type = type, Capabilities = [new OnOffCapability { Instance = "on_off" }] }],
+            Endpoints = [new Endpoint { Id = 0, Types = [type], Capabilities = [new OnOffCapability { Instance = "on_off" }] }],
         };
 
         var device = Assert.Single(AliceMapper.ToDevices(descriptor));
@@ -157,7 +157,7 @@ public class AliceMapperTests
             Endpoints = [new Endpoint
             {
                 Id = 0,
-                Type = DeviceType.DimmableLight,
+                Types = [DeviceType.DimmableLight],
                 Capabilities = [new BrightnessCapability { Instance = "brightness" }],
             }],
         };
@@ -414,7 +414,7 @@ public class AliceMapperTests
             Endpoints = [new Endpoint
             {
                 Id = 0,
-                Type = DeviceType.TemperatureSensor,
+                Types = [DeviceType.TemperatureSensor],
                 Properties =
                 [
                     new TemperatureProperty { Instance = "temperature" },
@@ -472,7 +472,7 @@ public class AliceMapperTests
         {
             Id = "d",
             Title = "T",
-            Endpoints = [new Endpoint { Id = 0, Type = DeviceType.OccupancySensor, Properties = [new OccupancyProperty { Instance = "occupancy" }] }],
+            Endpoints = [new Endpoint { Id = 0, Types = [DeviceType.OccupancySensor], Properties = [new OccupancyProperty { Instance = "occupancy" }] }],
         })).Properties));
         Assert.Equal(PropertyEventInstance.Motion, motionInfo.Parameters.Instance);
         Assert.Equal(new[] { PropertyEventValue.Detected, PropertyEventValue.NotDetected },
@@ -514,7 +514,7 @@ public class AliceMapperTests
             Endpoints = [new Endpoint
             {
                 Id = 0,
-                Type = DeviceType.WaterLeakSensor,
+                Types = [DeviceType.WaterLeakSensor],
                 Properties =
                 [
                     new WaterLeakProperty { Instance = "water_leak" },
@@ -608,6 +608,6 @@ public class AliceMapperTests
     {
         Id = "d",
         Title = "T",
-        Endpoints = [new Endpoint { Id = 0, Type = type, Capabilities = capabilities }],
+        Endpoints = [new Endpoint { Id = 0, Types = [type], Capabilities = capabilities }],
     };
 }

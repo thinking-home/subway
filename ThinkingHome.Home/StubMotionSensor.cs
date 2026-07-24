@@ -23,7 +23,7 @@ public sealed class StubMotionSensor(string id, string title, string? room = nul
         Endpoints = [new Endpoint
         {
             Id = 0,
-            Type = DeviceType.OccupancySensor,
+            Types = [DeviceType.OccupancySensor],
             Properties = [new OccupancyProperty { Instance = "occupancy" }],
         }],
     };

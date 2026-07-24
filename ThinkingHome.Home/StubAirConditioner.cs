@@ -29,7 +29,7 @@ public sealed class StubAirConditioner(string id, string title, string? room = n
         Endpoints = [new Endpoint
         {
             Id = 0,
-            Type = DeviceType.AirConditioner,
+            Types = [DeviceType.AirConditioner],
             Capabilities =
             [
                 new OnOffCapability { Instance = "on_off" },

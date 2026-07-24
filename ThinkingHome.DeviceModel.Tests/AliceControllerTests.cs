@@ -121,7 +121,7 @@ public class AliceControllerTests
             Endpoints = [new Endpoint
             {
                 Id = 0,
-                Type = DeviceType.OnOffLight,
+                Types = [DeviceType.OnOffLight],
                 Capabilities = [new OnOffCapability { Instance = "on_off" }],
             }],
         };

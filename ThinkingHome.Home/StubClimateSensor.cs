@@ -25,7 +25,7 @@ public sealed class StubClimateSensor(string id, string title, string? room = nu
         Endpoints = [new Endpoint
         {
             Id = 0,
-            Type = DeviceType.TemperatureSensor,
+            Types = [DeviceType.TemperatureSensor],
             Properties =
             [
                 new TemperatureProperty { Instance = "temperature" },

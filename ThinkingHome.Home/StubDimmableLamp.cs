@@ -27,7 +27,7 @@ public sealed class StubDimmableLamp(string id, string title, string? room = nul
         Endpoints = [new Endpoint
         {
             Id = 0,
-            Type = DeviceType.DimmableLight,
+            Types = [DeviceType.DimmableLight],
             Capabilities = [new OnOffCapability { Instance = "on_off" }, new BrightnessCapability { Instance = "brightness" }],
         }],
     };
