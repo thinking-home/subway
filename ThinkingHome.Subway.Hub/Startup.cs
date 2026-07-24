@@ -18,6 +18,10 @@ namespace ThinkingHome.Subway.Hub
 
             services.AddSingleton<IHostIdResolver, ClaimHostIdResolver>();
 
+            // пуш изменений состояния в Яндекс (Notification API); без Alice:SkillId/Alice:CallbackToken — лог-режим
+            services.AddHttpClient();
+            services.AddHostedService<AliceNotifier>();
+
             services
                 .AddControllers()
                 .AddApplicationPart(typeof(AliceController).Assembly)

@@ -137,6 +137,13 @@ public static class AliceMapper
         };
     }
 
+    // ── report: одно изменение состояния → DeviceState для callback-уведомления Яндекса.
+    //    Чистый реюз query-ветки: разъезд по capabilities/properties и derivation работают как в query ──
+    public static AliceDeviceState ToDeviceState(StateChange change) =>
+        ToDeviceState(
+            new AliceDeviceId(change.DeviceId, change.Value.EndpointId),
+            new DeviceSnapshot { DeviceId = change.DeviceId, Values = [change.Value] });
+
     // значения свойств (сенсоров) — у Алисы это properties, а не capabilities
     private static bool IsPropertyValue(StateValue value) =>
         value is TemperatureState or HumidityState or OccupancyState or ContactState

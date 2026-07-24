@@ -81,6 +81,21 @@ snapshot.Values.SelectMany(ToCapabilityStates)        // состояние
 температура — `temperature` (Алисе обе уходят под её собственными instance'ами: `range:temperature`
 и `float:temperature`).
 
+## Пуш состояний (Notification API)
+
+`Report` доезжает до Яндекса: `AliceNotifier` (hosted service в прокси, `ThinkingHome.Alice.Service`)
+подписывается на `Changed` всех подключённых хостов и на каждое изменение шлёт
+`POST https://dialogs.yandex.net/api/v1/skills/{skill_id}/callback/state` с `user_id = hostId`
+(тот же id, что в discovery). Payload строит чистый маппер — `ToDeviceState(StateChange)`, реюз
+query-ветки: одно значение → capabilities/properties, включая derivation шторы (изменение положения
+уведомляет и `range:open`, и производный `on_off`).
+
+Конфиг (на прокси, у нас — `/etc/thinkinghome/hub.env`): `Alice:SkillId` (id навыка из консоли
+Диалогов) и `Alice:CallbackToken` (OAuth-токен владельца навыка — см. доку Яндекса «Уведомления об
+изменении состояния устройств»). Без них нотифаер работает **вхолостую и логирует payload** —
+пайплайн проверяется без секретов. Батчинга нет: одно изменение — один POST; при реальных объёмах
+(Яндекс просит слать не чаще раза в секунду на устройство) добавится агрегация.
+
 ## Применённые решения (прецеденты словаря)
 
 - **Цвет — унификация в ядре (правило 3).** Сначала цвет в ядре был разрезан на две способности
