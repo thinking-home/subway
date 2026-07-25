@@ -15,6 +15,8 @@ namespace ThinkingHome.DeviceModel.Properties;
 [JsonDerivedType(typeof(BatteryProperty), "battery")]
 [JsonDerivedType(typeof(IlluminanceProperty), "illuminance")]
 [JsonDerivedType(typeof(PressureProperty), "pressure")]
+[JsonDerivedType(typeof(AirQualityProperty), "airQuality")]
+[JsonDerivedType(typeof(CarbonDioxideProperty), "carbonDioxide")]
 public abstract record Property
 {
     /// <summary>Экземпляр свойства (например, "temperature", "motion").</summary>

@@ -33,7 +33,7 @@ namespace ThinkingHome.Alice.Mapping;
 /// (<see cref="AliceDeviceId"/>). Здесь живёт вся специфика формата Яндекса; ядро о ней не знает.
 /// Пока покрыты OnOff, range (яркость, положение, температура), цвет (color_setting),
 /// режимы (mode: fan_speed, thermostat), тумблеры (toggle: oscillation) и свойства-сенсоры
-/// (properties: float temperature/humidity/battery_level/illumination/pressure,
+/// (properties: float temperature/humidity/battery_level/illumination/pressure/co2_level,
 /// event motion/open/water_leak) — свойства read-only, идут в отдельную ветку properties у Алисы.
 ///
 /// Маппинг ограничен замкнутым словарём преобразований (все — детерминированные, чистые функции):
@@ -41,6 +41,9 @@ namespace ThinkingHome.Alice.Mapping;
 ///   • value-transform  — Brightness (int) → range (0–100)
 ///   • type ↔ instance  — Color{Rgb,Temperature}State ↔ color_setting {rgb, temperature_k}
 ///   • derivation (1:N) — Open → range:open + производное on_off (открыто = положение &gt; 0)
+///   • suppression (1:0) — свойство ядра, невыразимое в словаре Алисы, осознанно не отдаётся
+///     (AirQuality). Допустим только для свойств; устройство не исчезает никогда: тип без
+///     соответствия у Алисы мапится в devices.types.other.
 /// Правила: (1) ядро — гранулярность Matter; (2) любой маппинг выражается этим словарём; (3) если
 /// не выражается — это дефект ядра, чинится там, а не escape-hatch'ем в маппере.
 /// </summary>
@@ -121,7 +124,7 @@ public static class AliceMapper
             Room = descriptor.Room,
             Type = ToAliceDeviceType(endpoint.Type),
             Capabilities = endpoint.Capabilities.SelectMany(ToCapabilityInfos).ToArray(),
-            Properties = endpoint.Properties.Select(ToPropertyInfo).ToArray(),
+            Properties = endpoint.Properties.Where(p => !IsSuppressed(p)).Select(ToPropertyInfo).ToArray(),
             DeviceInfo = ToDeviceInfo(descriptor.Manufacturer),
         });
 
@@ -134,9 +137,15 @@ public static class AliceMapper
         {
             Id = id.ToAlice(),
             Capabilities = values.Where(v => !IsPropertyValue(v)).SelectMany(ToCapabilityStates).ToArray(),
-            Properties = values.Where(IsPropertyValue).Select(ToPropertyState).ToArray(),
+            Properties = values.Where(IsPropertyValue).Where(v => !IsSuppressed(v)).Select(ToPropertyState).ToArray(),
         };
     }
+
+    // suppression (1:0): концепт есть в Matter/ядре, представления у Алисы нет — свойство осознанно
+    // не отдаётся (устройство и остальные его показания остаются). Список — явный, под тестом полноты.
+    private static bool IsSuppressed(Property property) => property is AirQualityProperty;
+
+    private static bool IsSuppressed(StateValue value) => value is AirQualityState;
 
     // ── report: пачка изменений за окно → один callback-запрос Notification API (user_id = hostId).
     //    Дедуп по слоту кэша (устройство, endpoint, instance) — последнее значение побеждает (то же
@@ -165,7 +174,8 @@ public static class AliceMapper
     // значения свойств (сенсоров) — у Алисы это properties, а не capabilities
     private static bool IsPropertyValue(StateValue value) =>
         value is TemperatureState or HumidityState or OccupancyState or ContactState
-            or WaterLeakState or BatteryState or IlluminanceState or PressureState;
+            or WaterLeakState or BatteryState or IlluminanceState or PressureState
+            or AirQualityState or CarbonDioxideState;
 
     // ── action: результат нейтральной команды → результат способности Алисы ──
     public static CapabilityActionResultBase ToCapabilityActionResult(
@@ -381,6 +391,7 @@ public static class AliceMapper
         BatteryProperty p => FloatProperty(p, PropertyFloatInstance.BatteryLevel, Units.PERCENT),
         IlluminanceProperty p => FloatProperty(p, PropertyFloatInstance.Illumination, Units.LUX),
         PressureProperty p => FloatProperty(p, PropertyFloatInstance.Pressure, Units.MMHG),
+        CarbonDioxideProperty p => FloatProperty(p, PropertyFloatInstance.Co2Level, Units.PPM),
         _ => throw new NotSupportedException($"Нет маппинга свойства {property.GetType().Name} в Alice"),
     };
 
@@ -451,6 +462,10 @@ public static class AliceMapper
             // value-transform единиц: кПа ядра (единица Matter) → мм рт. ст. Алисы
             State = new PropertyStateFloatData { Instance = PropertyFloatInstance.Pressure, Value = (float)Math.Round(s.Value * KpaToMmHg, 1) },
         },
+        CarbonDioxideState s => new PropertyStateFloat
+        {
+            State = new PropertyStateFloatData { Instance = PropertyFloatInstance.Co2Level, Value = (float)s.Value },
+        },
         _ => throw new NotSupportedException($"Нет маппинга свойства-состояния {value.GetType().Name} в Alice"),
     };
 
@@ -482,6 +497,8 @@ public static class AliceMapper
         DeviceType.WaterLeakSensor => AliceDeviceType.SensorWaterLeak,
         DeviceType.LightSensor => AliceDeviceType.SensorIllumination,
         DeviceType.PressureSensor => AliceDeviceType.SensorClimate,
+        // расхождение словарей типов: у Алисы нет типа датчика качества воздуха → явная ветка в Other
+        DeviceType.AirQualitySensor => AliceDeviceType.Other,
         _ => throw new NotSupportedException($"Нет маппинга типа устройства {type} в Alice"),
     };
 

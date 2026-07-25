@@ -47,7 +47,14 @@ public class AliceMapperCompletenessTests
         new BatteryProperty { Instance = "battery" },
         new IlluminanceProperty { Instance = "illuminance" },
         new PressureProperty { Instance = "pressure" },
+        new AirQualityProperty { Instance = "air_quality" },
+        new CarbonDioxideProperty { Instance = "carbon_dioxide" },
     ];
+
+    // suppression (1:0): свойства ядра, осознанно не отдаваемые Алисе (нет представления в её словаре);
+    // новый подавленный тип добавляется сюда только вместе с ветками IsSuppressed в маппере
+    private static readonly Type[] SuppressedProperties = [typeof(AirQualityProperty)];
+    private static readonly Type[] SuppressedStates = [typeof(AirQualityState)];
 
     private static readonly StateValue[] StateSamples =
     [
@@ -68,6 +75,8 @@ public class AliceMapperCompletenessTests
         new BatteryState { Instance = "battery", Value = 87 },
         new IlluminanceState { Instance = "illuminance", Value = 420 },
         new PressureState { Instance = "pressure", Value = 99.6 },
+        new AirQualityState { Instance = "air_quality", Value = AirQuality.Fair },
+        new CarbonDioxideState { Instance = "carbon_dioxide", Value = 612 },
     ];
 
     // все поддерживаемые действия Алисы — по одному образцу на каждую ветку ToCommand (тип + instance)
@@ -105,9 +114,19 @@ public class AliceMapperCompletenessTests
         {
             var state = AliceMapper.ToDeviceState(new AliceDeviceId("d", 0),
                 new DeviceSnapshot { DeviceId = "d", Values = [value] });
-            // значение обязано попасть в одну из веток (capabilities или properties) и не бросить
-            Assert.True(state.Capabilities.Length + state.Properties.Length > 0,
-                $"Состояние {value.GetType().Name} не дало ни умения, ни свойства Алисы");
+
+            if (SuppressedStates.Contains(value.GetType()))
+            {
+                // suppression — осознанное отсутствие, а не забытая ветка
+                Assert.True(state.Capabilities.Length + state.Properties.Length == 0,
+                    $"Состояние {value.GetType().Name} объявлено подавленным, но что-то отдало");
+            }
+            else
+            {
+                // значение обязано попасть в одну из веток (capabilities или properties) и не бросить
+                Assert.True(state.Capabilities.Length + state.Properties.Length > 0,
+                    $"Состояние {value.GetType().Name} не дало ни умения, ни свойства Алисы");
+            }
         }
     }
 
@@ -119,7 +138,15 @@ public class AliceMapperCompletenessTests
         foreach (var property in PropertySamples)
         {
             var device = Assert.Single(AliceMapper.ToDevices(Descriptor(property)));
-            Assert.NotEmpty(device.Properties); // ветка ToPropertyInfo существует и не бросает
+
+            if (SuppressedProperties.Contains(property.GetType()))
+            {
+                Assert.Empty(device.Properties); // suppression — осознанное отсутствие
+            }
+            else
+            {
+                Assert.NotEmpty(device.Properties); // ветка ToPropertyInfo существует и не бросает
+            }
         }
     }
 

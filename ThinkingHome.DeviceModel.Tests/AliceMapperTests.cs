@@ -135,6 +135,7 @@ public class AliceMapperTests
     [InlineData(DeviceType.WaterLeakSensor, AliceDeviceType.SensorWaterLeak)]
     [InlineData(DeviceType.LightSensor, AliceDeviceType.SensorIllumination)]
     [InlineData(DeviceType.PressureSensor, AliceDeviceType.SensorClimate)]
+    [InlineData(DeviceType.AirQualitySensor, AliceDeviceType.Other)]
     public void ToDevices_maps_device_types(DeviceType type, AliceDeviceType expected)
     {
         var descriptor = new DeviceDescriptor
@@ -667,6 +668,46 @@ public class AliceMapperTests
         var floatState = Assert.IsType<PropertyStateFloat>(Assert.Single(state.Properties));
         Assert.Equal(PropertyFloatInstance.Pressure, floatState.State.Instance);
         Assert.Equal(747.1f, floatState.State.Value);
+    }
+
+    [Fact]
+    public void AirQuality_sensor_maps_to_other_with_co2_and_suppressed_index()
+    {
+        // расхождение словарей: тип без соответствия → devices.types.other (устройство не исчезает);
+        // индекс качества воздуха невыразим у Алисы → suppression (1:0), CO2 отдаётся штатно
+        var device = Assert.Single(AliceMapper.ToDevices(new DeviceDescriptor
+        {
+            Id = "d",
+            Title = "T",
+            Endpoints = [new Endpoint
+            {
+                Id = 0,
+                Type = DeviceType.AirQualitySensor,
+                Properties =
+                [
+                    new AirQualityProperty { Instance = "air_quality" },
+                    new CarbonDioxideProperty { Instance = "carbon_dioxide" },
+                ],
+            }],
+        }));
+        Assert.Equal(AliceDeviceType.Other, device.Type);
+        var info = Assert.IsType<PropertyInfoFloat>(Assert.Single(device.Properties)); // индекс подавлен
+        Assert.Equal(PropertyFloatInstance.Co2Level, info.Parameters.Instance);
+        Assert.Equal("unit.ppm", info.Parameters.Unit);
+
+        // state: индекс подавлен и в состоянии; CO2 уходит float'ом
+        var state = AliceMapper.ToDeviceState(new AliceDeviceId("d", 0), new DeviceSnapshot
+        {
+            DeviceId = "d",
+            Values =
+            [
+                new AirQualityState { EndpointId = 0, Instance = "air_quality", Value = AirQuality.Fair },
+                new CarbonDioxideState { EndpointId = 0, Instance = "carbon_dioxide", Value = 612 },
+            ],
+        });
+        var floatState = Assert.IsType<PropertyStateFloat>(Assert.Single(state.Properties));
+        Assert.Equal(PropertyFloatInstance.Co2Level, floatState.State.Instance);
+        Assert.Equal(612f, floatState.State.Value);
     }
 
     private static DeviceDescriptor Descriptor(DeviceType type, params Capability[] capabilities) => new()

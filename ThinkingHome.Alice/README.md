@@ -36,6 +36,7 @@
 | **value-transform** | `Brightness` (int) → `range` 0–100; нормализация единиц | `PercentRange`, `Units.PERCENT` |
 | **type ↔ instance** | `ColorRgbState`/`ColorTemperatureState` ↔ `color_setting` `{rgb, temperature_k}` | `switch` по типу в `ToCapabilityState` / `ToCommand` |
 | **derivation (1:N)** | `Open` → `range:open` + производное `on_off` (`on = положение > 0`) | `ToCapabilityInfos` / `ToCapabilityStates` (через `SelectMany`) |
+| **suppression (1:0)** | `AirQuality` → (осознанно не отдаётся) | фильтр `IsSuppressed` в `ToDevices` / `ToDeviceState` |
 
 ### Правила
 
@@ -118,6 +119,17 @@ query-ветки: одно значение → capabilities/properties, вкл�
   bool как OnOff), как уже сделано для `range` (Brightness/Open) и `mode` (FanSpeed/ThermostatMode);
   generic-структура «все тумблеры — bool» живёт только на стороне DTO Алисы. Маппинг — чистый
   `1:1 relabel` → `toggle:oscillation`.
+
+- **Расхождение словарей Matter ⊃ Алиса — правило пары (тип → `other`, свойство → suppression).**
+  Устройство не исчезает никогда: тип, которому у Алисы нет соответствия (Air Quality Sensor), мапится
+  **явной веткой** в `devices.types.other` — не фолбэком `_ =>`, чтобы тесты полноты продолжали ловить
+  забытые маппинги новых типов (`other` у Алисы полноценно несёт любые умения и свойства). Свойство,
+  невыразимое в словаре Алисы (индекс Air Quality — перечисление, у Алисы нет ни float-, ни
+  event-инстанса под него), — **suppression (1:0)**: осознанно не отдаётся, устройство и остальные его
+  показания остаются. Suppression допустим **только для свойств**; список подавленного — явный
+  (`IsSuppressed` в маппере) и закреплён allowlist'ом в тестах полноты: новое свойство либо мапится,
+  либо явно объявлено подавленным — забыть нельзя. Прецедент: Air Quality Sensor → `other`
+  с `float:co2_level`, индекс подавлен.
 
 - **Штора — derivation (не тащим Алисизм в ядро).** Алиса даёт «открыть/закрыть» как **отдельное
   умение `on_off` со своим состоянием**. В Matter это команды одного кластера Window Covering

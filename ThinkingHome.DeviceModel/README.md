@@ -256,6 +256,10 @@ light.OnChanged(change => Log(change));                     // подписка 
 | `Property.Contact`            | cluster Boolean State `0x0045`      | `event:open`                |
 | `Property.WaterLeak`          | cluster Boolean State `0x0045` (Water Leak Detector `0x0043`) | `event:water_leak` |
 | `Property.Battery`            | cluster Power Source `0x002F`       | `float:battery_level`       |
+| `Property.Illuminance`        | cluster Illuminance Measurement `0x0400` | `float:illumination`   |
+| `Property.Pressure`           | cluster Pressure Measurement `0x0403` | `float:pressure` (кПа → мм рт. ст.) |
+| `Property.AirQuality`         | cluster Air Quality `0x005B`        | — (suppression: нет представления) |
+| `Property.CarbonDioxide`      | cluster CO₂ Concentration `0x040D`  | `float:co2_level`           |
 
 *(id даны для ориентира; источник истины — спецификации Matter Device Library и Cluster Library.)*
 

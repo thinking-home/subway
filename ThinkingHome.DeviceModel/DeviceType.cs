@@ -60,4 +60,7 @@ public enum DeviceType
 
     /// <summary>Датчик атмосферного давления. Matter Pressure Sensor 0x0305.</summary>
     PressureSensor,
+
+    /// <summary>Датчик качества воздуха (обязательный кластер — Air Quality; концентрации CO2 и т.п. — опциональные). Matter Air Quality Sensor 0x002C.</summary>
+    AirQualitySensor,
 }
