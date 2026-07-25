@@ -63,4 +63,12 @@ public enum DeviceType
 
     /// <summary>Датчик качества воздуха (обязательный кластер — Air Quality; концентрации CO2 и т.п. — опциональные). Matter Air Quality Sensor 0x002C.</summary>
     AirQualitySensor,
+
+    /// <summary>
+    /// Прибор учёта воды (накопленные показания). Вендорское расширение: в Matter типа нет.
+    /// Назначение канала (холодная/горячая) — монтажная семантика, не функция железа: появится
+    /// в метаданных endpoint'а, не в типе.
+    /// </summary>
+    [VendorExtension]
+    WaterMeter,
 }

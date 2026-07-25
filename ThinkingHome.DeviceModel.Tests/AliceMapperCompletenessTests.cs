@@ -49,6 +49,7 @@ public class AliceMapperCompletenessTests
         new PressureProperty { Instance = "pressure" },
         new AirQualityProperty { Instance = "air_quality" },
         new CarbonDioxideProperty { Instance = "carbon_dioxide" },
+        new WaterMeterProperty { Instance = "water_meter" },
     ];
 
     // suppression (1:0): свойства ядра, осознанно не отдаваемые Алисе (нет представления в её словаре);
@@ -77,6 +78,7 @@ public class AliceMapperCompletenessTests
         new PressureState { Instance = "pressure", Value = 99.6 },
         new AirQualityState { Instance = "air_quality", Value = AirQuality.Fair },
         new CarbonDioxideState { Instance = "carbon_dioxide", Value = 612 },
+        new WaterMeterState { Instance = "water_meter", Value = 123.456 },
     ];
 
     // все поддерживаемые действия Алисы — по одному образцу на каждую ветку ToCommand (тип + instance)

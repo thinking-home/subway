@@ -26,6 +26,7 @@ namespace ThinkingHome.DeviceModel.State;
 [JsonDerivedType(typeof(PressureState), "pressure")]
 [JsonDerivedType(typeof(AirQualityState), "airQuality")]
 [JsonDerivedType(typeof(CarbonDioxideState), "carbonDioxide")]
+[JsonDerivedType(typeof(WaterMeterState), "waterMeter")]
 public abstract record StateValue
 {
     /// <summary>Endpoint устройства (0 — основной).</summary>

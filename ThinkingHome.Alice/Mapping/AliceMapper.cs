@@ -33,7 +33,7 @@ namespace ThinkingHome.Alice.Mapping;
 /// (<see cref="AliceDeviceId"/>). Здесь живёт вся специфика формата Яндекса; ядро о ней не знает.
 /// Пока покрыты OnOff, range (яркость, положение, температура), цвет (color_setting),
 /// режимы (mode: fan_speed, thermostat), тумблеры (toggle: oscillation) и свойства-сенсоры
-/// (properties: float temperature/humidity/battery_level/illumination/pressure/co2_level,
+/// (properties: float temperature/humidity/battery_level/illumination/pressure/co2_level/water_meter,
 /// event motion/open/water_leak) — свойства read-only, идут в отдельную ветку properties у Алисы.
 ///
 /// Маппинг ограничен замкнутым словарём преобразований (все — детерминированные, чистые функции):
@@ -175,7 +175,7 @@ public static class AliceMapper
     private static bool IsPropertyValue(StateValue value) =>
         value is TemperatureState or HumidityState or OccupancyState or ContactState
             or WaterLeakState or BatteryState or IlluminanceState or PressureState
-            or AirQualityState or CarbonDioxideState;
+            or AirQualityState or CarbonDioxideState or WaterMeterState;
 
     // ── action: результат нейтральной команды → результат способности Алисы ──
     public static CapabilityActionResultBase ToCapabilityActionResult(
@@ -392,6 +392,7 @@ public static class AliceMapper
         IlluminanceProperty p => FloatProperty(p, PropertyFloatInstance.Illumination, Units.LUX),
         PressureProperty p => FloatProperty(p, PropertyFloatInstance.Pressure, Units.MMHG),
         CarbonDioxideProperty p => FloatProperty(p, PropertyFloatInstance.Co2Level, Units.PPM),
+        WaterMeterProperty p => FloatProperty(p, PropertyFloatInstance.WaterMeter, Units.CUBIC_METER),
         _ => throw new NotSupportedException($"Нет маппинга свойства {property.GetType().Name} в Alice"),
     };
 
@@ -466,6 +467,10 @@ public static class AliceMapper
         {
             State = new PropertyStateFloatData { Instance = PropertyFloatInstance.Co2Level, Value = (float)s.Value },
         },
+        WaterMeterState s => new PropertyStateFloat
+        {
+            State = new PropertyStateFloatData { Instance = PropertyFloatInstance.WaterMeter, Value = (float)s.Value },
+        },
         _ => throw new NotSupportedException($"Нет маппинга свойства-состояния {value.GetType().Name} в Alice"),
     };
 
@@ -499,6 +504,8 @@ public static class AliceMapper
         DeviceType.PressureSensor => AliceDeviceType.SensorClimate,
         // расхождение словарей типов: у Алисы нет типа датчика качества воздуха → явная ветка в Other
         DeviceType.AirQualitySensor => AliceDeviceType.Other,
+        // временно: до модели метаданных endpoint'а (назначение канала) все счётчики — как холодная вода
+        DeviceType.WaterMeter => AliceDeviceType.SmartMeterColdWater,
         _ => throw new NotSupportedException($"Нет маппинга типа устройства {type} в Alice"),
     };
 

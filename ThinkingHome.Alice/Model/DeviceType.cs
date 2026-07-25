@@ -41,4 +41,7 @@ public enum DeviceType
 
     [JsonStringEnumMemberName("devices.types.other")]
     Other,
+
+    [JsonStringEnumMemberName("devices.types.smart_meter.cold_water")]
+    SmartMeterColdWater,
 }

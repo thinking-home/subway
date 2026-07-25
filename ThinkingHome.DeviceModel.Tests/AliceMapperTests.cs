@@ -136,6 +136,7 @@ public class AliceMapperTests
     [InlineData(DeviceType.LightSensor, AliceDeviceType.SensorIllumination)]
     [InlineData(DeviceType.PressureSensor, AliceDeviceType.SensorClimate)]
     [InlineData(DeviceType.AirQualitySensor, AliceDeviceType.Other)]
+    [InlineData(DeviceType.WaterMeter, AliceDeviceType.SmartMeterColdWater)]
     public void ToDevices_maps_device_types(DeviceType type, AliceDeviceType expected)
     {
         var descriptor = new DeviceDescriptor
@@ -708,6 +709,37 @@ public class AliceMapperTests
         var floatState = Assert.IsType<PropertyStateFloat>(Assert.Single(state.Properties));
         Assert.Equal(PropertyFloatInstance.Co2Level, floatState.State.Instance);
         Assert.Equal(612f, floatState.State.Value);
+    }
+
+    [Fact]
+    public void WaterMeter_maps_to_alice_float_in_cubic_meters()
+    {
+        // вендорское расширение словаря: тип и свойство вне Matter; временный relabel типа в cold_water
+        var device = Assert.Single(AliceMapper.ToDevices(new DeviceDescriptor
+        {
+            Id = "d",
+            Title = "T",
+            Endpoints = [new Endpoint
+            {
+                Id = 0,
+                Type = DeviceType.WaterMeter,
+                Properties = [new WaterMeterProperty { Instance = "water_meter" }],
+            }],
+        }));
+        Assert.Equal(AliceDeviceType.SmartMeterColdWater, device.Type);
+        var info = Assert.IsType<PropertyInfoFloat>(Assert.Single(device.Properties));
+        Assert.Equal(PropertyFloatInstance.WaterMeter, info.Parameters.Instance);
+        Assert.Equal("unit.cubic_meter", info.Parameters.Unit);
+
+        // snapshot → ветка properties, значение в м³ без конвертации
+        var state = AliceMapper.ToDeviceState(new AliceDeviceId("d", 0), new DeviceSnapshot
+        {
+            DeviceId = "d",
+            Values = [new WaterMeterState { EndpointId = 0, Instance = "water_meter", Value = 123.456 }],
+        });
+        var floatState = Assert.IsType<PropertyStateFloat>(Assert.Single(state.Properties));
+        Assert.Equal(PropertyFloatInstance.WaterMeter, floatState.State.Instance);
+        Assert.Equal(123.456f, floatState.State.Value);
     }
 
     private static DeviceDescriptor Descriptor(DeviceType type, params Capability[] capabilities) => new()

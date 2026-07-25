@@ -12,4 +12,5 @@ public static class Units
     public const string LUX = "unit.illumination.lux";
     public const string MMHG = "unit.pressure.mmhg";
     public const string PPM = "unit.ppm";
+    public const string CUBIC_METER = "unit.cubic_meter";
 }
