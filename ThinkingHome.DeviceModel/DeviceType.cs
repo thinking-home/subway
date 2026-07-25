@@ -57,4 +57,7 @@ public enum DeviceType
 
     /// <summary>Датчик освещённости. Matter Light Sensor 0x0106.</summary>
     LightSensor,
+
+    /// <summary>Датчик атмосферного давления. Matter Pressure Sensor 0x0305.</summary>
+    PressureSensor,
 }

@@ -23,6 +23,7 @@ namespace ThinkingHome.DeviceModel.State;
 [JsonDerivedType(typeof(WaterLeakState), "waterLeak")]
 [JsonDerivedType(typeof(BatteryState), "battery")]
 [JsonDerivedType(typeof(IlluminanceState), "illuminance")]
+[JsonDerivedType(typeof(PressureState), "pressure")]
 public abstract record StateValue
 {
     /// <summary>Endpoint устройства (0 — основной).</summary>

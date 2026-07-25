@@ -33,8 +33,8 @@ namespace ThinkingHome.Alice.Mapping;
 /// (<see cref="AliceDeviceId"/>). Здесь живёт вся специфика формата Яндекса; ядро о ней не знает.
 /// Пока покрыты OnOff, range (яркость, положение, температура), цвет (color_setting),
 /// режимы (mode: fan_speed, thermostat), тумблеры (toggle: oscillation) и свойства-сенсоры
-/// (properties: float temperature/humidity/battery_level/illumination, event motion/open/water_leak) —
-/// свойства read-only, идут в отдельную ветку properties у Алисы.
+/// (properties: float temperature/humidity/battery_level/illumination/pressure,
+/// event motion/open/water_leak) — свойства read-only, идут в отдельную ветку properties у Алисы.
 ///
 /// Маппинг ограничен замкнутым словарём преобразований (все — детерминированные, чистые функции):
 ///   • 1:1 relabel      — OnOff → on_off
@@ -160,10 +160,12 @@ public static class AliceMapper
         },
     };
 
+    private const double KpaToMmHg = 7.50062;
+
     // значения свойств (сенсоров) — у Алисы это properties, а не capabilities
     private static bool IsPropertyValue(StateValue value) =>
         value is TemperatureState or HumidityState or OccupancyState or ContactState
-            or WaterLeakState or BatteryState or IlluminanceState;
+            or WaterLeakState or BatteryState or IlluminanceState or PressureState;
 
     // ── action: результат нейтральной команды → результат способности Алисы ──
     public static CapabilityActionResultBase ToCapabilityActionResult(
@@ -378,6 +380,7 @@ public static class AliceMapper
             [PropertyEventValue.Dry, PropertyEventValue.Leak]),
         BatteryProperty p => FloatProperty(p, PropertyFloatInstance.BatteryLevel, Units.PERCENT),
         IlluminanceProperty p => FloatProperty(p, PropertyFloatInstance.Illumination, Units.LUX),
+        PressureProperty p => FloatProperty(p, PropertyFloatInstance.Pressure, Units.MMHG),
         _ => throw new NotSupportedException($"Нет маппинга свойства {property.GetType().Name} в Alice"),
     };
 
@@ -443,6 +446,11 @@ public static class AliceMapper
         {
             State = new PropertyStateFloatData { Instance = PropertyFloatInstance.Illumination, Value = (float)s.Value },
         },
+        PressureState s => new PropertyStateFloat
+        {
+            // value-transform единиц: кПа ядра (единица Matter) → мм рт. ст. Алисы
+            State = new PropertyStateFloatData { Instance = PropertyFloatInstance.Pressure, Value = (float)Math.Round(s.Value * KpaToMmHg, 1) },
+        },
         _ => throw new NotSupportedException($"Нет маппинга свойства-состояния {value.GetType().Name} в Alice"),
     };
 
@@ -473,6 +481,7 @@ public static class AliceMapper
         DeviceType.ContactSensor => AliceDeviceType.SensorOpen,
         DeviceType.WaterLeakSensor => AliceDeviceType.SensorWaterLeak,
         DeviceType.LightSensor => AliceDeviceType.SensorIllumination,
+        DeviceType.PressureSensor => AliceDeviceType.SensorClimate,
         _ => throw new NotSupportedException($"Нет маппинга типа устройства {type} в Alice"),
     };
 

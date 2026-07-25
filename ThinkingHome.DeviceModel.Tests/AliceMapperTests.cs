@@ -134,6 +134,7 @@ public class AliceMapperTests
     [InlineData(DeviceType.ContactSensor, AliceDeviceType.SensorOpen)]
     [InlineData(DeviceType.WaterLeakSensor, AliceDeviceType.SensorWaterLeak)]
     [InlineData(DeviceType.LightSensor, AliceDeviceType.SensorIllumination)]
+    [InlineData(DeviceType.PressureSensor, AliceDeviceType.SensorClimate)]
     public void ToDevices_maps_device_types(DeviceType type, AliceDeviceType expected)
     {
         var descriptor = new DeviceDescriptor
@@ -635,6 +636,37 @@ public class AliceMapperTests
         var floatState = Assert.IsType<PropertyStateFloat>(Assert.Single(state.Properties));
         Assert.Equal(PropertyFloatInstance.Illumination, floatState.State.Instance);
         Assert.Equal(420f, floatState.State.Value);
+    }
+
+    [Fact]
+    public void Pressure_maps_to_alice_float_in_mmhg()
+    {
+        // discovery: барометр → sensor.climate, юнит — мм рт. ст.
+        var device = Assert.Single(AliceMapper.ToDevices(new DeviceDescriptor
+        {
+            Id = "d",
+            Title = "T",
+            Endpoints = [new Endpoint
+            {
+                Id = 0,
+                Type = DeviceType.PressureSensor,
+                Properties = [new PressureProperty { Instance = "pressure" }],
+            }],
+        }));
+        Assert.Equal(AliceDeviceType.SensorClimate, device.Type);
+        var info = Assert.IsType<PropertyInfoFloat>(Assert.Single(device.Properties));
+        Assert.Equal(PropertyFloatInstance.Pressure, info.Parameters.Instance);
+        Assert.Equal("unit.pressure.mmhg", info.Parameters.Unit);
+
+        // state: value-transform единиц — кПа ядра → мм рт. ст. (99.6 кПа ≈ 747.1 мм рт. ст.)
+        var state = AliceMapper.ToDeviceState(new AliceDeviceId("d", 0), new DeviceSnapshot
+        {
+            DeviceId = "d",
+            Values = [new PressureState { EndpointId = 0, Instance = "pressure", Value = 99.6 }],
+        });
+        var floatState = Assert.IsType<PropertyStateFloat>(Assert.Single(state.Properties));
+        Assert.Equal(PropertyFloatInstance.Pressure, floatState.State.Instance);
+        Assert.Equal(747.1f, floatState.State.Value);
     }
 
     private static DeviceDescriptor Descriptor(DeviceType type, params Capability[] capabilities) => new()

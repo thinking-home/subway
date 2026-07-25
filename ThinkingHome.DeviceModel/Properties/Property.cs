@@ -14,6 +14,7 @@ namespace ThinkingHome.DeviceModel.Properties;
 [JsonDerivedType(typeof(WaterLeakProperty), "waterLeak")]
 [JsonDerivedType(typeof(BatteryProperty), "battery")]
 [JsonDerivedType(typeof(IlluminanceProperty), "illuminance")]
+[JsonDerivedType(typeof(PressureProperty), "pressure")]
 public abstract record Property
 {
     /// <summary>Экземпляр свойства (например, "temperature", "motion").</summary>

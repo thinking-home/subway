@@ -46,6 +46,7 @@ public class AliceMapperCompletenessTests
         new WaterLeakProperty { Instance = "water_leak" },
         new BatteryProperty { Instance = "battery" },
         new IlluminanceProperty { Instance = "illuminance" },
+        new PressureProperty { Instance = "pressure" },
     ];
 
     private static readonly StateValue[] StateSamples =
@@ -66,6 +67,7 @@ public class AliceMapperCompletenessTests
         new WaterLeakState { Instance = "water_leak", Value = false },
         new BatteryState { Instance = "battery", Value = 87 },
         new IlluminanceState { Instance = "illuminance", Value = 420 },
+        new PressureState { Instance = "pressure", Value = 99.6 },
     ];
 
     // все поддерживаемые действия Алисы — по одному образцу на каждую ветку ToCommand (тип + instance)

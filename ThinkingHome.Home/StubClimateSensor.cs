@@ -6,14 +6,15 @@ using ThinkingHome.DeviceModel.State;
 namespace ThinkingHome.Home;
 
 /// <summary>
-/// Заглушка климатической станции (температура + влажность + заряд батареи, только чтение).
-/// Составное устройство по правилу композиции Matter: термометр и гигрометр — независимые
-/// прикладные роли, поэтому это два endpoint'а, а не два типа (или безбилетный кластер) на одном.
+/// Заглушка климатической станции (температура + влажность + давление + заряд батареи, только чтение).
+/// Составное устройство по правилу композиции Matter: термометр, гигрометр и барометр — независимые
+/// прикладные роли, поэтому это три endpoint'а, а не несколько типов (или безбилетные кластеры) на одном.
 /// </summary>
 public sealed class StubClimateSensor(string id, string title, string? room = null) : IDevice
 {
     private readonly double temperature = 23.5;
     private readonly double humidity = 41;
+    private readonly double pressureKpa = 99.6;
     private readonly double battery = 87;
 
     public string Id => id;
@@ -45,6 +46,12 @@ public sealed class StubClimateSensor(string id, string title, string? room = nu
                 Type = DeviceType.HumiditySensor,
                 Properties = [new HumidityProperty { Instance = "humidity" }],
             },
+            new Endpoint
+            {
+                Id = 2,
+                Type = DeviceType.PressureSensor,
+                Properties = [new PressureProperty { Instance = "pressure" }],
+            },
         ],
     };
 
@@ -57,6 +64,7 @@ public sealed class StubClimateSensor(string id, string title, string? room = nu
                 new TemperatureState { EndpointId = 0, Instance = "temperature", Value = temperature },
                 new BatteryState { EndpointId = 0, Instance = "battery", Value = battery },
                 new HumidityState { EndpointId = 1, Instance = "humidity", Value = humidity },
+                new PressureState { EndpointId = 2, Instance = "pressure", Value = pressureKpa },
             ],
         });
 
