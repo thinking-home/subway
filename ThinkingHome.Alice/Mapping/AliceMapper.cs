@@ -33,7 +33,7 @@ namespace ThinkingHome.Alice.Mapping;
 /// (<see cref="AliceDeviceId"/>). Здесь живёт вся специфика формата Яндекса; ядро о ней не знает.
 /// Пока покрыты OnOff, range (яркость, положение, температура), цвет (color_setting),
 /// режимы (mode: fan_speed, thermostat), тумблеры (toggle: oscillation) и свойства-сенсоры
-/// (properties: float temperature/humidity/battery_level, event motion/open/water_leak) —
+/// (properties: float temperature/humidity/battery_level/illumination, event motion/open/water_leak) —
 /// свойства read-only, идут в отдельную ветку properties у Алисы.
 ///
 /// Маппинг ограничен замкнутым словарём преобразований (все — детерминированные, чистые функции):
@@ -163,7 +163,7 @@ public static class AliceMapper
     // значения свойств (сенсоров) — у Алисы это properties, а не capabilities
     private static bool IsPropertyValue(StateValue value) =>
         value is TemperatureState or HumidityState or OccupancyState or ContactState
-            or WaterLeakState or BatteryState;
+            or WaterLeakState or BatteryState or IlluminanceState;
 
     // ── action: результат нейтральной команды → результат способности Алисы ──
     public static CapabilityActionResultBase ToCapabilityActionResult(
@@ -377,6 +377,7 @@ public static class AliceMapper
         WaterLeakProperty p => EventProperty(p, PropertyEventInstance.WaterLeak,
             [PropertyEventValue.Dry, PropertyEventValue.Leak]),
         BatteryProperty p => FloatProperty(p, PropertyFloatInstance.BatteryLevel, Units.PERCENT),
+        IlluminanceProperty p => FloatProperty(p, PropertyFloatInstance.Illumination, Units.LUX),
         _ => throw new NotSupportedException($"Нет маппинга свойства {property.GetType().Name} в Alice"),
     };
 
@@ -438,6 +439,10 @@ public static class AliceMapper
         {
             State = new PropertyStateFloatData { Instance = PropertyFloatInstance.BatteryLevel, Value = (float)s.Value },
         },
+        IlluminanceState s => new PropertyStateFloat
+        {
+            State = new PropertyStateFloatData { Instance = PropertyFloatInstance.Illumination, Value = (float)s.Value },
+        },
         _ => throw new NotSupportedException($"Нет маппинга свойства-состояния {value.GetType().Name} в Alice"),
     };
 
@@ -467,6 +472,7 @@ public static class AliceMapper
         DeviceType.OccupancySensor => AliceDeviceType.SensorMotion,
         DeviceType.ContactSensor => AliceDeviceType.SensorOpen,
         DeviceType.WaterLeakSensor => AliceDeviceType.SensorWaterLeak,
+        DeviceType.LightSensor => AliceDeviceType.SensorIllumination,
         _ => throw new NotSupportedException($"Нет маппинга типа устройства {type} в Alice"),
     };
 

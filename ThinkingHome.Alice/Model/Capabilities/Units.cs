@@ -9,4 +9,5 @@ public static class Units
 {
     public const string PERCENT = "unit.percent";
     public const string CELSIUS = "unit.temperature.celsius";
+    public const string LUX = "unit.illumination.lux";
 }

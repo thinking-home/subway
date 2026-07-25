@@ -35,4 +35,7 @@ public enum DeviceType
 
     [JsonStringEnumMemberName("devices.types.sensor.water_leak")]
     SensorWaterLeak,
+
+    [JsonStringEnumMemberName("devices.types.sensor.illumination")]
+    SensorIllumination,
 }

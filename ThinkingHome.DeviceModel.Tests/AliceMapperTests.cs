@@ -133,6 +133,7 @@ public class AliceMapperTests
     [InlineData(DeviceType.OccupancySensor, AliceDeviceType.SensorMotion)]
     [InlineData(DeviceType.ContactSensor, AliceDeviceType.SensorOpen)]
     [InlineData(DeviceType.WaterLeakSensor, AliceDeviceType.SensorWaterLeak)]
+    [InlineData(DeviceType.LightSensor, AliceDeviceType.SensorIllumination)]
     public void ToDevices_maps_device_types(DeviceType type, AliceDeviceType expected)
     {
         var descriptor = new DeviceDescriptor
@@ -602,6 +603,38 @@ public class AliceMapperTests
             },
         ], ts: 1).Payload.Devices);
         Assert.Equal(2, openState.Capabilities.Length);
+    }
+
+    [Fact]
+    public void Illuminance_maps_to_alice_float()
+    {
+        // discovery: relabel illuminance → illumination, юнит — люксы
+        var device = Assert.Single(AliceMapper.ToDevices(new DeviceDescriptor
+        {
+            Id = "d",
+            Title = "T",
+            Endpoints = [new Endpoint
+            {
+                Id = 0,
+                Type = DeviceType.LightSensor,
+                Properties = [new IlluminanceProperty { Instance = "illuminance" }],
+            }],
+        }));
+        Assert.Equal(AliceDeviceType.SensorIllumination, device.Type);
+        var info = Assert.IsType<PropertyInfoFloat>(Assert.Single(device.Properties));
+        Assert.Equal(PropertyFloatInstance.Illumination, info.Parameters.Instance);
+        Assert.Equal("unit.illumination.lux", info.Parameters.Unit);
+
+        // snapshot → ветка properties
+        var state = AliceMapper.ToDeviceState(new AliceDeviceId("d", 0), new DeviceSnapshot
+        {
+            DeviceId = "d",
+            Values = [new IlluminanceState { EndpointId = 0, Instance = "illuminance", Value = 420 }],
+        });
+        Assert.Empty(state.Capabilities);
+        var floatState = Assert.IsType<PropertyStateFloat>(Assert.Single(state.Properties));
+        Assert.Equal(PropertyFloatInstance.Illumination, floatState.State.Instance);
+        Assert.Equal(420f, floatState.State.Value);
     }
 
     private static DeviceDescriptor Descriptor(DeviceType type, params Capability[] capabilities) => new()

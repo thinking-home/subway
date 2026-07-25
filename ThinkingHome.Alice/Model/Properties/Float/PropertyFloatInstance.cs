@@ -8,4 +8,5 @@ public enum PropertyFloatInstance
     [JsonStringEnumMemberName("temperature")] Temperature,
     [JsonStringEnumMemberName("humidity")] Humidity,
     [JsonStringEnumMemberName("battery_level")] BatteryLevel,
+    [JsonStringEnumMemberName("illumination")] Illumination,
 }

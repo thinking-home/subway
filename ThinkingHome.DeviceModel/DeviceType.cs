@@ -54,4 +54,7 @@ public enum DeviceType
 
     /// <summary>Датчик протечки воды. Matter Water Leak Detector 0x0043.</summary>
     WaterLeakSensor,
+
+    /// <summary>Датчик освещённости. Matter Light Sensor 0x0106.</summary>
+    LightSensor,
 }
