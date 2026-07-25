@@ -5,7 +5,11 @@ using ThinkingHome.DeviceModel.State;
 
 namespace ThinkingHome.Home;
 
-/// <summary>Заглушка климатического датчика (температура + влажность + заряд батареи, только чтение).</summary>
+/// <summary>
+/// Заглушка климатической станции (температура + влажность + заряд батареи, только чтение).
+/// Составное устройство по правилу композиции Matter: термометр и гигрометр — независимые
+/// прикладные роли, поэтому это два endpoint'а, а не два типа (или безбилетный кластер) на одном.
+/// </summary>
 public sealed class StubClimateSensor(string id, string title, string? room = null) : IDevice
 {
     private readonly double temperature = 23.5;
@@ -22,17 +26,25 @@ public sealed class StubClimateSensor(string id, string title, string? room = nu
         Title = title,
         Room = room,
         Manufacturer = new DeviceManufacturer { Name = "ThinkingHome", Model = "stub-climate" },
-        Endpoints = [new Endpoint
-        {
-            Id = 0,
-            Type = DeviceType.TemperatureSensor,
-            Properties =
-            [
-                new TemperatureProperty { Instance = "temperature" },
-                new HumidityProperty { Instance = "humidity" },
-                new BatteryProperty { Instance = "battery" },
-            ],
-        }],
+        Endpoints =
+        [
+            new Endpoint
+            {
+                Id = 0,
+                Type = DeviceType.TemperatureSensor,
+                Properties =
+                [
+                    new TemperatureProperty { Instance = "temperature" },
+                    new BatteryProperty { Instance = "battery" },
+                ],
+            },
+            new Endpoint
+            {
+                Id = 1,
+                Type = DeviceType.HumiditySensor,
+                Properties = [new HumidityProperty { Instance = "humidity" }],
+            },
+        ],
     };
 
     public Task<DeviceSnapshot> QueryAsync(CancellationToken ct = default)
@@ -41,9 +53,9 @@ public sealed class StubClimateSensor(string id, string title, string? room = nu
             DeviceId = id,
             Values =
             [
-                new TemperatureState { Instance = "temperature", Value = temperature },
-                new HumidityState { Instance = "humidity", Value = humidity },
-                new BatteryState { Instance = "battery", Value = battery },
+                new TemperatureState { EndpointId = 0, Instance = "temperature", Value = temperature },
+                new BatteryState { EndpointId = 0, Instance = "battery", Value = battery },
+                new HumidityState { EndpointId = 1, Instance = "humidity", Value = humidity },
             ],
         });
 
