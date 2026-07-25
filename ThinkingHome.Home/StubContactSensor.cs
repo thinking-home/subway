@@ -12,7 +12,8 @@ public sealed class StubContactSensor(string id, string title, string? room = nu
 
     public string Id => id;
 
-    public event Action<StateChange>? Changed;
+    // статический стаб: изменений не эмитит
+    public event Action<StateChange>? Changed { add { } remove { } }
 
     public DeviceDescriptor Describe() => new()
     {
@@ -38,6 +39,4 @@ public sealed class StubContactSensor(string id, string title, string? room = nu
     // сенсор: команд нет
     public Task<CommandOutcome> ExecuteAsync(DeviceCommand command, CancellationToken ct = default)
         => Task.FromResult(CommandOutcome.Unsupported);
-
-    private void Report(StateValue value) => Changed?.Invoke(new StateChange { DeviceId = id, Value = value });
 }

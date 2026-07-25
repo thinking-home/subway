@@ -13,7 +13,8 @@ public sealed class StubLightSensor(string id, string title, string? room = null
 
     public string Id => id;
 
-    public event Action<StateChange>? Changed;
+    // статический стаб: изменений не эмитит
+    public event Action<StateChange>? Changed { add { } remove { } }
 
     public DeviceDescriptor Describe() => new()
     {
