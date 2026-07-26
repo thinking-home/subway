@@ -1,6 +1,6 @@
 namespace ThinkingHome.DeviceModel.State;
 
-/// <summary>Значение вкл/выкл (instance "on").</summary>
+/// <summary>Значение вкл/выкл (instance "on_off").</summary>
 public sealed record OnOffState : StateValue
 {
     /// <summary>Текущее состояние: true — включено.</summary>

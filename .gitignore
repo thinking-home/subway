@@ -7,3 +7,5 @@ bin
 obj
 publish
 appsettings.Development.json
+
+docs/reference

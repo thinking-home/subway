@@ -1,6 +1,6 @@
 namespace ThinkingHome.DeviceModel.Commands;
 
-/// <summary>Включить/выключить (instance "on").</summary>
+/// <summary>Включить/выключить (instance "on_off").</summary>
 public sealed record OnOffCommand : DeviceCommand
 {
     /// <summary>Целевое состояние: true — включить.</summary>

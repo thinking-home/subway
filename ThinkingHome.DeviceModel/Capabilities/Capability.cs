@@ -18,7 +18,7 @@ namespace ThinkingHome.DeviceModel.Capabilities;
 [JsonDerivedType(typeof(TargetTemperatureCapability), "targetTemperature")]
 public abstract record Capability
 {
-    /// <summary>Экземпляр способности (например, "on", "brightness").</summary>
+    /// <summary>Экземпляр способности (например, "on_off", "brightness").</summary>
     public required string Instance { get; init; }
 
     /// <summary>Можно ли опросить текущее состояние.</summary>
