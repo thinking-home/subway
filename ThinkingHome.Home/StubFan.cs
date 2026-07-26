@@ -28,9 +28,9 @@ public sealed class StubFan(string id, string title, string? room = null) : IDev
             Type = DeviceType.Fan,
             Capabilities =
             [
-                new OnOffCapability { Instance = "on_off" },
-                new FanSpeedCapability { Instance = "fan_speed", Speeds = [FanSpeed.Auto, FanSpeed.Low, FanSpeed.Medium, FanSpeed.High] },
-                new OscillationCapability { Instance = "oscillation" },
+                new OnOffCapability { Instance = OnOffCapability.InstanceName },
+                new FanSpeedCapability { Instance = FanSpeedCapability.InstanceName, Speeds = [FanSpeed.Auto, FanSpeed.Low, FanSpeed.Medium, FanSpeed.High] },
+                new OscillationCapability { Instance = OscillationCapability.InstanceName },
             ],
         }],
     };
@@ -41,9 +41,9 @@ public sealed class StubFan(string id, string title, string? room = null) : IDev
             DeviceId = id,
             Values =
             [
-                new OnOffState { Instance = "on_off", Value = isOn },
-                new FanSpeedState { Instance = "fan_speed", Value = speed },
-                new OscillationState { Instance = "oscillation", Value = oscillating },
+                new OnOffState { Instance = OnOffCapability.InstanceName, Value = isOn },
+                new FanSpeedState { Instance = FanSpeedCapability.InstanceName, Value = speed },
+                new OscillationState { Instance = OscillationCapability.InstanceName, Value = oscillating },
             ],
         });
 
@@ -54,19 +54,19 @@ public sealed class StubFan(string id, string title, string? room = null) : IDev
             case OnOffCommand on:
                 isOn = on.Value;
                 Console.WriteLine($"[{id}] → {(isOn ? "ВКЛ" : "выкл")}");
-                Report(new OnOffState { Instance = "on_off", Value = isOn });
+                Report(new OnOffState { Instance = OnOffCapability.InstanceName, Value = isOn });
                 return Task.FromResult(CommandOutcome.Done);
 
             case FanSpeedCommand fan:
                 speed = fan.Value;
                 Console.WriteLine($"[{id}] → скорость {speed}");
-                Report(new FanSpeedState { Instance = "fan_speed", Value = speed });
+                Report(new FanSpeedState { Instance = FanSpeedCapability.InstanceName, Value = speed });
                 return Task.FromResult(CommandOutcome.Done);
 
             case OscillationCommand osc:
                 oscillating = osc.Value;
                 Console.WriteLine($"[{id}] → осцилляция {(oscillating ? "ВКЛ" : "выкл")}");
-                Report(new OscillationState { Instance = "oscillation", Value = oscillating });
+                Report(new OscillationState { Instance = OscillationCapability.InstanceName, Value = oscillating });
                 return Task.FromResult(CommandOutcome.Done);
 
             default:

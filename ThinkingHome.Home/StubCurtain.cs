@@ -29,7 +29,7 @@ public sealed class StubCurtain(string id, string title, string? room = null) : 
         {
             Id = 0,
             Type = DeviceType.Curtain,
-            Capabilities = [new OpenCapability { Instance = "open" }],
+            Capabilities = [new OpenCapability { Instance = OpenCapability.InstanceName }],
         }],
     };
 
@@ -37,7 +37,7 @@ public sealed class StubCurtain(string id, string title, string? room = null) : 
         => Task.FromResult(new DeviceSnapshot
         {
             DeviceId = id,
-            Values = [new OpenState { Instance = "open", Value = position }],
+            Values = [new OpenState { Instance = OpenCapability.InstanceName, Value = position }],
         });
 
     public Task<CommandOutcome> ExecuteAsync(DeviceCommand command, CancellationToken ct = default)
@@ -55,7 +55,7 @@ public sealed class StubCurtain(string id, string title, string? room = null) : 
         }
 
         Console.WriteLine($"[{id}] → положение {position}%");
-        Changed?.Invoke(new StateChange { DeviceId = id, Value = new OpenState { Instance = "open", Value = position } });
+        Changed?.Invoke(new StateChange { DeviceId = id, Value = new OpenState { Instance = OpenCapability.InstanceName, Value = position } });
         return Task.FromResult(CommandOutcome.Done);
     }
 }

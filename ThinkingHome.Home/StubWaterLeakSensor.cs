@@ -28,8 +28,8 @@ public sealed class StubWaterLeakSensor(string id, string title, string? room = 
             Type = DeviceType.WaterLeakSensor,
             Properties =
             [
-                new WaterLeakProperty { Instance = "water_leak" },
-                new BatteryProperty { Instance = "battery" },
+                new WaterLeakProperty { Instance = WaterLeakProperty.InstanceName },
+                new BatteryProperty { Instance = BatteryProperty.InstanceName },
             ],
         }],
     };
@@ -40,8 +40,8 @@ public sealed class StubWaterLeakSensor(string id, string title, string? room = 
             DeviceId = id,
             Values =
             [
-                new WaterLeakState { Instance = "water_leak", Value = leaking },
-                new BatteryState { Instance = "battery", Value = battery },
+                new WaterLeakState { Instance = WaterLeakProperty.InstanceName, Value = leaking },
+                new BatteryState { Instance = BatteryProperty.InstanceName, Value = battery },
             ],
         });
 

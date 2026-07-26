@@ -32,13 +32,13 @@ public sealed class StubAirConditioner(string id, string title, string? room = n
             Type = DeviceType.AirConditioner,
             Capabilities =
             [
-                new OnOffCapability { Instance = "on_off" },
-                new TargetTemperatureCapability { Instance = "target_temperature", MinCelsius = 18, MaxCelsius = 33 },
-                new ThermostatModeCapability { Instance = "thermostat_mode", Modes = [ThermostatMode.Auto, ThermostatMode.Heat, ThermostatMode.Cool, ThermostatMode.Dry, ThermostatMode.FanOnly] },
-                new FanSpeedCapability { Instance = "fan_speed", Speeds = [FanSpeed.Auto, FanSpeed.Low, FanSpeed.Medium, FanSpeed.High] },
-                new OscillationCapability { Instance = "oscillation" },
+                new OnOffCapability { Instance = OnOffCapability.InstanceName },
+                new TargetTemperatureCapability { Instance = TargetTemperatureCapability.InstanceName, MinCelsius = 18, MaxCelsius = 33 },
+                new ThermostatModeCapability { Instance = ThermostatModeCapability.InstanceName, Modes = [ThermostatMode.Auto, ThermostatMode.Heat, ThermostatMode.Cool, ThermostatMode.Dry, ThermostatMode.FanOnly] },
+                new FanSpeedCapability { Instance = FanSpeedCapability.InstanceName, Speeds = [FanSpeed.Auto, FanSpeed.Low, FanSpeed.Medium, FanSpeed.High] },
+                new OscillationCapability { Instance = OscillationCapability.InstanceName },
             ],
-            Properties = [new TemperatureProperty { Instance = "temperature" }],
+            Properties = [new TemperatureProperty { Instance = TemperatureProperty.InstanceName }],
         }],
     };
 
@@ -48,12 +48,12 @@ public sealed class StubAirConditioner(string id, string title, string? room = n
             DeviceId = id,
             Values =
             [
-                new OnOffState { Instance = "on_off", Value = isOn },
-                new TargetTemperatureState { Instance = "target_temperature", Value = targetCelsius },
-                new ThermostatModeState { Instance = "thermostat_mode", Value = mode },
-                new FanSpeedState { Instance = "fan_speed", Value = speed },
-                new OscillationState { Instance = "oscillation", Value = oscillating },
-                new TemperatureState { Instance = "temperature", Value = roomCelsius },
+                new OnOffState { Instance = OnOffCapability.InstanceName, Value = isOn },
+                new TargetTemperatureState { Instance = TargetTemperatureCapability.InstanceName, Value = targetCelsius },
+                new ThermostatModeState { Instance = ThermostatModeCapability.InstanceName, Value = mode },
+                new FanSpeedState { Instance = FanSpeedCapability.InstanceName, Value = speed },
+                new OscillationState { Instance = OscillationCapability.InstanceName, Value = oscillating },
+                new TemperatureState { Instance = TemperatureProperty.InstanceName, Value = roomCelsius },
             ],
         });
 
@@ -64,31 +64,31 @@ public sealed class StubAirConditioner(string id, string title, string? room = n
             case OnOffCommand on:
                 isOn = on.Value;
                 Console.WriteLine($"[{id}] → {(isOn ? "ВКЛ" : "выкл")}");
-                Report(new OnOffState { Instance = "on_off", Value = isOn });
+                Report(new OnOffState { Instance = OnOffCapability.InstanceName, Value = isOn });
                 return Task.FromResult(CommandOutcome.Done);
 
             case TargetTemperatureCommand temp:
                 targetCelsius = temp.Value;
                 Console.WriteLine($"[{id}] → уставка {targetCelsius} °C");
-                Report(new TargetTemperatureState { Instance = "target_temperature", Value = targetCelsius });
+                Report(new TargetTemperatureState { Instance = TargetTemperatureCapability.InstanceName, Value = targetCelsius });
                 return Task.FromResult(CommandOutcome.Done);
 
             case ThermostatModeCommand m:
                 mode = m.Value;
                 Console.WriteLine($"[{id}] → режим {mode}");
-                Report(new ThermostatModeState { Instance = "thermostat_mode", Value = mode });
+                Report(new ThermostatModeState { Instance = ThermostatModeCapability.InstanceName, Value = mode });
                 return Task.FromResult(CommandOutcome.Done);
 
             case FanSpeedCommand fan:
                 speed = fan.Value;
                 Console.WriteLine($"[{id}] → скорость {speed}");
-                Report(new FanSpeedState { Instance = "fan_speed", Value = speed });
+                Report(new FanSpeedState { Instance = FanSpeedCapability.InstanceName, Value = speed });
                 return Task.FromResult(CommandOutcome.Done);
 
             case OscillationCommand osc:
                 oscillating = osc.Value;
                 Console.WriteLine($"[{id}] → осцилляция {(oscillating ? "ВКЛ" : "выкл")}");
-                Report(new OscillationState { Instance = "oscillation", Value = oscillating });
+                Report(new OscillationState { Instance = OscillationCapability.InstanceName, Value = oscillating });
                 return Task.FromResult(CommandOutcome.Done);
 
             default:

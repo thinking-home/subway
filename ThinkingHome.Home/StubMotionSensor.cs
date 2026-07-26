@@ -25,7 +25,7 @@ public sealed class StubMotionSensor(string id, string title, string? room = nul
         {
             Id = 0,
             Type = DeviceType.OccupancySensor,
-            Properties = [new OccupancyProperty { Instance = "occupancy" }],
+            Properties = [new OccupancyProperty { Instance = OccupancyProperty.InstanceName }],
         }],
     };
 
@@ -33,7 +33,7 @@ public sealed class StubMotionSensor(string id, string title, string? room = nul
         => Task.FromResult(new DeviceSnapshot
         {
             DeviceId = id,
-            Values = [new OccupancyState { Instance = "occupancy", Value = occupied }],
+            Values = [new OccupancyState { Instance = OccupancyProperty.InstanceName, Value = occupied }],
         });
 
     // сенсор: команд нет

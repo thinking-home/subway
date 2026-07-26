@@ -35,15 +35,15 @@ public sealed class StubWaterius(string id, string title, string? room = null) :
                 Type = DeviceType.WaterMeter,
                 Properties =
                 [
-                    new WaterMeterProperty { Instance = "water_meter" },
-                    new BatteryProperty { Instance = "battery" },
+                    new WaterMeterProperty { Instance = WaterMeterProperty.InstanceName },
+                    new BatteryProperty { Instance = BatteryProperty.InstanceName },
                 ],
             },
             new Endpoint
             {
                 Id = 1,
                 Type = DeviceType.WaterMeter,
-                Properties = [new WaterMeterProperty { Instance = "water_meter" }],
+                Properties = [new WaterMeterProperty { Instance = WaterMeterProperty.InstanceName }],
             },
         ],
     };
@@ -54,9 +54,9 @@ public sealed class StubWaterius(string id, string title, string? room = null) :
             DeviceId = id,
             Values =
             [
-                new WaterMeterState { EndpointId = 0, Instance = "water_meter", Value = channel0Volume },
-                new BatteryState { EndpointId = 0, Instance = "battery", Value = battery },
-                new WaterMeterState { EndpointId = 1, Instance = "water_meter", Value = channel1Volume },
+                new WaterMeterState { EndpointId = 0, Instance = WaterMeterProperty.InstanceName, Value = channel0Volume },
+                new BatteryState { EndpointId = 0, Instance = BatteryProperty.InstanceName, Value = battery },
+                new WaterMeterState { EndpointId = 1, Instance = WaterMeterProperty.InstanceName, Value = channel1Volume },
             ],
         });
 

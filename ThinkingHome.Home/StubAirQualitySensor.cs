@@ -29,9 +29,9 @@ public sealed class StubAirQualitySensor(string id, string title, string? room =
             Type = DeviceType.AirQualitySensor,
             Properties =
             [
-                new AirQualityProperty { Instance = "air_quality" },
-                new CarbonDioxideProperty { Instance = "carbon_dioxide" },
-                new BatteryProperty { Instance = "battery" },
+                new AirQualityProperty { Instance = AirQualityProperty.InstanceName },
+                new CarbonDioxideProperty { Instance = CarbonDioxideProperty.InstanceName },
+                new BatteryProperty { Instance = BatteryProperty.InstanceName },
             ],
         }],
     };
@@ -42,9 +42,9 @@ public sealed class StubAirQualitySensor(string id, string title, string? room =
             DeviceId = id,
             Values =
             [
-                new AirQualityState { Instance = "air_quality", Value = airQuality },
-                new CarbonDioxideState { Instance = "carbon_dioxide", Value = co2Ppm },
-                new BatteryState { Instance = "battery", Value = battery },
+                new AirQualityState { Instance = AirQualityProperty.InstanceName, Value = airQuality },
+                new CarbonDioxideState { Instance = CarbonDioxideProperty.InstanceName, Value = co2Ppm },
+                new BatteryState { Instance = BatteryProperty.InstanceName, Value = battery },
             ],
         });
 

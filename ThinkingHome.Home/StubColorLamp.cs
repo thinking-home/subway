@@ -33,8 +33,8 @@ public sealed class StubColorLamp(string id, string title, string? room = null) 
             Type = DeviceType.ExtendedColorLight,
             Capabilities =
             [
-                new OnOffCapability { Instance = "on_off" },
-                new BrightnessCapability { Instance = "brightness" },
+                new OnOffCapability { Instance = OnOffCapability.InstanceName },
+                new BrightnessCapability { Instance = BrightnessCapability.InstanceName },
                 new ColorCapability
                 {
                     Instance = ColorCapability.InstanceName,
@@ -51,8 +51,8 @@ public sealed class StubColorLamp(string id, string title, string? room = null) 
             DeviceId = id,
             Values =
             [
-                new OnOffState { Instance = "on_off", Value = isOn },
-                new BrightnessState { Instance = "brightness", Value = brightness },
+                new OnOffState { Instance = OnOffCapability.InstanceName, Value = isOn },
+                new BrightnessState { Instance = BrightnessCapability.InstanceName, Value = brightness },
                 rgbMode
                     ? new ColorRgbState { Instance = ColorCapability.InstanceName, Value = rgb }
                     : new ColorTemperatureState { Instance = ColorCapability.InstanceName, Value = kelvin },
@@ -66,13 +66,13 @@ public sealed class StubColorLamp(string id, string title, string? room = null) 
             case OnOffCommand on:
                 isOn = on.Value;
                 Console.WriteLine($"[{id}] → {(isOn ? "ВКЛ" : "выкл")}");
-                Report(new OnOffState { Instance = "on_off", Value = isOn });
+                Report(new OnOffState { Instance = OnOffCapability.InstanceName, Value = isOn });
                 return Task.FromResult(CommandOutcome.Done);
 
             case BrightnessCommand br:
                 brightness = br.Value;
                 Console.WriteLine($"[{id}] → яркость {brightness}%");
-                Report(new BrightnessState { Instance = "brightness", Value = brightness });
+                Report(new BrightnessState { Instance = BrightnessCapability.InstanceName, Value = brightness });
                 return Task.FromResult(CommandOutcome.Done);
 
             case ColorTemperatureCommand temp:

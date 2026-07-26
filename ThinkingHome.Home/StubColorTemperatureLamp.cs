@@ -28,8 +28,8 @@ public sealed class StubColorTemperatureLamp(string id, string title, string? ro
             Type = DeviceType.ColorTemperatureLight,
             Capabilities =
             [
-                new OnOffCapability { Instance = "on_off" },
-                new BrightnessCapability { Instance = "brightness" },
+                new OnOffCapability { Instance = OnOffCapability.InstanceName },
+                new BrightnessCapability { Instance = BrightnessCapability.InstanceName },
                 new ColorCapability { Instance = ColorCapability.InstanceName, Temperature = new ColorTemperatureRange { MinKelvin = 2700, MaxKelvin = 6500 } },
             ],
         }],
@@ -41,8 +41,8 @@ public sealed class StubColorTemperatureLamp(string id, string title, string? ro
             DeviceId = id,
             Values =
             [
-                new OnOffState { Instance = "on_off", Value = isOn },
-                new BrightnessState { Instance = "brightness", Value = brightness },
+                new OnOffState { Instance = OnOffCapability.InstanceName, Value = isOn },
+                new BrightnessState { Instance = BrightnessCapability.InstanceName, Value = brightness },
                 new ColorTemperatureState { Instance = ColorCapability.InstanceName, Value = kelvin },
             ],
         });
@@ -54,13 +54,13 @@ public sealed class StubColorTemperatureLamp(string id, string title, string? ro
             case OnOffCommand on:
                 isOn = on.Value;
                 Console.WriteLine($"[{id}] → {(isOn ? "ВКЛ" : "выкл")}");
-                Report(new OnOffState { Instance = "on_off", Value = isOn });
+                Report(new OnOffState { Instance = OnOffCapability.InstanceName, Value = isOn });
                 return Task.FromResult(CommandOutcome.Done);
 
             case BrightnessCommand br:
                 brightness = br.Value;
                 Console.WriteLine($"[{id}] → яркость {brightness}%");
-                Report(new BrightnessState { Instance = "brightness", Value = brightness });
+                Report(new BrightnessState { Instance = BrightnessCapability.InstanceName, Value = brightness });
                 return Task.FromResult(CommandOutcome.Done);
 
             case ColorTemperatureCommand temp:

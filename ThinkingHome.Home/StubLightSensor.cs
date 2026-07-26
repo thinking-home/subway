@@ -28,8 +28,8 @@ public sealed class StubLightSensor(string id, string title, string? room = null
             Type = DeviceType.LightSensor,
             Properties =
             [
-                new IlluminanceProperty { Instance = "illuminance" },
-                new BatteryProperty { Instance = "battery" },
+                new IlluminanceProperty { Instance = IlluminanceProperty.InstanceName },
+                new BatteryProperty { Instance = BatteryProperty.InstanceName },
             ],
         }],
     };
@@ -40,8 +40,8 @@ public sealed class StubLightSensor(string id, string title, string? room = null
             DeviceId = id,
             Values =
             [
-                new IlluminanceState { Instance = "illuminance", Value = lux },
-                new BatteryState { Instance = "battery", Value = battery },
+                new IlluminanceState { Instance = IlluminanceProperty.InstanceName, Value = lux },
+                new BatteryState { Instance = BatteryProperty.InstanceName, Value = battery },
             ],
         });
 

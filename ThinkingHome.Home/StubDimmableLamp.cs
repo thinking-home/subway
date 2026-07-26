@@ -28,7 +28,7 @@ public sealed class StubDimmableLamp(string id, string title, string? room = nul
         {
             Id = 0,
             Type = DeviceType.DimmableLight,
-            Capabilities = [new OnOffCapability { Instance = "on_off" }, new BrightnessCapability { Instance = "brightness" }],
+            Capabilities = [new OnOffCapability { Instance = OnOffCapability.InstanceName }, new BrightnessCapability { Instance = BrightnessCapability.InstanceName }],
         }],
     };
 
@@ -38,8 +38,8 @@ public sealed class StubDimmableLamp(string id, string title, string? room = nul
             DeviceId = id,
             Values =
             [
-                new OnOffState { Instance = "on_off", Value = isOn },
-                new BrightnessState { Instance = "brightness", Value = brightness },
+                new OnOffState { Instance = OnOffCapability.InstanceName, Value = isOn },
+                new BrightnessState { Instance = BrightnessCapability.InstanceName, Value = brightness },
             ],
         });
 
@@ -50,13 +50,13 @@ public sealed class StubDimmableLamp(string id, string title, string? room = nul
             case OnOffCommand on:
                 isOn = on.Value;
                 Console.WriteLine($"[{id}] → {(isOn ? "ВКЛ" : "выкл")}");
-                Report(new OnOffState { Instance = "on_off", Value = isOn });
+                Report(new OnOffState { Instance = OnOffCapability.InstanceName, Value = isOn });
                 return Task.FromResult(CommandOutcome.Done);
 
             case BrightnessCommand br:
                 brightness = br.Value;
                 Console.WriteLine($"[{id}] → яркость {brightness}%");
-                Report(new BrightnessState { Instance = "brightness", Value = brightness });
+                Report(new BrightnessState { Instance = BrightnessCapability.InstanceName, Value = brightness });
                 return Task.FromResult(CommandOutcome.Done);
 
             default:

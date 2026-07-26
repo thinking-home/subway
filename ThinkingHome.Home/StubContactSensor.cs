@@ -25,7 +25,7 @@ public sealed class StubContactSensor(string id, string title, string? room = nu
         {
             Id = 0,
             Type = DeviceType.ContactSensor,
-            Properties = [new ContactProperty { Instance = "contact" }],
+            Properties = [new ContactProperty { Instance = ContactProperty.InstanceName }],
         }],
     };
 
@@ -33,7 +33,7 @@ public sealed class StubContactSensor(string id, string title, string? room = nu
         => Task.FromResult(new DeviceSnapshot
         {
             DeviceId = id,
-            Values = [new ContactState { Instance = "contact", Value = contact }],
+            Values = [new ContactState { Instance = ContactProperty.InstanceName, Value = contact }],
         });
 
     // сенсор: команд нет

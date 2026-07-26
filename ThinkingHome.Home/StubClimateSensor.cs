@@ -36,21 +36,21 @@ public sealed class StubClimateSensor(string id, string title, string? room = nu
                 Type = DeviceType.TemperatureSensor,
                 Properties =
                 [
-                    new TemperatureProperty { Instance = "temperature" },
-                    new BatteryProperty { Instance = "battery" },
+                    new TemperatureProperty { Instance = TemperatureProperty.InstanceName },
+                    new BatteryProperty { Instance = BatteryProperty.InstanceName },
                 ],
             },
             new Endpoint
             {
                 Id = 1,
                 Type = DeviceType.HumiditySensor,
-                Properties = [new HumidityProperty { Instance = "humidity" }],
+                Properties = [new HumidityProperty { Instance = HumidityProperty.InstanceName }],
             },
             new Endpoint
             {
                 Id = 2,
                 Type = DeviceType.PressureSensor,
-                Properties = [new PressureProperty { Instance = "pressure" }],
+                Properties = [new PressureProperty { Instance = PressureProperty.InstanceName }],
             },
         ],
     };
@@ -61,10 +61,10 @@ public sealed class StubClimateSensor(string id, string title, string? room = nu
             DeviceId = id,
             Values =
             [
-                new TemperatureState { EndpointId = 0, Instance = "temperature", Value = temperature },
-                new BatteryState { EndpointId = 0, Instance = "battery", Value = battery },
-                new HumidityState { EndpointId = 1, Instance = "humidity", Value = humidity },
-                new PressureState { EndpointId = 2, Instance = "pressure", Value = pressureKpa },
+                new TemperatureState { EndpointId = 0, Instance = TemperatureProperty.InstanceName, Value = temperature },
+                new BatteryState { EndpointId = 0, Instance = BatteryProperty.InstanceName, Value = battery },
+                new HumidityState { EndpointId = 1, Instance = HumidityProperty.InstanceName, Value = humidity },
+                new PressureState { EndpointId = 2, Instance = PressureProperty.InstanceName, Value = pressureKpa },
             ],
         });
 
