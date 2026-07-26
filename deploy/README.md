@@ -63,7 +63,7 @@ sudo chmod +x /opt/thinkinghome-hub/ThinkingHome.Subway.Hub
 sudo chown -R thinkinghome:thinkinghome /opt/thinkinghome-hub
 
 # СВОЙ ключ подписи (не коммитить):
-echo "Jwt__SigningKey=$(openssl rand -base64 48)" | sudo tee /etc/thinkinghome/hub.env
+echo "THINKINGHOME_Jwt__SigningKey=$(openssl rand -base64 48)" | sudo tee /etc/thinkinghome/hub.env
 sudo chmod 600 /etc/thinkinghome/hub.env
 
 # systemd:

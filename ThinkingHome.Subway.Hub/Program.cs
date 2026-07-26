@@ -17,6 +17,11 @@ namespace ThinkingHome.Subway.Hub
             }
 
             Host.CreateDefaultBuilder(args)
+                // канон — env с префиксом THINKINGHOME_ (поверх стандартных источников,
+                // непрефиксные продолжают работать); командная строка — последней
+                .ConfigureAppConfiguration(config => config
+                    .AddEnvironmentVariables("THINKINGHOME_")
+                    .AddCommandLine(args))
                 .ConfigureWebHostDefaults(webBuilder => webBuilder.UseStartup<Startup>())
                 .Build()
                 .Run();
@@ -28,11 +33,14 @@ namespace ThinkingHome.Subway.Hub
             var config = new ConfigurationBuilder()
                 .SetBasePath(AppContext.BaseDirectory)
                 .AddJsonFile("appsettings.json", optional: true)
+                .AddUserSecrets(typeof(Program).Assembly, optional: true)
                 .AddEnvironmentVariables()
+                .AddEnvironmentVariables("THINKINGHOME_")
                 .Build();
 
             var signingKey = config["Jwt:SigningKey"]
-                ?? throw new InvalidOperationException("Jwt:SigningKey не задан (appsettings/env).");
+                ?? throw new InvalidOperationException(
+                    "Jwt:SigningKey не задан (user-secrets / env THINKINGHOME_Jwt__SigningKey).");
 
             var hostId = GetOption(args, "--hostId")
                 ?? throw new ArgumentException("Укажите --hostId <id>.");

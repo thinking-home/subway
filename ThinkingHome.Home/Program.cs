@@ -1,9 +1,26 @@
+using Microsoft.Extensions.Configuration;
 using ThinkingHome.DeviceModel;
 using ThinkingHome.DeviceModel.Remoting.ProxyClient;
 using ThinkingHome.Home;
 
-var proxyUrl = args.Length > 0 ? args[0] : "https://alice.thinking-home.ru/hub";
-var token = args.Length > 1 ? args[1] : Environment.GetEnvironmentVariable("HOST_TOKEN");
+// конфигурация по общему правилу: appsettings.json (несекретные дефолты) → user-secrets
+// (локальные секреты разработчика) → env с префиксом THINKINGHOME_ → командная строка
+var config = new ConfigurationBuilder()
+    .SetBasePath(AppContext.BaseDirectory)
+    .AddJsonFile("appsettings.json", optional: true)
+    .AddUserSecrets(typeof(Program).Assembly, optional: true)
+    .AddEnvironmentVariables("THINKINGHOME_")
+    .AddCommandLine(args)
+    .Build();
+
+var proxyUrl = config["Proxy:Url"]
+    ?? throw new InvalidOperationException("Proxy:Url не задан (appsettings.json / THINKINGHOME_Proxy__Url).");
+var token = config["Proxy:HostToken"];
+if (token is null)
+{
+    Console.WriteLine("Proxy:HostToken не задан — хаб с авторизацией отклонит подключение. " +
+                      "Задайте: dotnet user-secrets set \"Proxy:HostToken\" \"<токен>\" --project ThinkingHome.Home");
+}
 
 // хост устройств + временные заглушки (лампа/розетка/выключатель — все на способности OnOff)
 var host = new DeviceHost();
@@ -26,7 +43,7 @@ host.Register(new StubLightSensor("lux-1", "Датчик освещённост�
 host.Register(new StubAirQualitySensor("aqs-1", "Датчик качества воздуха", "Кабинет"));
 host.Register(new StubWaterius("waterius-1", "Счётчики воды", "Ванная"));
 
-// коннектор к прокси (hub); JWT хоста — из аргумента или переменной окружения HOST_TOKEN
+// коннектор к прокси (hub); JWT хоста — из конфигурации (Proxy:HostToken)
 await using var connector = new Connector(host, new LogOtpDelivery(), proxyUrl, () => Task.FromResult(token));
 
 Console.WriteLine($"Зарегистрировано устройств: {host.Count}");
