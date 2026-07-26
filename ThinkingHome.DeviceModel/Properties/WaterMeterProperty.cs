@@ -6,4 +6,8 @@ namespace ThinkingHome.DeviceModel.Properties;
 /// объём). Instance — "water_meter".
 /// </summary>
 [VendorExtension]
-public sealed record WaterMeterProperty : Property;
+public sealed record WaterMeterProperty : Property
+{
+    /// <summary>Канонический instance.</summary>
+    public const string InstanceName = "water_meter";
+}

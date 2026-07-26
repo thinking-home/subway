@@ -125,7 +125,7 @@ public sealed record LevelCommand : DeviceCommand { public required int  Value {
 
 Превращение «общее → конкретное» происходит в трёх местах, и все сходятся на одной иерархии:
 
-1. **Фасад** строит конкретный тип: `new OnOffCommand { Instance = "on", Value = true }`.
+1. **Fluent API** строит конкретный тип: `new OnOffCommand { Instance = "on", Value = true }`.
 2. **Драйвер** разбирает `switch`'ем — это и есть дискриминатор; незнакомая команда →
    `CommandOutcome.Unsupported` (→ ошибка Алисы `INVALID_ACTION`).
 3. **Маппер Алисы** — его полиморфная десериализация сохраняется, но теперь выдаёт нейтральный тип
@@ -190,7 +190,8 @@ public sealed record LevelCommand : DeviceCommand { public required int  Value {
 ## Публичный .NET API
 
 Потребитель-грань хоста — это и есть публичный .NET API слоя устройств. Он **нативный**
-(in-process, без сериализации и маппинга) и живёт внутри `ThinkingHome.DeviceModel`. Все внешние
+(in-process, без сериализации и маппинга): ядро живёт внутри `ThinkingHome.DeviceModel`,
+fluent API — в отдельной сборке `ThinkingHome.DeviceModel.FluentApi`. Все внешние
 адаптеры (`AliceMapper` и будущие Matter/HomeKit) — тоже его потребители: они не лезут в реестр
 напрямую, а вызывают этот API, добавляя лишь перевод форматов. То есть .NET API — ствол, адаптеры
 экосистем — ветки на нём.
@@ -205,9 +206,10 @@ public interface IDeviceRegistry {
 
 // потребитель-грань — это и есть .NET API; его зовут и мапперы, и ThinkingHome
 public interface IDeviceHost {
-    IReadOnlyCollection<DeviceDescriptor> GetDevices();
+    Task<IReadOnlyCollection<DeviceDescriptor>> GetDevicesAsync(CancellationToken ct = default);
+    Task<DeviceDescriptor?> GetDeviceAsync(string deviceId, CancellationToken ct = default);
     Task<DeviceSnapshot> QueryAsync(string deviceId, CancellationToken ct = default);
-    Task<CommandOutcome> ExecuteAsync(string deviceId, DeviceCommand cmd, CancellationToken ct = default);
+    Task<CommandOutcome> ExecuteAsync(string deviceId, DeviceCommand command, CancellationToken ct = default);
     event Action<StateChange> Changed;      // агрегированный поток изменений всех устройств
 }
 ```
@@ -217,7 +219,7 @@ public interface IDeviceHost {
 - **Минимальное ядро** (`IDeviceHost` / `IDeviceRegistry` / `IDevice`) — маленькое, ортогональное,
   стабильное. Его реализуют хост и драйверы, на него опираются адаптеры. Оптимизировано на
   корректность и стабильность контракта.
-- **Эргономичный фасад** — тонкий слой поверх ядра для разработчика (сценарии, встраивание в
+- **Fluent API** — тонкий эргономичный слой поверх ядра для разработчика (сценарии, встраивание в
   ThinkingHome): типобезопасные хендлы устройств, типизированный доступ к способностям,
   fluent-команды, подписки. Оптимизирован на удобство; меняется, не дестабилизируя ядро.
 
@@ -225,17 +227,106 @@ public interface IDeviceHost {
 
 ```csharp
 // через ядро (обобщённо; так пользуются адаптеры):
-await host.ExecuteAsync("noolite:ch5", new OnOffCommand { Instance = "on", Value = true });
+await host.ExecuteAsync("noolite:ch5", new OnOffCommand { Instance = "on_off", Value = true });
 
-// через фасад (так пользуется разработчик .NET):
+// через fluent API (так пользуется разработчик .NET):
 await host.Device("noolite:ch5").OnOff().TurnOnAsync();
-
-var light = host.Device("noolite:ch5");
-if (light.Level() is { } level) await level.SetAsync(50);   // способности нет → null
-light.OnChanged(change => Log(change));                     // подписка на изменения
 ```
 
-Фасад — это сахар (в основном extension-методы) над ядром, поэтому ядро остаётся маленьким.
+Fluent API — это сахар (в основном extension-методы) над ядром, поэтому ядро остаётся маленьким.
+Он живёт в отдельной сборке `ThinkingHome.DeviceModel.FluentApi`: ядро на неё не ссылается,
+потребитель подключает по желанию.
+
+### Дизайн fluent API
+
+Принципы (в порядке значимости):
+
+1. **Только сахар над `IDeviceHost`.** Fluent API — extension-методы и лёгкие хендлы; любая цепочка в
+   итоге сводится к пяти членам ядра. Поэтому он одинаково работает с локальным `DeviceHost` и с
+   `RemoteHost` на хабе (хендл не знает, с кем говорит) и не добавляет семантики: каждый
+   fluent-метод — ровно один вызов ядра. Никаких «прочитай и скомандуй» внутри одного метода:
+   например, `ToggleAsync` как «запросить + инвертировать» — это гонка; если Toggle нужен,
+   это новая команда ядра, отдельное решение, а не сахар.
+2. **Хендл — адрес, а не снимок.** `host.Device(id)` не ходит в сеть и не проверяет существование:
+   проверка при создании всё равно ничего не гарантирует к моменту вызова. Хендлы существуют
+   всегда; отсутствие обнаруживается на вызовах.
+3. **Endpoint'ы адресуемы явно, шорткат ≡ endpoint 0.** `device.Endpoint(1).WaterMeter()` — полная
+   адресация; `device.OnOff()` — синоним `device.Endpoint(0).OnOff()` (0 — основной endpoint,
+   как в ядре). Никакого «поиска подходящего endpoint'а» — шорткат строго синоним нуля.
+4. **Типизация защищает от бессмысленного, discovery — от отсутствующего.** У хендла способности
+   есть только её методы: через хендл OnOff нельзя отправить команду яркости, канонический
+   instance и структура команды зашиты внутри. А наличие способности у конкретного устройства —
+   знание рантайма (устройства обнаруживаются в рантайме, compile-time гарантия невозможна):
+   отсутствие всплывает на вызове, а спросить заранее можно явно — `DescribeAsync()`.
+5. **«Нет устройства» — исключение, «нет способности» — данные.** Линия ядра: `QueryAsync` /
+   `ExecuteAsync` бросают на неизвестном id, неподдержанная команда — `CommandOutcome.Unsupported`.
+   Fluent API её продолжает: `GetAsync()` → `null`, когда значения нет в снапшоте; `DescribeAsync()` →
+   `null`, когда способности (или устройства) нет. Исключения — транспорту (хост офлайн) и
+   неизвестному устройству в рабочих вызовах.
+
+Три уровня хендлов — устройство → endpoint → способность/свойство, всё без I/O до первого вызова:
+
+```csharp
+var lamp = host.Device("noolite:ch5");             // адрес, без проверок и сети
+
+var outcome = await lamp.OnOff().TurnOnAsync();    // ≡ Endpoint(0); нет способности → Unsupported
+await lamp.Brightness().SetAsync(50);              // команды возвращают CommandOutcome ядра
+int? level = await lamp.Brightness().GetAsync();   // null — способности/значения нет
+
+double? cold = await host.Device("waterius").Endpoint(0).WaterMeter().GetAsync();
+
+// discovery — явно и заранее (I/O только здесь); типизированный кусок дескриптора или null:
+if (await lamp.Color().DescribeAsync() is { Temperature: not null })
+    await lamp.Color().SetTemperatureAsync(4000);
+
+// подписки: уровни «хост» и «устройство», отписка — Dispose
+using var one = lamp.OnChanged(change => Log(change));
+using var all = host.OnChanged(change => Log(change));
+```
+
+Чтение (`GetAsync`) — это `QueryAsync` устройства плюс выбор своего значения из снапшота по
+(endpoint, instance, тип); отдельного канала чтения в ядре нет. `DescribeAsync` есть на всех трёх
+уровнях и возвращает типизированный фрагмент `DeviceDescriptor` (`DeviceDescriptor?` / `Endpoint?` /
+конкретный `Capability`/`Property` или `null`). Канонические instance типов (`"on_off"`,
+`"brightness"`, …) хендлы подставляют сами; если появится мульти-инстанс — добавится перегрузка
+аксессора с явным instance, не ломая текущую форму.
+
+Полный словарь fluent API — аксессоры и методы (все команды 1:1 с командами ядра, возвращают
+`Task<CommandOutcome>`; все чтения — nullable):
+
+| Способность ядра            | Аксессор              | Команды                                     | Чтение                                              |
+|-----------------------------|-----------------------|---------------------------------------------|-----------------------------------------------------|
+| `OnOffCapability`           | `.OnOff()`            | `TurnOnAsync()` / `TurnOffAsync()` / `SetAsync(bool)` | `GetAsync()` → `bool?`                    |
+| `BrightnessCapability`      | `.Brightness()`       | `SetAsync(int)`                             | `GetAsync()` → `int?`                               |
+| `ColorCapability`           | `.Color()`            | `SetRgbAsync(int)`, `SetTemperatureAsync(int)` | `GetRgbAsync()` → `int?`, `GetTemperatureAsync()` → `int?` |
+| `OpenCapability`            | `.Open()`             | `SetAsync(int)`                             | `GetAsync()` → `int?`                               |
+| `FanSpeedCapability`        | `.FanSpeed()`         | `SetAsync(FanSpeed)`                        | `GetAsync()` → `FanSpeed?`                          |
+| `OscillationCapability`     | `.Oscillation()`      | `SetAsync(bool)`                            | `GetAsync()` → `bool?`                              |
+| `ThermostatModeCapability`  | `.ThermostatMode()`   | `SetAsync(ThermostatMode)`                  | `GetAsync()` → `ThermostatMode?`                    |
+| `TargetTemperatureCapability` | `.TargetTemperature()` | `SetAsync(int)`                          | `GetAsync()` → `int?`                               |
+
+У цвета два взаимоисключающих представления с общим слотом (см. `ColorCapability`), поэтому у его
+хендла пары Set/Get на каждое представление: активен RGB → `GetTemperatureAsync()` вернёт `null`,
+и наоборот. `TurnOnAsync()`/`TurnOffAsync()` — глагольные синонимы `SetAsync(true/false)` только там,
+где включается само устройство; вращение вентилятора — обычный `SetAsync(bool)`.
+
+| Свойство ядра           | Аксессор            | Чтение                          |
+|-------------------------|---------------------|---------------------------------|
+| `TemperatureProperty`   | `.Temperature()`    | `GetAsync()` → `double?`        |
+| `HumidityProperty`      | `.Humidity()`       | `GetAsync()` → `double?`        |
+| `PressureProperty`      | `.Pressure()`       | `GetAsync()` → `double?`        |
+| `IlluminanceProperty`   | `.Illuminance()`    | `GetAsync()` → `double?`        |
+| `OccupancyProperty`     | `.Occupancy()`      | `GetAsync()` → `bool?`          |
+| `ContactProperty`       | `.Contact()`        | `GetAsync()` → `bool?`          |
+| `WaterLeakProperty`     | `.WaterLeak()`      | `GetAsync()` → `bool?`          |
+| `BatteryProperty`       | `.Battery()`        | `GetAsync()` → `double?`        |
+| `AirQualityProperty`    | `.AirQuality()`     | `GetAsync()` → `AirQuality?`    |
+| `CarbonDioxideProperty` | `.CarbonDioxide()`  | `GetAsync()` → `double?`        |
+| `WaterMeterProperty`    | `.WaterMeter()`     | `GetAsync()` → `double?`        |
+
+Чего fluent API не делает — и это обещание, а не недоработка: ни ретраев, ни кэширования, ни
+агрегации, ни команд, которых нет в ядре. Любое расширение словаря — сначала изменение ядра
+(способность, команда, состояние), и только затем зеркальный аксессор во fluent API.
 
 ## Согласование словаря с Matter
 
@@ -246,7 +337,7 @@ light.OnChanged(change => Log(change));                     // подписка 
 | `DeviceType.OnOffLight`       | Device Type `0x0100`                | `devices.types.light`       |
 | `DeviceType.ExtendedColorLight` | Device Type `0x010D`              | `devices.types.light`       |
 | `Capability.OnOff`            | cluster On/Off `0x0006`             | `capabilities.on_off`       |
-| `Capability.Level`            | cluster Level Control `0x0008`      | `range:brightness`          |
+| `Capability.Brightness`       | cluster Level Control `0x0008`      | `range:brightness`          |
 | `Capability.Color`            | cluster Color Control `0x0300`      | `color_setting`             |
 | `Capability.FanSpeed` / `Capability.Oscillation` | cluster Fan Control `0x0202` | `mode:fan_speed` + `toggle:oscillation` |
 | `Capability.ThermostatMode` / `Capability.TargetTemperature` | cluster Thermostat `0x0201` | `mode:thermostat` + `range:temperature` |
@@ -267,6 +358,8 @@ light.OnChanged(change => Log(change));                     // подписка 
 ## Связь с проектами решения
 
 - **`ThinkingHome.DeviceModel`** — этот проект. Нейтральное ядро (модель + протокол + реестр).
+- **`ThinkingHome.DeviceModel.FluentApi`** — fluent API слоя устройств: хендлы и extension-методы
+  поверх `IDeviceHost` (см. «Дизайн fluent API» выше).
 - **`ThinkingHome.Alice`** — адаптер Яндекса: маппер нейтральной модели в DTO Алисы.
 - **`ThinkingHome.Subway.Hub`** — транспорт/прокси: даёт Алисе внешний IP и связь с локальным
   сервером через SignalR (см. корневой README решения).
@@ -305,6 +398,11 @@ light.OnChanged(change => Log(change));                     // подписка 
   `IRemoteHostRegistry` (async, hostId через `IHostIdResolver`, оффлайн → пустой список /
   `DEVICE_UNREACHABLE`). `ThinkingHome.Subway.Hub` собирает SignalR + `DeviceHub` + реестр + контроллеры;
   stub-устройства убраны.
+- Fluent API (`ThinkingHome.DeviceModel.FluentApi`): `host.Device(id)` → хендлы
+  устройства/endpoint'а/способностей/свойств по «Дизайну fluent API» — команды 1:1 с ядром,
+  типизированное чтение `GetAsync`, discovery `DescribeAsync`, подписки `OnChanged`
+  (хост/устройство, `IDisposable`); канонические instance — константами `InstanceName` на типах
+  словаря ядра.
 - Тест-проект `…Tests` (xUnit): реестр (роутинг, last-wins, оффлайн), хост (single-flight, кэш+репорт,
   неизвестное устройство), сериализация (полнота `[JsonDerivedType]`, round-trip), `AliceMapper`,
   контроллеры Алисы, endpoint-маппинг, JWT `HostToken` (аудитории connector/authcode/alice) — 26 зелёных.
@@ -338,7 +436,8 @@ light.OnChanged(change => Log(change));                     // подписка 
 Дальше по плану:
 1. Прод-хардненинг перед боевой Алисой: валидация `client_id`/`client_secret` Яндекса на `/oauth/token`,
    HTTPS/деплой (rate-limit на генерацию OTP — по желанию).
-2. Эргономичный фасад; следующие полные наборы способностей (`Level`, `Color`, `Mode`, `Range`, `Toggle`).
+2. Мета-данные endpoint'а (монтажные метки — назначение каналов счётчика Cold/Hot); следующие
+   полные наборы — кнопка (Matter Generic Switch, первый event-enum).
 
 ---
 

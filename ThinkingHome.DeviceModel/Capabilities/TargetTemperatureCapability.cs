@@ -7,6 +7,9 @@ namespace ThinkingHome.DeviceModel.Capabilities;
 /// </summary>
 public sealed record TargetTemperatureCapability : Capability
 {
+    /// <summary>Канонический instance.</summary>
+    public const string InstanceName = "target_temperature";
+
     /// <summary>Минимальная уставка, °C.</summary>
     public required int MinCelsius { get; init; }
 
