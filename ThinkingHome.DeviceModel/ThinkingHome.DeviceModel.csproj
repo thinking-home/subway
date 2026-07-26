@@ -4,6 +4,9 @@
         <TargetFramework>net10.0</TargetFramework>
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
+        <IsPackable>true</IsPackable>
+        <Description>Нейтральная модель устройств умного дома, выровненная на Matter: устройства, endpoint'ы, способности, свойства; хост с кэшем состояния и потоком изменений</Description>
+        <PackageTags>smart-home;iot;matter;device-model</PackageTags>
     </PropertyGroup>
 
 </Project>

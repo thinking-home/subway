@@ -4,6 +4,9 @@
         <TargetFramework>net10.0</TargetFramework>
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
+        <IsPackable>true</IsPackable>
+        <Description>Wire-контракт удалённого доступа к хосту устройств ThinkingHome (методы SignalR-хаба)</Description>
+        <PackageTags>smart-home;iot;signalr;remoting</PackageTags>
     </PropertyGroup>
 
     <ItemGroup>

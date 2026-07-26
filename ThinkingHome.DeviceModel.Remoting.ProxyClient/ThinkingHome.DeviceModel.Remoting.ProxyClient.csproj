@@ -4,6 +4,9 @@
         <TargetFramework>net10.0</TargetFramework>
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
+        <IsPackable>true</IsPackable>
+        <Description>Коннектор домашнего хоста ThinkingHome: подключает локальный IDeviceHost к облачному прокси по SignalR, включая привязку по OTP</Description>
+        <PackageTags>smart-home;iot;signalr;proxy;connector</PackageTags>
     </PropertyGroup>
 
     <ItemGroup>

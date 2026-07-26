@@ -4,6 +4,9 @@
         <TargetFramework>net10.0</TargetFramework>
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
+        <IsPackable>true</IsPackable>
+        <Description>Fluent API слоя устройств: типизированные хендлы поверх IDeviceHost — команды, чтение состояния, discovery, подписки</Description>
+        <PackageTags>smart-home;iot;matter;fluent-api</PackageTags>
     </PropertyGroup>
 
     <ItemGroup>

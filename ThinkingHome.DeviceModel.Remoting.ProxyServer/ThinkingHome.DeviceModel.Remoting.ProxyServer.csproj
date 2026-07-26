@@ -4,6 +4,9 @@
         <TargetFramework>net10.0</TargetFramework>
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
+        <IsPackable>true</IsPackable>
+        <Description>Серверная сторона прокси ThinkingHome: SignalR-хаб, реестр домашних хостов, токены; IDeviceHost-прокси для каждого дома</Description>
+        <PackageTags>smart-home;iot;signalr;proxy;hub</PackageTags>
     </PropertyGroup>
 
     <ItemGroup>
