@@ -23,6 +23,8 @@ public abstract record Property
     /// <summary>Экземпляр свойства (например, "temperature", "motion").</summary>
     public required string Instance { get; init; }
 
+    /// <summary>Можно ли опросить текущее значение.</summary>
     public bool Retrievable { get; init; } = true;
+    /// <summary>Присылает ли устройство изменения значения (push).</summary>
     public bool Reportable { get; init; } = true;
 }

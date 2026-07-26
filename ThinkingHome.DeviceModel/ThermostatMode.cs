@@ -10,9 +10,14 @@ namespace ThinkingHome.DeviceModel;
 [JsonConverter(typeof(JsonStringEnumConverter))]
 public enum ThermostatMode
 {
+    /// <summary>Автоматический режим (устройство само выбирает обогрев/охлаждение).</summary>
     Auto,
+    /// <summary>Обогрев.</summary>
     Heat,
+    /// <summary>Охлаждение.</summary>
     Cool,
+    /// <summary>Осушение.</summary>
     Dry,
+    /// <summary>Только вентиляция (без обогрева и охлаждения).</summary>
     FanOnly,
 }

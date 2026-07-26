@@ -13,5 +13,6 @@ namespace ThinkingHome.DeviceModel;
 [JsonConverter(typeof(JsonStringEnumConverter))]
 public enum ColorModel
 {
+    /// <summary>Полный цвет как упакованный RGB (0xRRGGBB).</summary>
     Rgb,
 }

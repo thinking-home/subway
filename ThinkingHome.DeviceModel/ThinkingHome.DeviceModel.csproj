@@ -5,6 +5,8 @@
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
         <IsPackable>true</IsPackable>
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
+        <WarningsAsErrors>$(WarningsAsErrors);CS1591</WarningsAsErrors>
         <Description>Нейтральная модель устройств умного дома, выровненная на Matter: устройства, endpoint'ы, способности, свойства; хост с кэшем состояния и потоком изменений</Description>
         <PackageTags>smart-home;iot;matter;device-model</PackageTags>
     </PropertyGroup>

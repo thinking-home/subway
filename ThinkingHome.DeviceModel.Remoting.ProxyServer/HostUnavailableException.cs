@@ -9,5 +9,6 @@ namespace ThinkingHome.DeviceModel.Remoting.ProxyServer;
 public sealed class HostUnavailableException(string hostId)
     : Exception($"Device host '{hostId}' is not connected.")
 {
+    /// <summary>Идентификатор хоста, оказавшегося не в сети.</summary>
     public string HostId { get; } = hostId;
 }

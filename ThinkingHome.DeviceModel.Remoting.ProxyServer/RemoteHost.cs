@@ -15,8 +15,10 @@ public sealed class RemoteHost(string hostId, IHubContext<DeviceHub> hub) : IDev
     private volatile string? connectionId;
     private volatile IReadOnlyCollection<DeviceDescriptor>? devicesCache;
 
+    /// <summary>Идентификатор домашнего хоста.</summary>
     public string HostId => hostId;
 
+    /// <summary>Есть ли живое соединение с хостом прямо сейчас.</summary>
     public bool IsOnline => connectionId is not null;
 
     /// <inheritdoc />

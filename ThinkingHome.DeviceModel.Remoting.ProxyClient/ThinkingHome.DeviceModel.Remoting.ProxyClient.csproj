@@ -5,6 +5,8 @@
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
         <IsPackable>true</IsPackable>
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
+        <WarningsAsErrors>$(WarningsAsErrors);CS1591</WarningsAsErrors>
         <Description>Коннектор домашнего хоста ThinkingHome: подключает локальный IDeviceHost к облачному прокси по SignalR, включая привязку по OTP</Description>
         <PackageTags>smart-home;iot;signalr;proxy;connector</PackageTags>
     </PropertyGroup>

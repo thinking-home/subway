@@ -7,8 +7,11 @@ namespace ThinkingHome.DeviceModel;
 /// </summary>
 public sealed record CommandOutcome
 {
+    /// <summary>Статус исполнения.</summary>
     public required CommandStatus Status { get; init; }
+    /// <summary>Код ошибки (заполнен при Status = Error).</summary>
     public CommandErrorCode? ErrorCode { get; init; }
+    /// <summary>Диагностическое сообщение для журнала (не для показа пользователю).</summary>
     public string? ErrorMessage { get; init; }
 
     /// <summary>Команда выполнена успешно.</summary>
@@ -21,6 +24,7 @@ public sealed record CommandOutcome
         ErrorCode = CommandErrorCode.NotSupported,
     };
 
+    /// <summary>Результат-ошибка с кодом и необязательным сообщением.</summary>
     public static CommandOutcome Error(CommandErrorCode code, string? message = null) => new()
     {
         Status = CommandStatus.Error,
@@ -29,10 +33,13 @@ public sealed record CommandOutcome
     };
 }
 
+/// <summary>Статус исполнения команды.</summary>
 [JsonConverter(typeof(JsonStringEnumConverter))]
 public enum CommandStatus
 {
+    /// <summary>Команда выполнена.</summary>
     Done,
+    /// <summary>Команда завершилась ошибкой (код — в ErrorCode).</summary>
     Error,
 }
 
@@ -40,10 +47,16 @@ public enum CommandStatus
 [JsonConverter(typeof(JsonStringEnumConverter))]
 public enum CommandErrorCode
 {
+    /// <summary>Устройство или его хост недоступны.</summary>
     DeviceUnreachable,
+    /// <summary>Устройство занято и не может исполнить команду сейчас.</summary>
     DeviceBusy,
+    /// <summary>Недопустимое значение команды.</summary>
     InvalidValue,
+    /// <summary>Команда не поддерживается устройством.</summary>
     NotSupported,
+    /// <summary>Команда не поддерживается в текущем режиме устройства.</summary>
     NotSupportedInCurrentMode,
+    /// <summary>Внутренняя ошибка исполнения.</summary>
     Internal,
 }

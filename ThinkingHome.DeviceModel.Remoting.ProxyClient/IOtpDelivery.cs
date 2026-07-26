@@ -6,5 +6,6 @@ namespace ThinkingHome.DeviceModel.Remoting.ProxyClient;
 /// </summary>
 public interface IOtpDelivery
 {
+    /// <summary>Доставить одноразовый код пользователю (лог, email, мессенджер — на усмотрение реализации).</summary>
     Task DeliverAsync(string otp, CancellationToken ct = default);
 }

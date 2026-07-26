@@ -8,6 +8,7 @@ using ThinkingHome.Alice.Model.Capabilities.Toggle;
 
 namespace ThinkingHome.Alice.Model.Capabilities;
 
+/// <summary>Базовый класс результата операции над способностью в ответе на action; конкретный тип выбирается по дискриминатору "type" (devices.capabilities.*).</summary>
 [JsonPolymorphic(TypeDiscriminatorPropertyName = "type")]
 [JsonDerivedType(typeof(CapabilityActionResultOnOff), CapabilityType.ON_OFF)]
 [JsonDerivedType(typeof(CapabilityActionResultRange), CapabilityType.RANGE)]
@@ -18,8 +19,9 @@ public class CapabilityActionResultBase
 {
 }
 
+/// <summary>Результат операции над способностью с инстансом конкретного вида.</summary>
 public class CapabilityActionResult<TInstance> : CapabilityActionResultBase
 {
-    // ответ с результатом операции над конкретным умением
+    /// <summary>Ответ с результатом операции над конкретным умением.</summary>
     [JsonPropertyName("state")] public CapabilityStateActionResult<TInstance> State { get; set; }
 }

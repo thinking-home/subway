@@ -15,9 +15,12 @@ public sealed class RemoteHostRegistry(IHubContext<DeviceHub> hub) : IRemoteHost
     private readonly ConcurrentDictionary<string, RemoteHost> hostsById = new();
     private readonly ConcurrentDictionary<string, string> hostIdByConnection = new();
 
+    /// <inheritdoc />
     public event Action<string>? HostConnected;
+    /// <inheritdoc />
     public event Action<string>? HostDisconnected;
 
+    /// <inheritdoc />
     public IReadOnlyCollection<string> ConnectedHosts =>
         hostsById.Values.Where(h => h.IsOnline).Select(h => h.HostId).ToArray();
 
@@ -48,6 +51,7 @@ public sealed class RemoteHostRegistry(IHubContext<DeviceHub> hub) : IRemoteHost
         }
     }
 
+    /// <inheritdoc />
     public bool TryGet(string hostId, [NotNullWhen(true)] out IDeviceHost? host)
     {
         if (hostsById.TryGetValue(hostId, out var h) && h.IsOnline)
@@ -61,9 +65,11 @@ public sealed class RemoteHostRegistry(IHubContext<DeviceHub> hub) : IRemoteHost
     }
 
     // OTP-привязка: маршрутизируем на онлайн-хост по hostId (состояние OTP — на хосте, прокси stateless)
+    /// <summary>Попросить хост сгенерировать и доставить пользователю OTP привязки.</summary>
     public Task GenerateLinkingOtpAsync(string hostId, CancellationToken ct = default)
         => RequiredOnline(hostId).GenerateLinkingOtpAsync(ct);
 
+    /// <summary>Проверить OTP привязки на хосте.</summary>
     public Task<bool> ValidateLinkingOtpAsync(string hostId, string otp, CancellationToken ct = default)
         => RequiredOnline(hostId).ValidateLinkingOtpAsync(otp, ct);
 

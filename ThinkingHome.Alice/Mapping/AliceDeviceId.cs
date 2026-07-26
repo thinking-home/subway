@@ -11,8 +11,10 @@ namespace ThinkingHome.Alice.Mapping;
 /// </summary>
 public readonly record struct AliceDeviceId(string DeviceId, int EndpointId)
 {
+    /// <summary>Строковый идентификатор для Алисы: <c>deviceId#endpointId</c>.</summary>
     public string ToAlice() => $"{DeviceId}#{EndpointId}";
 
+    /// <summary>Разбирает идентификатор Алисы обратно в пару (deviceId, endpointId); без корректного суффикса — endpoint 0.</summary>
     public static AliceDeviceId Parse(string value)
     {
         var i = value.LastIndexOf('#');

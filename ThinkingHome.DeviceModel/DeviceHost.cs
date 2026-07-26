@@ -15,6 +15,7 @@ public sealed class DeviceHost : IDeviceRegistry, IDeviceHost
 {
     private readonly ConcurrentDictionary<string, DeviceEntry> entries = new();
 
+    /// <summary>Число зарегистрированных устройств.</summary>
     public int Count => entries.Count;
     
     /// <inheritdoc />

@@ -15,6 +15,7 @@ public sealed class DeviceHub(RemoteHostRegistry registry) : Hub
     /// <summary>Канонический путь хаба — единый источник и для маппинга, и для извлечения токена из query.</summary>
     public const string Path = "/hub";
 
+    /// <summary>Регистрирует соединение хоста в реестре (hostId — из валидированного JWT); без hostId соединение отклоняется.</summary>
     public override Task OnConnectedAsync()
     {
         // hostId — из валидированного JWT; соединение без него отклоняем
@@ -29,6 +30,7 @@ public sealed class DeviceHub(RemoteHostRegistry registry) : Hub
         return base.OnConnectedAsync();
     }
 
+    /// <summary>Снимает своё соединение хоста в реестре (уже переподключившееся не затирается).</summary>
     public override Task OnDisconnectedAsync(Exception? exception)
     {
         registry.Detach(Context.ConnectionId);

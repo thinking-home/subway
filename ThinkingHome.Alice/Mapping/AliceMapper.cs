@@ -51,7 +51,7 @@ public static class AliceMapper
 {
     #region Алиса → общая модель (входящее)
 
-    // ── action: параметры способности Алисы + endpoint → нейтральная команда ──
+    /// <summary>Action: параметры способности Алисы + endpoint → нейтральная команда.</summary>
     public static DeviceCommand ToCommand(CapabilityActionParamsBase action, int endpointId) => action switch
     {
         CapabilityActionParamsOnOff a => new OnOffCommand
@@ -115,7 +115,7 @@ public static class AliceMapper
 
     #region Общая модель → Алиса (исходящее)
 
-    // ── discovery: нейтральный дескриптор → по одному Device Алисы на каждый endpoint ──
+    /// <summary>Discovery: нейтральный дескриптор → по одному Device Алисы на каждый endpoint.</summary>
     public static IEnumerable<AliceDevice> ToDevices(DeviceDescriptor descriptor) =>
         descriptor.Endpoints.Select(endpoint => new AliceDevice
         {
@@ -128,8 +128,10 @@ public static class AliceMapper
             DeviceInfo = ToDeviceInfo(descriptor.Manufacturer),
         });
 
-    // ── query: весь снимок устройства + id → DeviceState (только значения нужного endpoint'а);
-    //    значения способностей и свойств разъезжаются по своим веткам по типу значения ──
+    /// <summary>
+    /// Query: весь снимок устройства + id → DeviceState (только значения нужного endpoint'а);
+    /// значения способностей и свойств разъезжаются по своим веткам по типу значения.
+    /// </summary>
     public static AliceDeviceState ToDeviceState(AliceDeviceId id, DeviceSnapshot snapshot)
     {
         var values = snapshot.Values.Where(value => value.EndpointId == id.EndpointId).ToArray();
@@ -147,11 +149,13 @@ public static class AliceMapper
 
     private static bool IsSuppressed(StateValue value) => value is AirQualityState;
 
-    // ── report: пачка изменений за окно → один callback-запрос Notification API (user_id = hostId).
-    //    Дедуп по слоту кэша (устройство, endpoint, instance) — последнее значение побеждает (то же
-    //    правило, что у кэша хоста, включая осознанно общий слот цвета); затем группировка по
-    //    (устройство, endpoint) и чистый реюз query-ветки: разъезд по capabilities/properties и
-    //    derivation работают как в query ──
+    /// <summary>
+    /// Report: пачка изменений за окно → один callback-запрос Notification API (user_id = hostId).
+    /// Дедуп по слоту кэша (устройство, endpoint, instance) — последнее значение побеждает (то же
+    /// правило, что у кэша хоста, включая осознанно общий слот цвета); затем группировка по
+    /// (устройство, endpoint) и чистый реюз query-ветки: разъезд по capabilities/properties и
+    /// derivation работают как в query.
+    /// </summary>
     public static CallbackStateRequest ToCallbackState(string userId, IReadOnlyList<StateChange> changes, long ts) => new()
     {
         Ts = ts,
@@ -177,7 +181,7 @@ public static class AliceMapper
             or WaterLeakState or BatteryState or IlluminanceState or PressureState
             or AirQualityState or CarbonDioxideState or WaterMeterState;
 
-    // ── action: результат нейтральной команды → результат способности Алисы ──
+    /// <summary>Action: результат нейтральной команды → результат способности Алисы.</summary>
     public static CapabilityActionResultBase ToCapabilityActionResult(
         CapabilityActionParamsBase action, CommandOutcome outcome) => action switch
     {
@@ -224,7 +228,7 @@ public static class AliceMapper
         _ => throw new NotSupportedException($"Нет маппинга результата для {action.GetType().Name}"),
     };
 
-    // ── общий результат операции ──
+    /// <summary>Общий результат операции: нейтральный CommandOutcome → action_result Алисы.</summary>
     public static AliceActionResult ToActionResult(CommandOutcome outcome) => outcome.Status == CommandStatus.Done
         ? AliceActionResult.Ok
         : new AliceActionResult

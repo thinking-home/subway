@@ -11,28 +11,40 @@ namespace ThinkingHome.DeviceModel.Remoting.ProxyServer;
 /// </summary>
 public static class HostToken
 {
+    /// <summary>Имя claim'а с идентификатором домашнего хоста.</summary>
     public const string HostIdClaim = "hostId";
+    /// <summary>Издатель всех токенов прокси.</summary>
     public const string Issuer = "thinkinghome-proxy";
 
+    /// <summary>Аудитория токена коннектора (постоянный доступ дома к хабу).</summary>
     public const string ConnectorAudience = "connector";
+    /// <summary>Аудитория одноразового OAuth-кода.</summary>
     public const string CodeAudience = "authcode";
+    /// <summary>Аудитория access-токена Алисы.</summary>
     public const string AliceAudience = "alice";
 
+    /// <summary>Имя схемы аутентификации коннектора.</summary>
     public const string ConnectorScheme = "Connector";
+    /// <summary>Имя схемы аутентификации запросов Алисы.</summary>
     public const string AliceScheme = "Alice";
 
+    /// <summary>Выпустить токен коннектора для hostId (lifetime при проверке не смотрится).</summary>
     public static string IssueConnectorToken(string signingKey, string hostId)
         => Issue(signingKey, hostId, ConnectorAudience, expires: null);
 
+    /// <summary>Выпустить одноразовый OAuth-код для hostId (TTL 1 минута).</summary>
     public static string IssueCode(string signingKey, string hostId)
         => Issue(signingKey, hostId, CodeAudience, DateTime.UtcNow.AddMinutes(1));
 
+    /// <summary>Выпустить access-токен Алисы для hostId.</summary>
     public static string IssueAccessToken(string signingKey, string hostId)
         => Issue(signingKey, hostId, AliceAudience, expires: null);
 
+    /// <summary>Параметры валидации токена коннектора (только подпись и аудитория).</summary>
     public static TokenValidationParameters ConnectorValidation(string signingKey)
         => Validation(signingKey, ConnectorAudience, validateLifetime: false);
 
+    /// <summary>Параметры валидации access-токена Алисы (только подпись и аудитория).</summary>
     public static TokenValidationParameters AliceValidation(string signingKey)
         => Validation(signingKey, AliceAudience, validateLifetime: false);
 

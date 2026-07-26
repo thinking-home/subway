@@ -5,6 +5,8 @@
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
         <IsPackable>true</IsPackable>
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
+        <WarningsAsErrors>$(WarningsAsErrors);CS1591</WarningsAsErrors>
         <Description>Wire-контракт удалённого доступа к хосту устройств ThinkingHome (методы SignalR-хаба)</Description>
         <PackageTags>smart-home;iot;signalr;remoting</PackageTags>
     </PropertyGroup>

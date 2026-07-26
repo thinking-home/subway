@@ -22,6 +22,8 @@ public sealed record ColorCapability : Capability
 /// <summary>Диапазон цветовой температуры в кельвинах (границы задаются только вместе).</summary>
 public sealed record ColorTemperatureRange
 {
+    /// <summary>Нижняя граница, K.</summary>
     public required int MinKelvin { get; init; }
+    /// <summary>Верхняя граница, K.</summary>
     public required int MaxKelvin { get; init; }
 }

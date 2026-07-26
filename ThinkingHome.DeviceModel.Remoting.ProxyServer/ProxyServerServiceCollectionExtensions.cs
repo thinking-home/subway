@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace ThinkingHome.DeviceModel.Remoting.ProxyServer;
 
+/// <summary>Регистрация сервисов прокси-стороны ремоутинга в DI.</summary>
 public static class ProxyServerServiceCollectionExtensions
 {
     /// <summary>

@@ -5,6 +5,8 @@
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
         <IsPackable>true</IsPackable>
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
+        <WarningsAsErrors>$(WarningsAsErrors);CS1591</WarningsAsErrors>
         <Description>Fluent API слоя устройств: типизированные хендлы поверх IDeviceHost — команды, чтение состояния, discovery, подписки</Description>
         <PackageTags>smart-home;iot;matter;fluent-api</PackageTags>
     </PropertyGroup>

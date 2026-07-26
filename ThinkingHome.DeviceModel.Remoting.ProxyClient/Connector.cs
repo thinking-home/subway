@@ -8,7 +8,7 @@ namespace ThinkingHome.DeviceModel.Remoting.ProxyClient;
 /// Домашняя сторона ремоутинга: SignalR-клиент, подключающийся к прокси и оборачивающий локальный
 /// <see cref="IDeviceHost"/>. Обрабатывает вызовы прокси (GetDevices/Query/Execute → локальный хост),
 /// пушит изменения (Changed → Report) и генерирует/проверяет OTP привязки (состояние OTP живёт здесь,
-/// на хосте — прокси остаётся stateless). Идентичность — в JWT из <paramref name="accessTokenProvider"/>;
+/// на хосте — прокси остаётся stateless). Идентичность — в JWT из <c>accessTokenProvider</c>;
 /// доставку OTP даёт потребитель через <see cref="IOtpDelivery"/>.
 /// </summary>
 public sealed class Connector : IAsyncDisposable
@@ -17,6 +17,7 @@ public sealed class Connector : IAsyncDisposable
     private readonly HubConnection connection;
     private readonly OtpState otp = new();
 
+    /// <summary>Создаёт коннектор поверх локального хоста; url — адрес хаба прокси (…/hub), accessTokenProvider отдаёт JWT коннектора.</summary>
     public Connector(IDeviceHost host, IOtpDelivery otpDelivery, string url, Func<Task<string?>>? accessTokenProvider = null)
     {
         this.host = host;
@@ -46,12 +47,14 @@ public sealed class Connector : IAsyncDisposable
     /// <summary>Текущее состояние соединения с прокси.</summary>
     public HubConnectionState State => connection.State;
 
+    /// <summary>Подключиться к прокси и начать пушить изменения (дальше переподключается автоматически).</summary>
     public async Task StartAsync(CancellationToken ct = default)
     {
         host.Changed += OnHostChanged;
         await connection.StartAsync(ct);
     }
 
+    /// <summary>Отключиться от прокси и перестать пушить изменения.</summary>
     public async Task StopAsync(CancellationToken ct = default)
     {
         host.Changed -= OnHostChanged;
@@ -76,6 +79,7 @@ public sealed class Connector : IAsyncDisposable
         }
     }
 
+    /// <summary>Отписаться от хоста и освободить соединение.</summary>
     public async ValueTask DisposeAsync()
     {
         host.Changed -= OnHostChanged;

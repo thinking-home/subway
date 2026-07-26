@@ -3,5 +3,6 @@ namespace ThinkingHome.DeviceModel.State;
 /// <summary>Текущий режим работы термостата/кондиционера (instance "thermostat").</summary>
 public sealed record ThermostatModeState : StateValue
 {
+    /// <summary>Текущий режим термостата.</summary>
     public required ThermostatMode Value { get; init; }
 }

@@ -9,8 +9,12 @@ namespace ThinkingHome.DeviceModel;
 [JsonConverter(typeof(JsonStringEnumConverter))]
 public enum FanSpeed
 {
+    /// <summary>Автоматический выбор скорости.</summary>
     Auto,
+    /// <summary>Низкая.</summary>
     Low,
+    /// <summary>Средняя.</summary>
     Medium,
+    /// <summary>Высокая.</summary>
     High,
 }

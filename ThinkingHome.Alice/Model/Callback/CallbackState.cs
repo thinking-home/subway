@@ -11,13 +11,16 @@ public class CallbackStateRequest
     /// <summary>Unix-время события, секунды.</summary>
     [JsonPropertyName("ts")] public long Ts { get; set; }
 
+    /// <summary>Данные уведомления: пользователь и изменившиеся состояния устройств.</summary>
     [JsonPropertyName("payload")] public CallbackStatePayload Payload { get; set; }
 }
 
+/// <summary>Данные callback-уведомления Notification API.</summary>
 public class CallbackStatePayload
 {
     /// <summary>Пользователь провайдера — тот же id, что отдаётся в discovery (у нас hostId).</summary>
     [JsonPropertyName("user_id")] public string UserId { get; set; }
 
+    /// <summary>Изменившиеся состояния устройств.</summary>
     [JsonPropertyName("devices")] public DeviceState[] Devices { get; set; }
 }

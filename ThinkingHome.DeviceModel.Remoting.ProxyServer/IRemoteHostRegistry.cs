@@ -14,6 +14,9 @@ public interface IRemoteHostRegistry
     /// <summary>Идентификаторы подключённых сейчас хостов.</summary>
     IReadOnlyCollection<string> ConnectedHosts { get; }
 
+    /// <summary>Хост подключился или переподключился (аргумент — hostId).</summary>
     event Action<string>? HostConnected;
+
+    /// <summary>Хост потерял соединение (аргумент — hostId).</summary>
     event Action<string>? HostDisconnected;
 }

@@ -4,5 +4,6 @@ namespace ThinkingHome.DeviceModel.State;
 [VendorExtension]
 public sealed record WaterMeterState : StateValue
 {
+    /// <summary>Накопленные показания счётчика, м³.</summary>
     public required double Value { get; init; }
 }

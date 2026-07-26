@@ -8,5 +8,6 @@ namespace ThinkingHome.Alice.Model.Capabilities;
 /// </summary>
 public static class ColorModels
 {
+    /// <summary>Цветовая модель RGB: значение цвета — одно целое число 0xRRGGBB.</summary>
     public const string RGB = "rgb";
 }

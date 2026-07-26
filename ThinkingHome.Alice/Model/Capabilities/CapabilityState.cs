@@ -7,6 +7,7 @@ using ThinkingHome.Alice.Model.Capabilities.Toggle;
 
 namespace ThinkingHome.Alice.Model.Capabilities;
 
+/// <summary>Базовое состояние способности (query/callback); конкретный тип выбирается по дискриминатору "type" (devices.capabilities.*).</summary>
 [JsonPolymorphic(TypeDiscriminatorPropertyName = "type")]
 [JsonDerivedType(typeof(CapabilityStateOnOff), CapabilityType.ON_OFF)]
 [JsonDerivedType(typeof(CapabilityStateRange), CapabilityType.RANGE)]
@@ -17,7 +18,9 @@ public class CapabilityStateBase
 {
 }
 
+/// <summary>Состояние способности с данными конкретного вида.</summary>
 public abstract class CapabilityState<TParams> : CapabilityStateBase
 {
+    /// <summary>Состояние способности: инстанс и значение.</summary>
     [JsonPropertyName("state")] public TParams State { get; set; }
 }

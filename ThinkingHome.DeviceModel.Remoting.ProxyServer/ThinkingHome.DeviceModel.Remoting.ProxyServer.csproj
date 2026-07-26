@@ -5,6 +5,8 @@
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
         <IsPackable>true</IsPackable>
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
+        <WarningsAsErrors>$(WarningsAsErrors);CS1591</WarningsAsErrors>
         <Description>Серверная сторона прокси ThinkingHome: SignalR-хаб, реестр домашних хостов, токены; IDeviceHost-прокси для каждого дома</Description>
         <PackageTags>smart-home;iot;signalr;proxy;hub</PackageTags>
     </PropertyGroup>
