@@ -11,6 +11,11 @@
     </ItemGroup>
 
     <ItemGroup>
+        <!-- локальный dev-конфиг (вне git) не должен уезжать в publish на прод -->
+        <Content Update="appsettings.Development.json" CopyToPublishDirectory="Never" />
+    </ItemGroup>
+
+    <ItemGroup>
       <ProjectReference Include="..\ThinkingHome.Alice.Service\ThinkingHome.Alice.Service.csproj" />
       <ProjectReference Include="..\ThinkingHome.DeviceModel.Remoting.ProxyServer\ThinkingHome.DeviceModel.Remoting.ProxyServer.csproj" />
     </ItemGroup>

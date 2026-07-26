@@ -3,11 +3,22 @@ using ThinkingHome.DeviceModel;
 using ThinkingHome.DeviceModel.Remoting.ProxyClient;
 using ThinkingHome.Home;
 
-// конфигурация по общему правилу: appsettings.json (несекретные дефолты) → user-secrets
-// (локальные секреты разработчика) → env с префиксом THINKINGHOME_ → командная строка
-var config = new ConfigurationBuilder()
+// конфигурация по общему правилу: appsettings.json (несекретные дефолты) →
+// appsettings.{THINKINGHOME_ENVIRONMENT}.json (файл окружения; Development — локальный, вне git) →
+// user-secrets → env с префиксом THINKINGHOME_ → командная строка
+var environmentName = Environment.GetEnvironmentVariable("THINKINGHOME_ENVIRONMENT");
+
+var configBuilder = new ConfigurationBuilder()
     .SetBasePath(AppContext.BaseDirectory)
-    .AddJsonFile("appsettings.json", optional: true)
+    .AddJsonFile("appsettings.json", optional: true);
+
+if (!string.IsNullOrWhiteSpace(environmentName))
+{
+    // окружение задано явно → его файл обязан существовать (защита от опечатки в имени)
+    configBuilder.AddJsonFile($"appsettings.{environmentName}.json", optional: false);
+}
+
+var config = configBuilder
     .AddUserSecrets(typeof(Program).Assembly, optional: true)
     .AddEnvironmentVariables("THINKINGHOME_")
     .AddCommandLine(args)

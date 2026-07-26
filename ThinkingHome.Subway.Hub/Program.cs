@@ -30,9 +30,19 @@ namespace ThinkingHome.Subway.Hub
         // CLI: dotnet run --project ThinkingHome.Subway.Hub -- issue-host-token --hostId <id>
         static void IssueHostToken(string[] args)
         {
-            var config = new ConfigurationBuilder()
+            var environmentName = Environment.GetEnvironmentVariable("THINKINGHOME_ENVIRONMENT");
+
+            var configBuilder = new ConfigurationBuilder()
                 .SetBasePath(AppContext.BaseDirectory)
-                .AddJsonFile("appsettings.json", optional: true)
+                .AddJsonFile("appsettings.json", optional: true);
+
+            if (!string.IsNullOrWhiteSpace(environmentName))
+            {
+                // окружение задано явно → его файл обязан существовать (защита от опечатки в имени)
+                configBuilder.AddJsonFile($"appsettings.{environmentName}.json", optional: false);
+            }
+
+            var config = configBuilder
                 .AddUserSecrets(typeof(Program).Assembly, optional: true)
                 .AddEnvironmentVariables()
                 .AddEnvironmentVariables("THINKINGHOME_")

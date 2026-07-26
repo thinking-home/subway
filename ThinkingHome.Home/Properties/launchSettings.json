@@ -1,10 +1,8 @@
 {
   "profiles": {
-    "ThinkingHome.Subway.Hub": {
+    "ThinkingHome.Home": {
       "commandName": "Project",
-      "applicationUrl": "http://localhost:5000",
       "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development",
         "THINKINGHOME_ENVIRONMENT": "Development"
       }
     }

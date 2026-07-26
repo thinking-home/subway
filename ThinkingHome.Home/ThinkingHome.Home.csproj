@@ -9,7 +9,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <None Update="appsettings.json" CopyToOutputDirectory="PreserveNewest" />
+        <None Update="appsettings*.json" CopyToOutputDirectory="PreserveNewest" />
     </ItemGroup>
 
     <ItemGroup>
