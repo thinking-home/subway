@@ -12,8 +12,8 @@ const referenceAssemblies = [
 
 export default defineConfig({
     lang: 'ru-RU',
-    title: 'ThinkingHome',
-    description: 'Нейтральная модель устройств умного дома и мост в Яндекс Алису',
+    title: 'ThinkingHome.DeviceModel',
+    description: 'Виртуальный хаб умного дома',
 
     themeConfig: {
         nav: [
@@ -67,6 +67,11 @@ export default defineConfig({
             ],
         },
 
+        footer: {
+            message: 'Опубликовано под лицензией MIT',
+            copyright: '© 2026 Dmitry Andriyanov'
+        },
+        
         outline: { label: 'На этой странице' },
         docFooter: { prev: 'Назад', next: 'Вперёд' },
         darkModeSwitchLabel: 'Тема',

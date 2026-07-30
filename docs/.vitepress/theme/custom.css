@@ -1,0 +1,44 @@
+/*
+ * Кастомные стили документации.
+ * Иконки в карточках лендинга — Lucide (https://lucide.dev), лицензия ISC.
+ */
+
+/* Ключевой текст страницы: главная мысль, вокруг которой построен остальной рассказ. */
+.th-lead {
+    margin: 48px 0;
+    padding: 4px 0 4px 28px;
+    border-left: 3px solid var(--vp-c-brand-1);
+    font-size: 20px;
+    line-height: 34px;
+    font-weight: 500;
+    color: var(--vp-c-text-1);
+}
+
+/* Горизонтальная строка: текст и иллюстрация рядом, в шахматном порядке по странице. */
+.th-row {
+    display: flex;
+    align-items: center;
+    gap: 42px;
+    margin: 32px 0;
+}
+
+/* Колонка горизонтальной строки. min-width нужен, чтобы блок кода не распирал строку. */
+.th-col {
+    flex: 1;
+    min-width: 0;
+    padding: 16px 0;
+}
+
+@media (max-width: 768px) {
+    .th-row {
+        flex-direction: column;
+        gap: 8px;
+        margin: 24px 0;
+    }
+
+    .th-lead {
+        margin: 32px 0;
+        font-size: 18px;
+        line-height: 30px;
+    }
+}
