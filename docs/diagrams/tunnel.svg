@@ -1,0 +1,34 @@
+<svg class="th-diagram" viewBox="0 0 620 170" xmlns="http://www.w3.org/2000/svg" role="img"
+     aria-label="Домашний сервер сам подключается к облачному прокси, а экосистема обращается к прокси">
+    <defs>
+        <marker id="th-arrow-tunnel" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto">
+            <path class="th-diagram-arrow" d="M0 0 L10 5 L0 10 z"/>
+        </marker>
+    </defs>
+    <path class="th-diagram-link" d="M178 85 H225"/>
+    <path class="th-diagram-link" d="M442 85 H403" marker-end="url(#th-arrow-tunnel)"/>
+    <rect class="th-diagram-box" x="8" y="49" width="170" height="72" rx="10"/>
+    <g class="th-diagram-icon" transform="translate(24 73)">
+        <circle cx="12" cy="12" r="10"/>
+        <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/>
+        <path d="M2 12h20"/>
+    </g>
+    <text class="th-diagram-label th-diagram-label--start" x="60" y="90">Экосистема</text>
+    <rect class="th-diagram-box th-diagram-box--accent" x="225" y="49" width="170" height="72" rx="10"/>
+    <g class="th-diagram-icon th-diagram-icon--accent" transform="translate(241 73)">
+        <path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/>
+    </g>
+    <text class="th-diagram-label th-diagram-label--start" x="277" y="82">
+        <tspan x="277">Облачный</tspan>
+        <tspan x="277" dy="16">прокси</tspan>
+    </text>
+    <rect class="th-diagram-box" x="442" y="49" width="170" height="72" rx="10"/>
+    <g class="th-diagram-icon" transform="translate(458 73)">
+        <path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/>
+        <path d="M3 10a2 2 0 0 1 .709-1.528l7-6a2 2 0 0 1 2.582 0l7 6A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+    </g>
+    <text class="th-diagram-label th-diagram-label--start" x="494" y="82">
+        <tspan x="494">Домашний</tspan>
+        <tspan x="494" dy="16">сервер</tspan>
+    </text>
+</svg>

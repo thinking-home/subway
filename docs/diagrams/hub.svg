@@ -28,7 +28,7 @@
         <path d="M9 18h6"/>
         <path d="M10 22h4"/>
     </g>
-    <text class="th-diagram-label th-diagram-label--start" x="632" y="33">
+    <text class="th-diagram-label th-diagram-label--start" x="632" y="37">
         <tspan x="632">Лампа</tspan>
         <tspan x="632" dy="16">Zigbee</tspan>
     </text>
@@ -39,7 +39,7 @@
         <path d="M17 8a1 1 0 0 1 1 1v4a4 4 0 0 1-4 4h-4a4 4 0 0 1-4-4V9a1 1 0 0 1 1-1z"/>
         <path d="M9 8V2"/>
     </g>
-    <text class="th-diagram-label th-diagram-label--start" x="632" y="143">
+    <text class="th-diagram-label th-diagram-label--start" x="632" y="147">
         <tspan x="632">Розетка</tspan>
         <tspan x="632" dy="16">MQTT</tspan>
     </text>
@@ -60,7 +60,7 @@
         <rect x="4" y="4" width="16" height="16" rx="2"/>
         <rect x="8" y="8" width="8" height="8" rx="1"/>
     </g>
-    <text class="th-diagram-label th-diagram-label--start" x="632" y="253">
+    <text class="th-diagram-label th-diagram-label--start" x="632" y="257">
         <tspan x="632">Самодельный</tspan>
         <tspan x="632" dy="16">датчик</tspan>
     </text>

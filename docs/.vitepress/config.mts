@@ -15,6 +15,9 @@ export default defineConfig({
     title: 'ThinkingHome.DeviceModel',
     description: 'Виртуальный хаб умного дома',
 
+    // Сайт публикуется на собственном домене (docs/public/CNAME), поэтому базовый путь корневой.
+    base: '/',
+
     themeConfig: {
         nav: [
             { text: 'Руководство', link: '/guide/what-is-it' },

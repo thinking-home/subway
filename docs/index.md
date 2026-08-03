@@ -94,6 +94,7 @@ using var subscription = lamp
 сервер сам подключается к облачному прокси и держит соединение, а экосистема обращается к прокси.
 </div>
 <div class="th-col">
+<!--@include: ./diagrams/tunnel.svg-->
 </div>
 </div>
 

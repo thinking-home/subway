@@ -77,6 +77,15 @@
     stroke-linejoin: round;
 }
 
+.th-diagram-icon--accent {
+    stroke: var(--vp-c-brand-1);
+}
+
+/* Стрелка ставится только там, где направление и есть смысл: кто кому звонит. */
+.th-diagram-arrow {
+    fill: var(--vp-c-text-3);
+}
+
 .th-diagram-link {
     fill: none;
     stroke: var(--vp-c-text-3);
