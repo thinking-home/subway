@@ -21,8 +21,7 @@ export default defineConfig({
     themeConfig: {
         nav: [
             { text: 'Руководство', link: '/guide/what-is-it' },
-            { text: 'Библиотеки', link: '/packages/device-model' },
-            { text: 'Приложения', link: '/apps/hub' },
+            { text: 'Библиотеки', link: '/packages/' },
             { text: 'API', link: '/reference/ThinkingHome.DeviceModel/' },
         ],
 
@@ -38,7 +37,9 @@ export default defineConfig({
                     ],
                 },
             ],
-            '/packages/': [
+            // Библиотеки и приложения — один раздел с картой пакетов в корне.
+            ...Object.fromEntries(['/packages/', '/apps/'].map(prefix => [prefix, [
+                { text: 'Карта пакетов', link: '/packages/' },
                 {
                     text: 'Библиотеки',
                     items: [
@@ -50,8 +51,6 @@ export default defineConfig({
                         { text: 'Alice', link: '/packages/alice' },
                     ],
                 },
-            ],
-            '/apps/': [
                 {
                     text: 'Приложения',
                     items: [
@@ -61,7 +60,7 @@ export default defineConfig({
                         { text: 'Навык Алисы', link: '/apps/alice-skill' },
                     ],
                 },
-            ],
+            ]])),
             '/reference/': [
                 {
                     text: 'Справочник API',
