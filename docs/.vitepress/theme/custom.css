@@ -40,6 +40,12 @@
     margin: 32px 0;
 }
 
+/* Вертикальные схемы: во всю ширину они смотрелись бы крупнее остальных. */
+.th-diagram--narrow {
+    max-width: 420px;
+    margin-inline: auto;
+}
+
 .th-diagram-box {
     fill: var(--vp-c-bg-soft);
     stroke: var(--vp-c-divider);
@@ -49,6 +55,16 @@
 .th-diagram-box--accent {
     fill: var(--vp-c-brand-soft);
     stroke: var(--vp-c-brand-1);
+}
+
+/*
+ * Граница хаба на схеме состава. Заливка — фон страницы, чтобы блоки внутри
+ * (они серые) читались на ней, а не сливались.
+ */
+.th-diagram-frame {
+    fill: var(--vp-c-bg);
+    stroke: var(--vp-c-brand-1);
+    stroke-width: 1;
 }
 
 .th-diagram-label {
@@ -68,6 +84,23 @@
     font-weight: 600;
 }
 
+.th-diagram-label--muted {
+    fill: var(--vp-c-text-3);
+}
+
+/* Пояснение под названием блока: что именно внутри. */
+.th-diagram-label--sub {
+    fill: var(--vp-c-text-3);
+    font-size: 12px;
+}
+
+.th-diagram-label--frame {
+    fill: var(--vp-c-brand-1);
+    text-anchor: start;
+    font-size: 13px;
+    font-weight: 600;
+}
+
 /* Иконки в блоках схем — Lucide, отрисовка обводкой без заливки. */
 .th-diagram-icon {
     fill: none;
@@ -79,6 +112,12 @@
 
 .th-diagram-icon--accent {
     stroke: var(--vp-c-brand-1);
+}
+
+/* Иконка рядом с названием зоны: уменьшена, поэтому толщину линии не масштабируем. */
+.th-diagram-icon--frame {
+    stroke: var(--vp-c-brand-1);
+    vector-effect: non-scaling-stroke;
 }
 
 /* Стрелка ставится только там, где направление и есть смысл: кто кому звонит. */

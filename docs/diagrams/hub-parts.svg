@@ -1,0 +1,25 @@
+<svg class="th-diagram th-diagram--narrow" viewBox="0 0 460 412" xmlns="http://www.w3.org/2000/svg" role="img"
+     aria-label="Внутри хаба: адаптеры смотрят в сторону экосистем, API — в сторону скриптов, драйверы — в сторону устройств, и все они обращаются к ядру">
+    <path class="th-diagram-link" d="M115 54 V115"/>
+    <path class="th-diagram-link" d="M345 54 V115"/>
+    <path class="th-diagram-link" d="M115 161 V205 Q115 213 123 213 H130"/>
+    <path class="th-diagram-link" d="M345 161 V205 Q345 213 337 213 H330"/>
+    <path class="th-diagram-link" d="M230 236 V265"/>
+    <path class="th-diagram-link" d="M230 311 V358"/>
+    <rect class="th-diagram-frame" x="20" y="80" width="420" height="250" rx="14"/>
+    <text class="th-diagram-label th-diagram-label--frame" x="38" y="103">Хаб</text>
+    <rect class="th-diagram-box" x="40" y="8" width="150" height="46" rx="10"/>
+    <text class="th-diagram-label th-diagram-label--muted" x="115" y="36">Экосистема</text>
+    <rect class="th-diagram-box" x="270" y="8" width="150" height="46" rx="10"/>
+    <text class="th-diagram-label th-diagram-label--muted" x="345" y="36">Локальные скрипты</text>
+    <rect class="th-diagram-box" x="40" y="115" width="150" height="46" rx="10"/>
+    <text class="th-diagram-label" x="115" y="143">Адаптер</text>
+    <rect class="th-diagram-box" x="270" y="115" width="150" height="46" rx="10"/>
+    <text class="th-diagram-label" x="345" y="143">API</text>
+    <rect class="th-diagram-box th-diagram-box--accent" x="130" y="190" width="200" height="46" rx="10"/>
+    <text class="th-diagram-label th-diagram-label--accent" x="230" y="219">Ядро</text>
+    <rect class="th-diagram-box" x="155" y="265" width="150" height="46" rx="10"/>
+    <text class="th-diagram-label" x="230" y="293">Драйвер</text>
+    <rect class="th-diagram-box" x="155" y="358" width="150" height="46" rx="10"/>
+    <text class="th-diagram-label th-diagram-label--muted" x="230" y="386">Устройство</text>
+</svg>

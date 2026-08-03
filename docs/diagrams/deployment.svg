@@ -1,0 +1,33 @@
+<svg class="th-diagram" viewBox="-92 0 760 240" xmlns="http://www.w3.org/2000/svg" role="img"
+     aria-label="В облаке работают прокси и экосистема, дома — домашний сервер и устройства; соединение устанавливает домашний сервер">
+    <defs>
+        <marker id="th-arrow-deployment" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto">
+            <path class="th-diagram-arrow" d="M0 0 L10 5 L0 10 z"/>
+        </marker>
+    </defs>
+    <path class="th-diagram-link" d="M140 112 V142"/>
+    <path class="th-diagram-link" d="M436 112 V142"/>
+    <path class="th-diagram-link" d="M324 87 H259" marker-end="url(#th-arrow-deployment)"/>
+    <rect class="th-diagram-frame" x="8" y="20" width="264" height="200" rx="14"/>
+    <g class="th-diagram-icon th-diagram-icon--frame" transform="translate(26 30) scale(0.667)">
+        <circle cx="12" cy="12" r="10"/>
+        <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/>
+        <path d="M2 12h20"/>
+    </g>
+    <text class="th-diagram-label th-diagram-label--frame" x="50" y="43">Облако</text>
+    <rect class="th-diagram-frame" x="304" y="20" width="264" height="200" rx="14"/>
+    <g class="th-diagram-icon th-diagram-icon--frame" transform="translate(322 30) scale(0.667)">
+        <path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/>
+        <path d="M3 10a2 2 0 0 1 .709-1.528l7-6a2 2 0 0 1 2.582 0l7 6A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+    </g>
+    <text class="th-diagram-label th-diagram-label--frame" x="346" y="43">Дом</text>
+    <rect class="th-diagram-box th-diagram-box--accent" x="28" y="62" width="224" height="50" rx="10"/>
+    <text class="th-diagram-label th-diagram-label--accent" x="140" y="93">Прокси</text>
+    <rect class="th-diagram-box" x="28" y="142" width="224" height="50" rx="10"/>
+    <text class="th-diagram-label th-diagram-label--muted" x="140" y="172">Экосистема</text>
+    <rect class="th-diagram-box th-diagram-box--accent" x="324" y="62" width="224" height="50" rx="10"/>
+    <text class="th-diagram-label th-diagram-label--accent" x="436" y="84">Домашний сервер</text>
+    <text class="th-diagram-label th-diagram-label--sub" x="436" y="101">хаб, драйверы, скрипты</text>
+    <rect class="th-diagram-box" x="324" y="142" width="224" height="50" rx="10"/>
+    <text class="th-diagram-label th-diagram-label--muted" x="436" y="172">Устройства</text>
+</svg>
