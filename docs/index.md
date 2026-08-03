@@ -65,6 +65,7 @@ ThinkingHome.DeviceModel — виртуальный хаб умного дома
 и хабом.
 </div>
 <div class="th-col">
+<!--@include: ./diagrams/hub-devices.svg-->
 </div>
 </div>
 

@@ -1,0 +1,67 @@
+<svg class="th-diagram" viewBox="0 0 760 300" xmlns="http://www.w3.org/2000/svg" role="img"
+     aria-label="Экосистема обращается только к хабу, а хаб связан с устройствами через драйверы">
+    <path class="th-diagram-link" d="M160 150 H210"/>
+    <path class="th-diagram-link" d="M360 120 H382 Q390 120 390 112 V48 Q390 40 398 40 H420"/>
+    <path class="th-diagram-link" d="M360 150 H420"/>
+    <path class="th-diagram-link" d="M360 180 H382 Q390 180 390 188 V252 Q390 260 398 260 H420"/>
+    <path class="th-diagram-link" d="M530 40 H582"/>
+    <path class="th-diagram-link" d="M530 150 H582"/>
+    <path class="th-diagram-link" d="M530 260 H582"/>
+    <rect class="th-diagram-box" x="8" y="90" width="152" height="120" rx="10"/>
+    <g class="th-diagram-icon" transform="translate(24 138)">
+        <circle cx="12" cy="12" r="10"/>
+        <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/>
+        <path d="M2 12h20"/>
+    </g>
+    <text class="th-diagram-label th-diagram-label--start" x="60" y="155">Экосистема</text>
+    <rect class="th-diagram-box th-diagram-box--accent" x="210" y="90" width="150" height="120" rx="12"/>
+    <text class="th-diagram-label th-diagram-label--accent" x="285" y="156">Хаб</text>
+    <rect class="th-diagram-box" x="420" y="16" width="110" height="48" rx="10"/>
+    <text class="th-diagram-label" x="475" y="45">Драйвер</text>
+    <rect class="th-diagram-box" x="420" y="126" width="110" height="48" rx="10"/>
+    <text class="th-diagram-label" x="475" y="155">Драйвер</text>
+    <rect class="th-diagram-box" x="420" y="236" width="110" height="48" rx="10"/>
+    <text class="th-diagram-label" x="475" y="265">Драйвер</text>
+    <rect class="th-diagram-box" x="582" y="8" width="170" height="64" rx="10"/>
+    <g class="th-diagram-icon" transform="translate(596 28)">
+        <path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/>
+        <path d="M9 18h6"/>
+        <path d="M10 22h4"/>
+    </g>
+    <text class="th-diagram-label th-diagram-label--start" x="632" y="33">
+        <tspan x="632">Лампа</tspan>
+        <tspan x="632" dy="16">Zigbee</tspan>
+    </text>
+    <rect class="th-diagram-box" x="582" y="118" width="170" height="64" rx="10"/>
+    <g class="th-diagram-icon" transform="translate(596 138)">
+        <path d="M12 22v-5"/>
+        <path d="M15 8V2"/>
+        <path d="M17 8a1 1 0 0 1 1 1v4a4 4 0 0 1-4 4h-4a4 4 0 0 1-4-4V9a1 1 0 0 1 1-1z"/>
+        <path d="M9 8V2"/>
+    </g>
+    <text class="th-diagram-label th-diagram-label--start" x="632" y="143">
+        <tspan x="632">Розетка</tspan>
+        <tspan x="632" dy="16">MQTT</tspan>
+    </text>
+    <rect class="th-diagram-box" x="582" y="228" width="170" height="64" rx="10"/>
+    <g class="th-diagram-icon" transform="translate(596 248)">
+        <path d="M12 20v2"/>
+        <path d="M12 2v2"/>
+        <path d="M17 20v2"/>
+        <path d="M17 2v2"/>
+        <path d="M2 12h2"/>
+        <path d="M2 17h2"/>
+        <path d="M2 7h2"/>
+        <path d="M20 12h2"/>
+        <path d="M20 17h2"/>
+        <path d="M20 7h2"/>
+        <path d="M7 20v2"/>
+        <path d="M7 2v2"/>
+        <rect x="4" y="4" width="16" height="16" rx="2"/>
+        <rect x="8" y="8" width="8" height="8" rx="1"/>
+    </g>
+    <text class="th-diagram-label th-diagram-label--start" x="632" y="253">
+        <tspan x="632">Самодельный</tspan>
+        <tspan x="632" dy="16">датчик</tspan>
+    </text>
+</svg>

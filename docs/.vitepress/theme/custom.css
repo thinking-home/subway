@@ -29,6 +29,60 @@
     padding: 16px 0;
 }
 
+/*
+ * Схемы. SVG хранятся в docs/diagrams и вставляются в страницы как есть, поэтому
+ * им доступны переменные темы: цвета переключаются вместе со светлой и тёмной темой.
+ */
+.th-diagram {
+    display: block;
+    width: 100%;
+    height: auto;
+    margin: 32px 0;
+}
+
+.th-diagram-box {
+    fill: var(--vp-c-bg-soft);
+    stroke: var(--vp-c-divider);
+    stroke-width: 1;
+}
+
+.th-diagram-box--accent {
+    fill: var(--vp-c-brand-soft);
+    stroke: var(--vp-c-brand-1);
+}
+
+.th-diagram-label {
+    fill: var(--vp-c-text-1);
+    font-family: var(--vp-font-family-base);
+    font-size: 14px;
+    text-anchor: middle;
+}
+
+.th-diagram-label--start {
+    text-anchor: start;
+    font-size: 13px;
+}
+
+.th-diagram-label--accent {
+    font-size: 16px;
+    font-weight: 600;
+}
+
+/* Иконки в блоках схем — Lucide, отрисовка обводкой без заливки. */
+.th-diagram-icon {
+    fill: none;
+    stroke: var(--vp-c-text-2);
+    stroke-width: 1.75;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.th-diagram-link {
+    fill: none;
+    stroke: var(--vp-c-text-3);
+    stroke-width: 1.5;
+}
+
 @media (max-width: 768px) {
     .th-row {
         flex-direction: column;
