@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.26124.0
 MinimumVisualStudioVersion = 15.0.26124.0
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ThinkingHome.Subway.Hub", "ThinkingHome.Subway.Hub\ThinkingHome.Subway.Hub.csproj", "{3403BDFB-5FBB-4C12-B02B-2CF9BC7C6FB7}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ThinkingHome.DeviceModel.Proxy", "ThinkingHome.DeviceModel.Proxy\ThinkingHome.DeviceModel.Proxy.csproj", "{3403BDFB-5FBB-4C12-B02B-2CF9BC7C6FB7}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ThinkingHome.Alice", "ThinkingHome.Alice\ThinkingHome.Alice.csproj", "{6674ECA6-C276-4B7A-914C-5ADE613E79FE}"
 EndProject

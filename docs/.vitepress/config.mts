@@ -31,6 +31,7 @@ export default defineConfig({
                     text: 'Руководство',
                     items: [
                         { text: 'Что это', link: '/guide/what-is-it' },
+                        { text: 'Быстрый старт', link: '/guide/quick-start' },
                         { text: 'Предметная область', link: '/guide/domain' },
                         { text: 'Нейтральная модель', link: '/guide/model' },
                         { text: 'Согласование с Matter', link: '/guide/matter' },
@@ -54,7 +55,7 @@ export default defineConfig({
                 {
                     text: 'Приложения',
                     items: [
-                        { text: 'Hub — облачный прокси', link: '/apps/hub' },
+                        { text: 'Proxy — облачный прокси', link: '/apps/proxy' },
                         { text: 'Home — демо-хост', link: '/apps/home' },
                         { text: 'Деплой в облако', link: '/apps/deploy' },
                         { text: 'Навык Алисы', link: '/apps/alice-skill' },

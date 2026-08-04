@@ -6,7 +6,7 @@ using Microsoft.Extensions.Logging;
 using ThinkingHome.Alice.Service;
 using ThinkingHome.DeviceModel.Remoting.ProxyServer;
 
-namespace ThinkingHome.Subway.Hub
+namespace ThinkingHome.DeviceModel.Proxy
 {
     public class Startup(IConfiguration configuration)
     {

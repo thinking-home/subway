@@ -15,7 +15,7 @@ ASSEMBLIES=(
     ThinkingHome.Alice
 )
 
-dotnet build subway.sln -c Release
+dotnet build ThinkingHome.DeviceModel.sln -c Release
 
 REF=docs/reference
 LINKS=$REF/.links

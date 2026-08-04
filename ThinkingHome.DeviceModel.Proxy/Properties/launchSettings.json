@@ -1,6 +1,6 @@
 {
   "profiles": {
-    "ThinkingHome.Subway.Hub": {
+    "ThinkingHome.DeviceModel.Proxy": {
       "commandName": "Project",
       "applicationUrl": "http://localhost:5000",
       "environmentVariables": {

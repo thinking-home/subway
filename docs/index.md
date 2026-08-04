@@ -11,7 +11,7 @@ hero:
       link: /guide/what-is-it
     - theme: alt
       text: Быстрый старт
-      link: /packages/device-model
+      link: /guide/quick-start
     - theme: alt
       text: Справочник API
       link: /reference/ThinkingHome.DeviceModel/
@@ -103,4 +103,4 @@ using var subscription = lamp
 
 - [Что это](/guide/what-is-it) — архитектура решения и роли проектов
 - [Нейтральная модель](/guide/model) — иерархия устройств и протокол взаимодействия
-- [Быстрый старт](/packages/device-model) — первое устройство за пару минут
+- [Быстрый старт](/guide/quick-start) — первое устройство за десять минут

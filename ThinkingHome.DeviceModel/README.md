@@ -361,7 +361,7 @@ using var all = host.OnChanged(change => Log(change));
 - **`ThinkingHome.DeviceModel.FluentApi`** — fluent API слоя устройств: хендлы и extension-методы
   поверх `IDeviceHost` (см. «Дизайн fluent API» выше).
 - **`ThinkingHome.Alice`** — адаптер Яндекса: маппер нейтральной модели в DTO Алисы.
-- **`ThinkingHome.Subway.Hub`** — транспорт/прокси: даёт Алисе внешний IP и связь с локальным
+- **`ThinkingHome.DeviceModel.Proxy`** — транспорт/прокси: даёт Алисе внешний IP и связь с локальным
   сервером через SignalR (см. корневой README решения).
 
 ## Статус
@@ -396,7 +396,7 @@ using var all = host.OnChanged(change => Log(change));
   Alice). Пока OnOff. Чистые функции (без I/O); оркестрация вызовов хоста — на стороне бриджа.
 - Alice-бридж: контроллеры `ThinkingHome.Alice.Service` проведены на `IDeviceHost` + `AliceMapper` +
   `IRemoteHostRegistry` (async, hostId через `IHostIdResolver`, оффлайн → пустой список /
-  `DEVICE_UNREACHABLE`). `ThinkingHome.Subway.Hub` собирает SignalR + `DeviceHub` + реестр + контроллеры;
+  `DEVICE_UNREACHABLE`). `ThinkingHome.DeviceModel.Proxy` собирает SignalR + `DeviceHub` + реестр + контроллеры;
   stub-устройства убраны.
 - Fluent API (`ThinkingHome.DeviceModel.FluentApi`): `host.Device(id)` → хендлы
   устройства/endpoint'а/способностей/свойств по «Дизайну fluent API» — команды 1:1 с ядром,

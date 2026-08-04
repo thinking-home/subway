@@ -4,7 +4,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using ThinkingHome.DeviceModel.Remoting.ProxyServer;
 
-namespace ThinkingHome.Subway.Hub
+namespace ThinkingHome.DeviceModel.Proxy
 {
     class Program
     {
@@ -27,7 +27,7 @@ namespace ThinkingHome.Subway.Hub
                 .Run();
         }
 
-        // CLI: dotnet run --project ThinkingHome.Subway.Hub -- issue-host-token --hostId <id>
+        // CLI: dotnet run --project ThinkingHome.DeviceModel.Proxy -- issue-host-token --hostId <id>
         static void IssueHostToken(string[] args)
         {
             var environmentName = Environment.GetEnvironmentVariable("THINKINGHOME_ENVIRONMENT");

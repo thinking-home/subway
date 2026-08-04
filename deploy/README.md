@@ -1,7 +1,7 @@
-# Деплой прокси (Hub) в Яндекс Облако
+# Деплой прокси в Яндекс Облако
 
-Стек: VM (Ubuntu) + **Caddy** (авто-HTTPS Let's Encrypt на :80/:443) → **Hub** как `systemd`-сервис
-на `127.0.0.1:8080`. Код Hub менять не нужно; ключ подписи JWT приходит из env.
+Стек: VM (Ubuntu) + **Caddy** (авто-HTTPS Let's Encrypt на :80/:443) → **Proxy** как `systemd`-сервис
+на `127.0.0.1:8080`. Код Proxy менять не нужно; ключ подписи JWT приходит из env.
 
 ## 0. Предпосылки
 
@@ -14,7 +14,7 @@
 
 ```bash
 yc compute instance create \
-  --name thinkinghome-hub \
+  --name thinkinghome-proxy \
   --zone ru-central1-a \
   --platform standard-v3 --cores 2 --core-fraction 20 --memory 2G \
   --create-boot-disk image-family=ubuntu-2404-lts,type=network-ssd,size=20G \
@@ -34,8 +34,8 @@ A-запись `proxy.ТВОЙ-ДОМЕН` → публичный IP VM. Дож�
 ## 3. Publish локально (self-contained — .NET на сервере не нужен)
 
 ```bash
-dotnet publish ThinkingHome.Subway.Hub -c Release -r linux-x64 \
-  --self-contained -p:PublishSingleFile=true -o publish/hub
+dotnet publish ThinkingHome.DeviceModel.Proxy -c Release -r linux-x64 \
+  --self-contained -p:PublishSingleFile=true -o publish/proxy
 ```
 
 ## 4. Установить Caddy на сервере
@@ -47,28 +47,28 @@ curl -1sLf https://dl.cloudsmith.io/public/caddy/stable/gpg.key | sudo gpg --dea
 curl -1sLf https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt | sudo tee /etc/apt/sources.list.d/caddy-stable.list
 sudo apt update && sudo apt install -y caddy
 sudo useradd -r -s /usr/sbin/nologin thinkinghome
-sudo mkdir -p /opt/thinkinghome-hub /etc/thinkinghome
+sudo mkdir -p /opt/thinkinghome-proxy /etc/thinkinghome
 ```
 
-## 5. Скопировать Hub и конфиги
+## 5. Скопировать Proxy и конфиги
 
 ```bash
 # локально:
-scp -r publish/hub/* ubuntu@<IP>:/tmp/hub/
-scp deploy/thinkinghome-hub.service deploy/Caddyfile ubuntu@<IP>:/tmp/
+scp -r publish/proxy/* ubuntu@<IP>:/tmp/proxy/
+scp deploy/thinkinghome-proxy.service deploy/Caddyfile ubuntu@<IP>:/tmp/
 
 # на сервере:
-sudo mv /tmp/hub/* /opt/thinkinghome-hub/
-sudo chmod +x /opt/thinkinghome-hub/ThinkingHome.Subway.Hub
-sudo chown -R thinkinghome:thinkinghome /opt/thinkinghome-hub
+sudo mv /tmp/proxy/* /opt/thinkinghome-proxy/
+sudo chmod +x /opt/thinkinghome-proxy/ThinkingHome.DeviceModel.Proxy
+sudo chown -R thinkinghome:thinkinghome /opt/thinkinghome-proxy
 
 # СВОЙ ключ подписи (не коммитить):
-echo "THINKINGHOME_Jwt__SigningKey=$(openssl rand -base64 48)" | sudo tee /etc/thinkinghome/hub.env
-sudo chmod 600 /etc/thinkinghome/hub.env
+echo "THINKINGHOME_Jwt__SigningKey=$(openssl rand -base64 48)" | sudo tee /etc/thinkinghome/proxy.env
+sudo chmod 600 /etc/thinkinghome/proxy.env
 
 # systemd:
-sudo mv /tmp/thinkinghome-hub.service /etc/systemd/system/
-sudo systemctl daemon-reload && sudo systemctl enable --now thinkinghome-hub
+sudo mv /tmp/thinkinghome-proxy.service /etc/systemd/system/
+sudo systemctl daemon-reload && sudo systemctl enable --now thinkinghome-proxy
 
 # Caddy (подставь домен):
 sudo sed -i 's/proxy.example.com/proxy.ТВОЙ-ДОМЕН/' /tmp/Caddyfile
@@ -81,11 +81,11 @@ sudo systemctl reload caddy
 ```bash
 curl -s -o /dev/null -w '%{http_code}\n' https://proxy.ТВОЙ-ДОМЕН/service/v1.0   # 200 (moo)
 curl -s https://proxy.ТВОЙ-ДОМЕН/oauth/authorize?redirect_uri=x                  # форма привязки
-sudo journalctl -u thinkinghome-hub -f                                          # логи Hub
+sudo journalctl -u thinkinghome-proxy -f                                          # логи прокси
 ```
 
 Домашний коннектор подключать к `https://proxy.ТВОЙ-ДОМЕН/hub` с токеном из
-`dotnet ... issue-host-token --hostId <id>` (минтить тем же ключом, что в `/etc/thinkinghome/hub.env`).
+`dotnet ... issue-host-token --hostId <id>` (минтить тем же ключом, что в `/etc/thinkinghome/proxy.env`).
 
 ## 7. Навык в Яндекс.Диалогах
 
