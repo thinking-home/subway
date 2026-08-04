@@ -3,26 +3,29 @@ using ThinkingHome.DeviceModel.Capabilities;
 using ThinkingHome.DeviceModel.Commands;
 using ThinkingHome.DeviceModel.State;
 
-namespace ThinkingHome.Home;
+namespace ThinkingHome.DeviceModel.Drivers.Stubs;
 
 /// <summary>
 /// Временная заглушка диммируемой лампы (OnOff + яркость) с состоянием в памяти. Реальные драйверы
 /// придут позже; нужна, чтобы проверить сквозной путь новой способности «яркость» до Алисы.
 /// </summary>
-public sealed class StubDimmableLamp(string id, string title, string? room = null) : IDevice
+public sealed class StubDimmableLamp(string id, StubDeviceConfig config) : IDevice
 {
     private bool isOn;
     private int brightness = 100;
 
+    /// <inheritdoc />
     public string Id => id;
 
+    /// <inheritdoc />
     public event Action<StateChange>? Changed;
 
+    /// <inheritdoc />
     public DeviceDescriptor Describe() => new()
     {
         Id = id,
-        Title = title,
-        Room = room,
+        Title = config.Title,
+        Room = config.Room,
         Manufacturer = new DeviceManufacturer { Name = "ThinkingHome", Model = "stub-dimmable" },
         Endpoints = [new Endpoint
         {
@@ -32,6 +35,7 @@ public sealed class StubDimmableLamp(string id, string title, string? room = nul
         }],
     };
 
+    /// <inheritdoc />
     public Task<DeviceSnapshot> QueryAsync(CancellationToken ct = default)
         => Task.FromResult(new DeviceSnapshot
         {
@@ -43,6 +47,7 @@ public sealed class StubDimmableLamp(string id, string title, string? room = nul
             ],
         });
 
+    /// <inheritdoc />
     public Task<CommandOutcome> ExecuteAsync(DeviceCommand command, CancellationToken ct = default)
     {
         switch (command)

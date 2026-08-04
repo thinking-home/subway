@@ -3,35 +3,39 @@ using ThinkingHome.DeviceModel.Capabilities;
 using ThinkingHome.DeviceModel.Commands;
 using ThinkingHome.DeviceModel.State;
 
-namespace ThinkingHome.Home;
+namespace ThinkingHome.DeviceModel.Drivers.Stubs;
 
 /// <summary>
 /// Временная заглушка On/Off-устройства (лампа/розетка/выключатель) с состоянием в памяти. Способность
 /// одна — OnOff, различается только <see cref="DeviceType"/>. Реальные драйверы придут позже; нужна,
 /// чтобы поднять домашний хост и проверить сквозной путь до Алисы.
 /// </summary>
-public sealed class StubOnOffDevice(string id, string title, DeviceType type, string? room = null) : IDevice
+public sealed class StubOnOffDevice(string id, StubOnOffDeviceConfig config) : IDevice
 {
     private bool isOn;
 
+    /// <inheritdoc />
     public string Id => id;
 
+    /// <inheritdoc />
     public event Action<StateChange>? Changed;
 
+    /// <inheritdoc />
     public DeviceDescriptor Describe() => new()
     {
         Id = id,
-        Title = title,
-        Room = room,
+        Title = config.Title,
+        Room = config.Room,
         Manufacturer = new DeviceManufacturer { Name = "ThinkingHome", Model = "stub" },
         Endpoints = [new Endpoint
         {
             Id = 0,
-            Type = type,
+            Type = config.Type,
             Capabilities = [new OnOffCapability { Instance = OnOffCapability.InstanceName }],
         }],
     };
 
+    /// <inheritdoc />
     public Task<DeviceSnapshot> QueryAsync(CancellationToken ct = default)
         => Task.FromResult(new DeviceSnapshot
         {
@@ -39,6 +43,7 @@ public sealed class StubOnOffDevice(string id, string title, DeviceType type, st
             Values = [new OnOffState { Instance = OnOffCapability.InstanceName, Value = isOn }],
         });
 
+    /// <inheritdoc />
     public Task<CommandOutcome> ExecuteAsync(DeviceCommand command, CancellationToken ct = default)
     {
         if (command is OnOffCommand cmd)

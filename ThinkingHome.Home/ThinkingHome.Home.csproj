@@ -15,6 +15,7 @@
     <ItemGroup>
         <ProjectReference Include="..\ThinkingHome.DeviceModel\ThinkingHome.DeviceModel.csproj" />
         <ProjectReference Include="..\ThinkingHome.DeviceModel.Remoting.ProxyClient\ThinkingHome.DeviceModel.Remoting.ProxyClient.csproj" />
+        <ProjectReference Include="..\ThinkingHome.DeviceModel.Drivers.Stubs\ThinkingHome.DeviceModel.Drivers.Stubs.csproj" />
     </ItemGroup>
 
     <ItemGroup>

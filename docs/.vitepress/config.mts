@@ -7,6 +7,7 @@ const referenceAssemblies = [
     'ThinkingHome.DeviceModel.Remoting',
     'ThinkingHome.DeviceModel.Remoting.ProxyClient',
     'ThinkingHome.DeviceModel.Remoting.ProxyServer',
+    'ThinkingHome.DeviceModel.Drivers.Stubs',
     'ThinkingHome.Alice',
 ]
 
@@ -50,6 +51,7 @@ export default defineConfig({
                         { text: 'ProxyClient', link: '/packages/proxy-client' },
                         { text: 'ProxyServer', link: '/packages/proxy-server' },
                         { text: 'Alice', link: '/packages/alice' },
+                        { text: 'Drivers.Stubs', link: '/packages/drivers-stubs' },
                     ],
                 },
                 {

@@ -3,48 +3,42 @@ using ThinkingHome.DeviceModel.Capabilities;
 using ThinkingHome.DeviceModel.Commands;
 using ThinkingHome.DeviceModel.State;
 
-namespace ThinkingHome.Home;
+namespace ThinkingHome.DeviceModel.Drivers.Stubs;
 
-/// <summary>
-/// Заглушка лампы с полной цветопередачей (OnOff + яркость + RGB + цветовая температура). Держит один
-/// активный цветовой режим и отдаёт в снимке именно его — у color_setting остаётся одно состояние.
-/// </summary>
-public sealed class StubColorLamp(string id, string title, string? room = null) : IDevice
+/// <summary>Заглушка лампы с регулировкой цветовой температуры (OnOff + яркость + температура).</summary>
+public sealed class StubColorTemperatureLamp(string id, StubDeviceConfig config) : IDevice
 {
     private bool isOn;
     private int brightness = 100;
-    private int kelvin = 4000;
-    private int rgb = 0xFFFFFF;
-    private bool rgbMode; // false — температура, true — rgb
+    private int kelvin = 4500;
 
+    /// <inheritdoc />
     public string Id => id;
 
+    /// <inheritdoc />
     public event Action<StateChange>? Changed;
 
+    /// <inheritdoc />
     public DeviceDescriptor Describe() => new()
     {
         Id = id,
-        Title = title,
-        Room = room,
-        Manufacturer = new DeviceManufacturer { Name = "ThinkingHome", Model = "stub-rgb" },
+        Title = config.Title,
+        Room = config.Room,
+        Manufacturer = new DeviceManufacturer { Name = "ThinkingHome", Model = "stub-cct" },
         Endpoints = [new Endpoint
         {
             Id = 0,
-            Type = DeviceType.ExtendedColorLight,
+            Type = DeviceType.ColorTemperatureLight,
             Capabilities =
             [
                 new OnOffCapability { Instance = OnOffCapability.InstanceName },
                 new BrightnessCapability { Instance = BrightnessCapability.InstanceName },
-                new ColorCapability
-                {
-                    Instance = ColorCapability.InstanceName,
-                    Model = ColorModel.Rgb,
-                    Temperature = new ColorTemperatureRange { MinKelvin = 2700, MaxKelvin = 6500 },
-                },
+                new ColorCapability { Instance = ColorCapability.InstanceName, Temperature = new ColorTemperatureRange { MinKelvin = 2700, MaxKelvin = 6500 } },
             ],
         }],
     };
 
+    /// <inheritdoc />
     public Task<DeviceSnapshot> QueryAsync(CancellationToken ct = default)
         => Task.FromResult(new DeviceSnapshot
         {
@@ -53,12 +47,11 @@ public sealed class StubColorLamp(string id, string title, string? room = null) 
             [
                 new OnOffState { Instance = OnOffCapability.InstanceName, Value = isOn },
                 new BrightnessState { Instance = BrightnessCapability.InstanceName, Value = brightness },
-                rgbMode
-                    ? new ColorRgbState { Instance = ColorCapability.InstanceName, Value = rgb }
-                    : new ColorTemperatureState { Instance = ColorCapability.InstanceName, Value = kelvin },
+                new ColorTemperatureState { Instance = ColorCapability.InstanceName, Value = kelvin },
             ],
         });
 
+    /// <inheritdoc />
     public Task<CommandOutcome> ExecuteAsync(DeviceCommand command, CancellationToken ct = default)
     {
         switch (command)
@@ -77,16 +70,8 @@ public sealed class StubColorLamp(string id, string title, string? room = null) 
 
             case ColorTemperatureCommand temp:
                 kelvin = temp.Value;
-                rgbMode = false;
                 Console.WriteLine($"[{id}] → температура {kelvin}K");
                 Report(new ColorTemperatureState { Instance = ColorCapability.InstanceName, Value = kelvin });
-                return Task.FromResult(CommandOutcome.Done);
-
-            case ColorRgbCommand color:
-                rgb = color.Value;
-                rgbMode = true;
-                Console.WriteLine($"[{id}] → цвет #{rgb:X6}");
-                Report(new ColorRgbState { Instance = ColorCapability.InstanceName, Value = rgb });
                 return Task.FromResult(CommandOutcome.Done);
 
             default:

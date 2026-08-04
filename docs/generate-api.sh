@@ -12,6 +12,7 @@ ASSEMBLIES=(
     ThinkingHome.DeviceModel.Remoting
     ThinkingHome.DeviceModel.Remoting.ProxyClient
     ThinkingHome.DeviceModel.Remoting.ProxyServer
+    ThinkingHome.DeviceModel.Drivers.Stubs
     ThinkingHome.Alice
 )
 

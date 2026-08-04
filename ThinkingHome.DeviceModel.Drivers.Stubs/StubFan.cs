@@ -3,24 +3,27 @@ using ThinkingHome.DeviceModel.Capabilities;
 using ThinkingHome.DeviceModel.Commands;
 using ThinkingHome.DeviceModel.State;
 
-namespace ThinkingHome.Home;
+namespace ThinkingHome.DeviceModel.Drivers.Stubs;
 
 /// <summary>Заглушка вентилятора (OnOff + скорость fan_speed + осцилляция).</summary>
-public sealed class StubFan(string id, string title, string? room = null) : IDevice
+public sealed class StubFan(string id, StubDeviceConfig config) : IDevice
 {
     private bool isOn;
     private FanSpeed speed = FanSpeed.Auto;
     private bool oscillating;
 
+    /// <inheritdoc />
     public string Id => id;
 
+    /// <inheritdoc />
     public event Action<StateChange>? Changed;
 
+    /// <inheritdoc />
     public DeviceDescriptor Describe() => new()
     {
         Id = id,
-        Title = title,
-        Room = room,
+        Title = config.Title,
+        Room = config.Room,
         Manufacturer = new DeviceManufacturer { Name = "ThinkingHome", Model = "stub-fan" },
         Endpoints = [new Endpoint
         {
@@ -35,6 +38,7 @@ public sealed class StubFan(string id, string title, string? room = null) : IDev
         }],
     };
 
+    /// <inheritdoc />
     public Task<DeviceSnapshot> QueryAsync(CancellationToken ct = default)
         => Task.FromResult(new DeviceSnapshot
         {
@@ -47,6 +51,7 @@ public sealed class StubFan(string id, string title, string? room = null) : IDev
             ],
         });
 
+    /// <inheritdoc />
     public Task<CommandOutcome> ExecuteAsync(DeviceCommand command, CancellationToken ct = default)
     {
         switch (command)

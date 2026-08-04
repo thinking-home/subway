@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Configuration;
 using ThinkingHome.DeviceModel;
 using ThinkingHome.DeviceModel.Remoting.ProxyClient;
+using ThinkingHome.DeviceModel.Drivers.Stubs;
 using ThinkingHome.Home;
 
 // конфигурация по общему правилу: appsettings.json (несекретные дефолты) →
@@ -35,24 +36,24 @@ if (token is null)
 
 // хост устройств + временные заглушки (лампа/розетка/выключатель — все на способности OnOff)
 var host = new DeviceHost();
-host.Register(new StubOnOffDevice("lamp-1", "Лампа в коридоре", DeviceType.OnOffLight, "Коридор"));
-host.Register(new StubOnOffDevice("lamp-2", "Лампа на кухне", DeviceType.OnOffLight, "Кухня"));
-host.Register(new StubOnOffDevice("lamp-3", "Торшер в гостиной", DeviceType.OnOffLight, "Гостиная"));
-host.Register(new StubOnOffDevice("socket-1", "Розетка у стола", DeviceType.OnOffSocket, "Кабинет"));
-host.Register(new StubOnOffDevice("switch-1", "Выключатель бойлера", DeviceType.OnOffSwitch, "Ванная"));
-host.Register(new StubDimmableLamp("dimmer-1", "Диммер в спальне", "Спальня"));
-host.Register(new StubColorTemperatureLamp("cct-1", "Лампа с подтоном", "Гостиная"));
-host.Register(new StubColorLamp("rgb-1", "RGB-лента", "Гостиная"));
-host.Register(new StubCurtain("curtain-1", "Штора в спальне", "Спальня"));
-host.Register(new StubFan("fan-1", "Вентилятор в спальне", "Спальня"));
-host.Register(new StubAirConditioner("ac-1", "Кондиционер в гостиной", "Гостиная"));
-host.Register(new StubClimateSensor("climate-1", "Датчик климата", "Кабинет"));
-host.Register(new StubMotionSensor("motion-1", "Датчик движения", "Коридор"));
-host.Register(new StubContactSensor("door-1", "Датчик двери", "Прихожая"));
-host.Register(new StubWaterLeakSensor("leak-1", "Датчик протечки", "Ванная"));
-host.Register(new StubLightSensor("lux-1", "Датчик освещённости", "Балкон"));
-host.Register(new StubAirQualitySensor("aqs-1", "Датчик качества воздуха", "Кабинет"));
-host.Register(new StubWaterius("waterius-1", "Счётчики воды", "Ванная"));
+host.Register(new StubOnOffDevice("lamp-1", new StubOnOffDeviceConfig { Title = "Лампа в коридоре", Type = DeviceType.OnOffLight, Room = "Коридор" }));
+host.Register(new StubOnOffDevice("lamp-2", new StubOnOffDeviceConfig { Title = "Лампа на кухне", Type = DeviceType.OnOffLight, Room = "Кухня" }));
+host.Register(new StubOnOffDevice("lamp-3", new StubOnOffDeviceConfig { Title = "Торшер в гостиной", Type = DeviceType.OnOffLight, Room = "Гостиная" }));
+host.Register(new StubOnOffDevice("socket-1", new StubOnOffDeviceConfig { Title = "Розетка у стола", Type = DeviceType.OnOffSocket, Room = "Кабинет" }));
+host.Register(new StubOnOffDevice("switch-1", new StubOnOffDeviceConfig { Title = "Выключатель бойлера", Type = DeviceType.OnOffSwitch, Room = "Ванная" }));
+host.Register(new StubDimmableLamp("dimmer-1", new StubDeviceConfig { Title = "Диммер в спальне", Room = "Спальня" }));
+host.Register(new StubColorTemperatureLamp("cct-1", new StubDeviceConfig { Title = "Лампа с подтоном", Room = "Гостиная" }));
+host.Register(new StubColorLamp("rgb-1", new StubDeviceConfig { Title = "RGB-лента", Room = "Гостиная" }));
+host.Register(new StubCurtain("curtain-1", new StubDeviceConfig { Title = "Штора в спальне", Room = "Спальня" }));
+host.Register(new StubFan("fan-1", new StubDeviceConfig { Title = "Вентилятор в спальне", Room = "Спальня" }));
+host.Register(new StubAirConditioner("ac-1", new StubDeviceConfig { Title = "Кондиционер в гостиной", Room = "Гостиная" }));
+host.Register(new StubClimateSensor("climate-1", new StubDeviceConfig { Title = "Датчик климата", Room = "Кабинет" }));
+host.Register(new StubMotionSensor("motion-1", new StubDeviceConfig { Title = "Датчик движения", Room = "Коридор" }));
+host.Register(new StubContactSensor("door-1", new StubDeviceConfig { Title = "Датчик двери", Room = "Прихожая" }));
+host.Register(new StubWaterLeakSensor("leak-1", new StubDeviceConfig { Title = "Датчик протечки", Room = "Ванная" }));
+host.Register(new StubLightSensor("lux-1", new StubDeviceConfig { Title = "Датчик освещённости", Room = "Балкон" }));
+host.Register(new StubAirQualitySensor("aqs-1", new StubDeviceConfig { Title = "Датчик качества воздуха", Room = "Кабинет" }));
+host.Register(new StubWaterius("waterius-1", new StubDeviceConfig { Title = "Счётчики воды", Room = "Ванная" }));
 
 // коннектор к прокси (hub); JWT хоста — из конфигурации (Proxy:HostToken)
 await using var connector = new Connector(host, new LogOtpDelivery(), proxyUrl, () => Task.FromResult(token));

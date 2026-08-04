@@ -4,10 +4,10 @@ using ThinkingHome.DeviceModel.Commands;
 using ThinkingHome.DeviceModel.Properties;
 using ThinkingHome.DeviceModel.State;
 
-namespace ThinkingHome.Home;
+namespace ThinkingHome.DeviceModel.Drivers.Stubs;
 
 /// <summary>Заглушка кондиционера (OnOff + уставка температуры + режим + скорость + осцилляция + сенсор комнатной температуры).</summary>
-public sealed class StubAirConditioner(string id, string title, string? room = null) : IDevice
+public sealed class StubAirConditioner(string id, StubDeviceConfig config) : IDevice
 {
     private bool isOn;
     private int targetCelsius = 23;
@@ -16,15 +16,18 @@ public sealed class StubAirConditioner(string id, string title, string? room = n
     private bool oscillating;
     private readonly double roomCelsius = 26.5;
 
+    /// <inheritdoc />
     public string Id => id;
 
+    /// <inheritdoc />
     public event Action<StateChange>? Changed;
 
+    /// <inheritdoc />
     public DeviceDescriptor Describe() => new()
     {
         Id = id,
-        Title = title,
-        Room = room,
+        Title = config.Title,
+        Room = config.Room,
         Manufacturer = new DeviceManufacturer { Name = "ThinkingHome", Model = "stub-ac" },
         Endpoints = [new Endpoint
         {
@@ -42,6 +45,7 @@ public sealed class StubAirConditioner(string id, string title, string? room = n
         }],
     };
 
+    /// <inheritdoc />
     public Task<DeviceSnapshot> QueryAsync(CancellationToken ct = default)
         => Task.FromResult(new DeviceSnapshot
         {
@@ -57,6 +61,7 @@ public sealed class StubAirConditioner(string id, string title, string? room = n
             ],
         });
 
+    /// <inheritdoc />
     public Task<CommandOutcome> ExecuteAsync(DeviceCommand command, CancellationToken ct = default)
     {
         switch (command)

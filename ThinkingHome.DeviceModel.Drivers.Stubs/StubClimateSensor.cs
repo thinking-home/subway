@@ -3,30 +3,33 @@ using ThinkingHome.DeviceModel.Commands;
 using ThinkingHome.DeviceModel.Properties;
 using ThinkingHome.DeviceModel.State;
 
-namespace ThinkingHome.Home;
+namespace ThinkingHome.DeviceModel.Drivers.Stubs;
 
 /// <summary>
 /// Заглушка климатической станции (температура + влажность + давление + заряд батареи, только чтение).
 /// Составное устройство по правилу композиции Matter: термометр, гигрометр и барометр — независимые
 /// прикладные роли, поэтому это три endpoint'а, а не несколько типов (или безбилетные кластеры) на одном.
 /// </summary>
-public sealed class StubClimateSensor(string id, string title, string? room = null) : IDevice
+public sealed class StubClimateSensor(string id, StubDeviceConfig config) : IDevice
 {
     private readonly double temperature = 23.5;
     private readonly double humidity = 41;
     private readonly double pressureKpa = 99.6;
     private readonly double battery = 87;
 
+    /// <inheritdoc />
     public string Id => id;
 
     // статический стаб: изменений не эмитит
+    /// <inheritdoc />
     public event Action<StateChange>? Changed { add { } remove { } }
 
+    /// <inheritdoc />
     public DeviceDescriptor Describe() => new()
     {
         Id = id,
-        Title = title,
-        Room = room,
+        Title = config.Title,
+        Room = config.Room,
         Manufacturer = new DeviceManufacturer { Name = "ThinkingHome", Model = "stub-climate" },
         Endpoints =
         [
@@ -55,6 +58,7 @@ public sealed class StubClimateSensor(string id, string title, string? room = nu
         ],
     };
 
+    /// <inheritdoc />
     public Task<DeviceSnapshot> QueryAsync(CancellationToken ct = default)
         => Task.FromResult(new DeviceSnapshot
         {
@@ -69,6 +73,7 @@ public sealed class StubClimateSensor(string id, string title, string? room = nu
         });
 
     // сенсор: команд нет
+    /// <inheritdoc />
     public Task<CommandOutcome> ExecuteAsync(DeviceCommand command, CancellationToken ct = default)
         => Task.FromResult(CommandOutcome.Unsupported);
 }

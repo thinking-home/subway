@@ -3,23 +3,26 @@ using ThinkingHome.DeviceModel.Commands;
 using ThinkingHome.DeviceModel.Properties;
 using ThinkingHome.DeviceModel.State;
 
-namespace ThinkingHome.Home;
+namespace ThinkingHome.DeviceModel.Drivers.Stubs;
 
 /// <summary>Заглушка датчика открытия (только чтение). true — контакт замкнут (закрыто).</summary>
-public sealed class StubContactSensor(string id, string title, string? room = null) : IDevice
+public sealed class StubContactSensor(string id, StubDeviceConfig config) : IDevice
 {
     private readonly bool contact = true;
 
+    /// <inheritdoc />
     public string Id => id;
 
     // статический стаб: изменений не эмитит
+    /// <inheritdoc />
     public event Action<StateChange>? Changed { add { } remove { } }
 
+    /// <inheritdoc />
     public DeviceDescriptor Describe() => new()
     {
         Id = id,
-        Title = title,
-        Room = room,
+        Title = config.Title,
+        Room = config.Room,
         Manufacturer = new DeviceManufacturer { Name = "ThinkingHome", Model = "stub-contact" },
         Endpoints = [new Endpoint
         {
@@ -29,6 +32,7 @@ public sealed class StubContactSensor(string id, string title, string? room = nu
         }],
     };
 
+    /// <inheritdoc />
     public Task<DeviceSnapshot> QueryAsync(CancellationToken ct = default)
         => Task.FromResult(new DeviceSnapshot
         {
@@ -37,6 +41,7 @@ public sealed class StubContactSensor(string id, string title, string? room = nu
         });
 
     // сенсор: команд нет
+    /// <inheritdoc />
     public Task<CommandOutcome> ExecuteAsync(DeviceCommand command, CancellationToken ct = default)
         => Task.FromResult(CommandOutcome.Unsupported);
 }

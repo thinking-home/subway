@@ -3,7 +3,7 @@ using ThinkingHome.DeviceModel.Capabilities;
 using ThinkingHome.DeviceModel.Commands;
 using ThinkingHome.DeviceModel.State;
 
-namespace ThinkingHome.Home;
+namespace ThinkingHome.DeviceModel.Drivers.Stubs;
 
 /// <summary>
 /// Заглушка шторы — одно свойство «положение» 0–100 % (0 — закрыта, 100 — открыта), как Window Covering
@@ -11,19 +11,22 @@ namespace ThinkingHome.Home;
 /// крайние положения, аналог Matter UpOrOpen/DownOrClose). Тумблер on_off для Алисы (умение + состояние)
 /// синтезирует маппер — в ядре отдельного on/off-состояния нет.
 /// </summary>
-public sealed class StubCurtain(string id, string title, string? room = null) : IDevice
+public sealed class StubCurtain(string id, StubDeviceConfig config) : IDevice
 {
     private int position; // 0 — закрыта, 100 — открыта
 
+    /// <inheritdoc />
     public string Id => id;
 
+    /// <inheritdoc />
     public event Action<StateChange>? Changed;
 
+    /// <inheritdoc />
     public DeviceDescriptor Describe() => new()
     {
         Id = id,
-        Title = title,
-        Room = room,
+        Title = config.Title,
+        Room = config.Room,
         Manufacturer = new DeviceManufacturer { Name = "ThinkingHome", Model = "stub-curtain" },
         Endpoints = [new Endpoint
         {
@@ -33,6 +36,7 @@ public sealed class StubCurtain(string id, string title, string? room = null) : 
         }],
     };
 
+    /// <inheritdoc />
     public Task<DeviceSnapshot> QueryAsync(CancellationToken ct = default)
         => Task.FromResult(new DeviceSnapshot
         {
@@ -40,6 +44,7 @@ public sealed class StubCurtain(string id, string title, string? room = null) : 
             Values = [new OpenState { Instance = OpenCapability.InstanceName, Value = position }],
         });
 
+    /// <inheritdoc />
     public Task<CommandOutcome> ExecuteAsync(DeviceCommand command, CancellationToken ct = default)
     {
         switch (command)
