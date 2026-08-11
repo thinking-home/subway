@@ -1,7 +1,7 @@
 # Быстрый старт
 
-За десять минут соберём хаб с одним устройством и поуправляем им из кода. Ни облака, ни Алисы, ни настоящего прибора не
-понадобится: вместо реле устройство будет писать в консоль.
+За несколько минут запустим домашний хаб с виртуальными устройствами и поменяем их набор, не написав ни строчки кода.
+Физические приборы не понадобятся.
 
 ## Что понадобится
 
@@ -11,139 +11,72 @@
 dotnet --version
 ```
 
-## Проект
-
-```bash
-dotnet new console -o MyHome
-cd MyHome
-dotnet add package ThinkingHome.DeviceModel
-dotnet add package ThinkingHome.DeviceModel.FluentApi
-```
-
-Первый пакет — ядро: модель устройств и хаб. Второй — API для управления устройствами из кода.
-
-## Устройство
-
-Драйвер реализует интерфейс `IDevice`: описывает устройство, отдаёт его состояние, исполняет команды и сообщает об
-изменениях. Создайте файл `Lamp.cs`:
-
-```csharp
-using ThinkingHome.DeviceModel;
-using ThinkingHome.DeviceModel.Capabilities;
-using ThinkingHome.DeviceModel.Commands;
-using ThinkingHome.DeviceModel.State;
-
-public sealed class Lamp(string id, string title) : IDevice
-{
-    private bool isOn;
-
-    public string Id => id;
-
-    // через это событие драйвер сообщает хабу, что состояние изменилось
-    public event Action<StateChange>? Changed;
-
-    // описание устройства: что это за прибор и чем в нём можно управлять
-    public DeviceDescriptor Describe() => new()
-    {
-        Id = id,
-        Title = title,
-        Endpoints =
-        [
-            new Endpoint
-            {
-                Id = 0,
-                Type = DeviceType.OnOffLight,
-                Capabilities = [new OnOffCapability { Instance = OnOffCapability.InstanceName }],
-            },
-        ],
-    };
-
-    // текущее состояние устройства
-    public Task<DeviceSnapshot> QueryAsync(CancellationToken ct = default)
-        => Task.FromResult(new DeviceSnapshot
-        {
-            DeviceId = id,
-            Values = [new OnOffState { Instance = OnOffCapability.InstanceName, Value = isOn }],
-        });
-
-    // исполнение команды: здесь драйвер обратился бы к прибору
-    public Task<CommandOutcome> ExecuteAsync(DeviceCommand command, CancellationToken ct = default)
-    {
-        if (command is not OnOffCommand cmd)
-        {
-            return Task.FromResult(CommandOutcome.Unsupported);
-        }
-
-        isOn = cmd.Value;
-        Console.WriteLine($"[{title}] {(isOn ? "включена" : "выключена")}");
-
-        Changed?.Invoke(new StateChange
-        {
-            DeviceId = id,
-            Value = new OnOffState { Instance = OnOffCapability.InstanceName, Value = isOn },
-        });
-
-        return Task.FromResult(CommandOutcome.Done);
-    }
-}
-```
-
-Устройство описано в терминах модели: тип `OnOffLight` — лампа с одним выключателем, способность `OnOff` — то, чем в ней
-можно управлять. Команду драйвер разбирает сопоставлением с образцом: `OnOffCommand` он понимает, остальные отклоняет
-результатом `Unsupported`.
-
-## Хаб
-
-Замените содержимое `Program.cs`:
-
-```csharp
-using ThinkingHome.DeviceModel;
-using ThinkingHome.DeviceModel.FluentApi;
-
-// хаб и подключённое к нему устройство
-var host = new DeviceHost();
-host.Register(new Lamp("lamp-1", "Лампа в коридоре"));
-
-var lamp = host.Device("lamp-1");
-
-// подписка на изменения состояния
-using var subscription = lamp.OnChanged(change => Console.WriteLine($"хаб получил отчёт: {change.Value}"));
-
-// команда и чтение состояния
-await lamp.OnOff().TurnOnAsync();
-Console.WriteLine($"лампа включена: {await lamp.OnOff().GetAsync()}");
-
-await lamp.OnOff().TurnOffAsync();
-Console.WriteLine($"лампа включена: {await lamp.OnOff().GetAsync()}");
-```
-
 ## Запуск
 
 ```bash
-dotnet run
+git clone https://github.com/thinking-home/subway.git
+cd subway
+dotnet run --project ThinkingHome.DeviceModel.Hub
 ```
 
 ```
-[Лампа в коридоре] включена
-хаб получил отчёт: OnOffState { EndpointId = 0, Instance = on_off, Value = True }
-лампа включена: True
-[Лампа в коридоре] выключена
-хаб получил отчёт: OnOffState { EndpointId = 0, Instance = on_off, Value = False }
-лампа включена: False
+info: ThinkingHome.DeviceModel.Hub[0]
+      Устройств зарегистрировано: 18
 ```
 
-В выводе видны все три вида обращений к устройству: команда дошла до драйвера и он напечатал строку, отчёт об изменении
-вернулся подписчику, а запрос состояния отдал текущее значение.
+Хаб запущен: восемнадцать виртуальных устройств — лампы, розетки, шторы, датчики, счётчики — созданы и готовы отвечать
+на запросы. Снаружи их пока никто не видит: к хабу не подключена ни одна экосистема. Этим займёмся после того, как
+разберёмся, откуда устройства взялись.
 
-## Что получилось
+## Откуда взялись устройства
 
-Хаб с одним устройством, которым можно управлять из кода. Дальше он расширяется в стороны, не меняясь внутри:
+Из конфигурации. Откройте `ThinkingHome.DeviceModel.Hub/appsettings.json` — вот его суть в сокращённом виде:
 
-- **больше устройств** — зарегистрировать в хабе ещё несколько драйверов;
-- **настоящий прибор** — заменить печать в консоль обращением к нему по его протоколу;
-- **голосовое управление** — подключить адаптер экосистемы и прокси, чтобы дом стал виден снаружи.
+```json
+{
+  "Hub": {
+    "Plugins": [
+      "ThinkingHome.DeviceModel.Drivers.Stubs.StubsPlugin, ThinkingHome.DeviceModel.Drivers.Stubs"
+    ]
+  },
+  "StubDevices": {
+    "Devices": [
+      { "Id": "lamp-1", "Kind": "OnOffLight", "Title": "Лампа в коридоре", "Room": "Коридор" },
+      { "Id": "climate-1", "Kind": "ClimateSensor", "Title": "Датчик климата", "Room": "Кабинет" }
+    ]
+  }
+}
+```
+
+Секция `Hub:Plugins` перечисляет подключённые плагины — источники устройств. Сейчас подключён один: плагин виртуальных
+устройств-заглушек. Свои устройства он берёт из секции `StubDevices`: каждая запись — одно устройство с идентификатором,
+разновидностью (`Kind`), названием и комнатой.
+
+## Поменяйте набор устройств
+
+Добавьте в список `StubDevices:Devices` ещё одну запись:
+
+```json
+{ "Id": "fan-2", "Kind": "Fan", "Title": "Вентилятор на кухне", "Room": "Кухня" }
+```
+
+и перезапустите хаб:
+
+```
+info: ThinkingHome.DeviceModel.Hub[0]
+      Устройств зарегистрировано: 19
+```
+
+Так собирается дом: устройства описываются в конфигурации, хаб создаёт их при старте. Ошибок конфигурации хаб не
+прощает: опечатка в `Kind` или пустой `Id` остановят запуск с сообщением о том, что и где исправить.
+
+Доступные разновидности виртуальных устройств: `OnOffLight`, `OnOffSocket`, `OnOffSwitch`, `DimmableLamp`,
+`ColorTemperatureLamp`, `ColorLamp`, `Curtain`, `Fan`, `AirConditioner`, `ClimateSensor`, `MotionSensor`,
+`ContactSensor`, `WaterLeakSensor`, `LightSensor`, `AirQualitySensor`, `WaterMeter`.
 
 ## Что дальше
 
-- [Нейтральная модель](/guide/model) — из чего складывается описание устройства и почему оно устроено именно так;
-- [Карта пакетов](/packages/) — какие библиотеки за что отвечают.
+- [Hub — домашний хаб](/apps/hub) — вся конфигурация приложения, включая подключение к облачному прокси, чтобы
+  устройствами управляла Алиса;
+- [Нейтральная модель](/guide/model) — как устроено описание устройства;
+- [Первое устройство в коде](/packages/device-model) — путь для разработчика: свой драйвер и управление устройствами из C#.
