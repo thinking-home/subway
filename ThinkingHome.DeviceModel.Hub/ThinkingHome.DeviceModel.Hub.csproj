@@ -9,6 +9,10 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <InternalsVisibleTo Include="ThinkingHome.DeviceModel.Tests" />
+    </ItemGroup>
+
+    <ItemGroup>
         <!-- как в Worker SDK: неймспейсы Generic Host доступны без using в каждом файле -->
         <Using Include="Microsoft.Extensions.Configuration" />
         <Using Include="Microsoft.Extensions.DependencyInjection" />

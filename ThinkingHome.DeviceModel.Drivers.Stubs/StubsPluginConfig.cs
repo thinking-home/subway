@@ -13,8 +13,12 @@ public sealed class StubDeviceEntry
     /// <summary>Стабильный идентификатор устройства.</summary>
     public string Id { get; set; } = "";
 
-    /// <summary>Разновидность виртуального устройства.</summary>
-    public StubDeviceKind Kind { get; set; }
+    /// <summary>
+    /// Разновидность виртуального устройства — имя значения <see cref="StubDeviceKind"/>.
+    /// Строка, а не enum: биндер конфигурации молча выбрасывает записи списка с неконвертируемыми
+    /// значениями, а строка биндится всегда — ошибка парсинга остаётся нашей и получает внятный текст.
+    /// </summary>
+    public string Kind { get; set; } = "";
 
     /// <summary>Человекочитаемое название.</summary>
     public string Title { get; set; } = "";

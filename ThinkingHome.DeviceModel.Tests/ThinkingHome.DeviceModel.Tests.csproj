@@ -24,6 +24,8 @@
     <ProjectReference Include="..\ThinkingHome.Alice\ThinkingHome.Alice.csproj" />
     <ProjectReference Include="..\ThinkingHome.Alice.Service\ThinkingHome.Alice.Service.csproj" />
     <ProjectReference Include="..\ThinkingHome.DeviceModel.FluentApi\ThinkingHome.DeviceModel.FluentApi.csproj" />
+    <ProjectReference Include="..\ThinkingHome.DeviceModel.Hub\ThinkingHome.DeviceModel.Hub.csproj" />
+    <ProjectReference Include="..\ThinkingHome.DeviceModel.Drivers.Stubs\ThinkingHome.DeviceModel.Drivers.Stubs.csproj" />
   </ItemGroup>
 
 </Project>

@@ -31,9 +31,18 @@ public sealed class StubsPlugin(IConfiguration configuration) : IDevicePlugin
 
     private static IDevice Create(StubDeviceEntry entry)
     {
+        // TryParse принимает и число строкой ("42" → несуществующее значение), поэтому IsDefined
+        if (!Enum.TryParse<StubDeviceKind>(entry.Kind, ignoreCase: true, out var kind)
+            || !Enum.IsDefined(kind))
+        {
+            throw new InvalidOperationException(
+                $"{SectionName}: устройство '{entry.Id}' — неизвестный Kind '{entry.Kind}'. " +
+                $"Допустимые значения: {string.Join(", ", Enum.GetNames<StubDeviceKind>())}.");
+        }
+
         var config = new StubDeviceConfig { Title = entry.Title, Room = entry.Room };
 
-        return entry.Kind switch
+        return kind switch
         {
             StubDeviceKind.OnOffLight => OnOff(entry, DeviceType.OnOffLight),
             StubDeviceKind.OnOffSocket => OnOff(entry, DeviceType.OnOffSocket),
@@ -52,7 +61,7 @@ public sealed class StubsPlugin(IConfiguration configuration) : IDevicePlugin
             StubDeviceKind.AirQualitySensor => new StubAirQualitySensor(entry.Id, config),
             StubDeviceKind.WaterMeter => new StubWaterius(entry.Id, config),
             _ => throw new InvalidOperationException(
-                $"{SectionName}: устройство '{entry.Id}' — неизвестный Kind '{entry.Kind}'."),
+                $"{SectionName}: устройство '{entry.Id}' — Kind '{kind}' не поддержан плагином."),
         };
     }
 
