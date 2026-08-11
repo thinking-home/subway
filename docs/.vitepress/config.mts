@@ -4,7 +4,6 @@ import { defineConfig } from 'vitepress'
 const referenceAssemblies = [
     'ThinkingHome.DeviceModel',
     'ThinkingHome.DeviceModel.FluentApi',
-    'ThinkingHome.DeviceModel.Remoting',
     'ThinkingHome.DeviceModel.Remoting.ProxyClient',
     'ThinkingHome.DeviceModel.Remoting.ProxyServer',
     'ThinkingHome.DeviceModel.Drivers.Stubs',
@@ -58,7 +57,7 @@ export default defineConfig({
                     text: 'Приложения',
                     items: [
                         { text: 'Proxy — облачный прокси', link: '/apps/proxy' },
-                        { text: 'Home — демо-хост', link: '/apps/home' },
+                        { text: 'Hub — домашний хаб', link: '/apps/hub' },
                         { text: 'Деплой в облако', link: '/apps/deploy' },
                         { text: 'Навык Алисы', link: '/apps/alice-skill' },
                     ],

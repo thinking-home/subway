@@ -9,7 +9,6 @@ cd "$(dirname "$0")/.."
 ASSEMBLIES=(
     ThinkingHome.DeviceModel
     ThinkingHome.DeviceModel.FluentApi
-    ThinkingHome.DeviceModel.Remoting
     ThinkingHome.DeviceModel.Remoting.ProxyClient
     ThinkingHome.DeviceModel.Remoting.ProxyServer
     ThinkingHome.DeviceModel.Drivers.Stubs

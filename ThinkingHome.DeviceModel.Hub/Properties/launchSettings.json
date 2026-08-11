@@ -1,6 +1,6 @@
 {
   "profiles": {
-    "ThinkingHome.Home": {
+    "ThinkingHome.DeviceModel.Hub": {
       "commandName": "Project",
       "environmentVariables": {
         "THINKINGHOME_ENVIRONMENT": "Development"

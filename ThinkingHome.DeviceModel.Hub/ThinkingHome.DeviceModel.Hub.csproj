@@ -5,8 +5,16 @@
         <TargetFramework>net10.0</TargetFramework>
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
-        <UserSecretsId>thinkinghome-home</UserSecretsId>
+        <UserSecretsId>thinkinghome-devicemodel-hub</UserSecretsId>
     </PropertyGroup>
+
+    <ItemGroup>
+        <!-- как в Worker SDK: неймспейсы Generic Host доступны без using в каждом файле -->
+        <Using Include="Microsoft.Extensions.Configuration" />
+        <Using Include="Microsoft.Extensions.DependencyInjection" />
+        <Using Include="Microsoft.Extensions.Hosting" />
+        <Using Include="Microsoft.Extensions.Logging" />
+    </ItemGroup>
 
     <ItemGroup>
         <None Update="appsettings*.json" CopyToOutputDirectory="PreserveNewest" />
@@ -19,10 +27,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <PackageReference Include="Microsoft.Extensions.Configuration.CommandLine" Version="10.0.10" />
-      <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="10.0.10" />
-      <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="10.0.10" />
-      <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="10.0.10" />
+        <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.10" />
     </ItemGroup>
 
 </Project>

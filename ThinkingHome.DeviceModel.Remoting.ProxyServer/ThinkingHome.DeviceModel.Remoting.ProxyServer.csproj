@@ -21,7 +21,6 @@
 
     <ItemGroup>
         <ProjectReference Include="..\ThinkingHome.DeviceModel\ThinkingHome.DeviceModel.csproj" />
-        <ProjectReference Include="..\ThinkingHome.DeviceModel.Remoting\ThinkingHome.DeviceModel.Remoting.csproj" />
     </ItemGroup>
 
     <ItemGroup>

@@ -1,16 +1,13 @@
 using ThinkingHome.DeviceModel.Remoting.ProxyClient;
 
-namespace ThinkingHome.Home;
+namespace ThinkingHome.DeviceModel.Hub;
 
-/// <summary>
-/// Доставка OTP в лог хоста: владелец читает код, залогинившись на машину (доступ к логам = право привязки).
-/// Одна из возможных реализаций — потребитель может заменить на email и т.п.
-/// </summary>
-public sealed class LogOtpDelivery : IOtpDelivery
+/// <summary>Доставка кода привязки в журнал хаба — код вводят на странице привязки прокси.</summary>
+internal sealed class LogOtpDelivery(ILogger<LogOtpDelivery> logger) : IOtpDelivery
 {
     public Task DeliverAsync(string otp, CancellationToken ct = default)
     {
-        Console.WriteLine($"[ПРИВЯЗКА] Одноразовый код: {otp} (действует 2 минуты)");
+        logger.LogInformation("[ПРИВЯЗКА] Одноразовый код: {Otp} (действует 2 минуты)", otp);
         return Task.CompletedTask;
     }
 }
